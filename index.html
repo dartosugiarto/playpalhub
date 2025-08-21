@@ -13,7 +13,7 @@
       --bg:#ffffff; --text:#1f2937; --muted:#6b7280;
       --surface:#f3f3f3; --border:#e5e7eb; --surface-hover:#e9e9e9;
       --primary:#5C80BC; --primary-hover:#4a6b9a;
-      --maxw:700px; --radius:8px;
+      --maxw:1100px; --radius:8px;
     }
     @media (prefers-color-scheme: dark){
       :root{
@@ -32,15 +32,16 @@
     .wrap{max-width:var(--maxw); margin:0 auto; padding:32px 16px}
 
     /* HEADER */
-    header{ position:relative; text-align:center; margin-bottom:24px; }
-    header .logo{ height:50px; width:auto; margin-bottom:12px; }
-    header h1{ margin:0 0 4px; font-size:clamp(24px,4vw,30px); font-weight:800; }
-    header p{ margin:0; color:var(--muted); font-size:15px; }
+    header{ position:relative; text-align:center; margin-bottom:16px; }
+    .topbar{display:flex; align-items:center; justify-content:center; gap:12px}
+    header .logo{ height:44px; width:auto; }
+    header h1{ margin:6px 0 0; font-size:clamp(22px,4vw,28px); font-weight:800; }
+    header p{ margin:4px 0 0; color:var(--muted); font-size:14px; }
 
     /* Mode badge */
     .mode-badge{
       display:inline-flex; align-items:center; gap:8px;
-      margin-top:12px; padding:6px 10px; border:1px solid var(--border);
+      margin-top:10px; padding:6px 10px; border:1px solid var(--border);
       background:var(--surface); border-radius:999px; font-size:12px; color:var(--muted);
     }
     .mode-dot{ width:8px; height:8px; border-radius:50%; background:var(--primary); }
@@ -63,7 +64,7 @@
       border-radius:var(--radius);
       box-shadow:0 4px 16px rgba(0,0,0,0.15);
       display:none; flex-direction:column;
-      min-width:180px; overflow:hidden;
+      min-width:180px; overflow:hidden; z-index:20;
     }
     .menu .menu-btn{
       padding:12px 16px; border:0; background:transparent; text-align:left;
@@ -73,7 +74,8 @@
     .menu .menu-btn:hover{ background:var(--surface-hover); }
     .menu .menu-divider{ height:1px; background:var(--border); margin:4px 0; }
 
-    /* Tools & list */
+    /* ====== VIEW: KATALOG (Sheet3) ====== */
+    #viewCatalog{ display:block; }
     .select-wrap{ position:relative; margin:20px 0; }
     .game-select{
       width:100%; padding:12px 16px; border:1px solid var(--border);
@@ -84,14 +86,13 @@
       background-repeat:no-repeat; background-position:right 12px center; background-size:20px;
     }
     .tools{display:flex; flex-wrap:wrap; align-items:center; margin-bottom:16px}
-    .search-wrap{position:relative; flex:1 1 250px;}
+    .search-wrap{position:relative; flex:1 1 260px;}
     .search-wrap svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--muted); }
     .tools input[type="search"]{
       width:100%; padding:8px 12px 8px 38px; border:1px solid var(--border);
       background:var(--bg); color:var(--text); border-radius:var(--radius); font-size:14px;
     }
     .tools .info{color:var(--muted); font-size:13px; font-weight:500; padding-left:12px;}
-
     .list-container{ display:flex; flex-direction:column; gap:8px; }
     .list-item{
       display:flex; justify-content:space-between; align-items:center;
@@ -101,20 +102,89 @@
     .list-item:hover{ background-color:var(--surface-hover); }
     .list-item .title{ font-size:14px; font-weight:500; color:var(--text); }
     .list-item .price{ font-size:14px; font-weight:600; color:var(--primary); }
-
     .empty, .err{ border:1px dashed var(--border); border-radius:var(--radius); padding:40px; text-align:center; color:var(--muted); font-size:14px; }
     .err{ border:1px solid #ef4444; background:#fef2f2; color:#b91c1c; display:none }
     @media (prefers-color-scheme: dark){ .err{background:#2a0c0c; color:#fca5a5; border-color:#7f1d1d} }
+
+    /* ====== VIEW: PRE-ORDER (Sheet1, Ultimate UI) ======
+       Semua selector diprefix #viewPreorder agar tidak bentrok. */
+    #viewPreorder{ display:none; }
+    #viewPreorder .container{ max-width:1100px; margin:0 auto; padding:24px 0; display:flex; flex-direction:column; gap:24px; }
+    #viewPreorder .po-head{
+      position:sticky; top:0; z-index:10; background:rgba(255,255,255,.75);
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border); padding:12px 0 10px;
+    }
+    @media (prefers-color-scheme: dark){
+      #viewPreorder .po-head{ background:rgba(31,41,55,.75); border-bottom-color:var(--border); }
+    }
+    #viewPreorder .head-row{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    #viewPreorder .po-title{ font-size:20px; font-weight:700; margin:0; }
+    #viewPreorder .po-sub{ font-size:13px; color:var(--muted); margin:2px 0 0; }
+    #viewPreorder .theme-toggle{ position:relative; width:56px; height:32px; background:var(--surface); border-radius:16px; border:1px solid var(--border); cursor:pointer; display:flex; align-items:center; padding:0 3px; -webkit-tap-highlight-color:transparent; }
+    #viewPreorder .theme-toggle-knob{ width:26px; height:26px; background:var(--bg); border-radius:50%; position:relative; box-shadow:0 1px 3px rgba(0,0,0,0.1); transform:translateX(0); transition:all .35s cubic-bezier(.4,0,.2,1); }
+    /* tema lokal: toggle hanya memengaruhi #viewPreorder, bukan halaman global */
+    #viewPreorder.dark{ --bg:#121212; --text:#F5F5F7; --muted:#A0A0A0; --surface:#1E1E1E; --surface-hover:#2A2A2A; --border:#333; }
+    #viewPreorder.dark .theme-toggle{ background:var(--surface); border-color:var(--border); }
+    #viewPreorder.dark .theme-toggle-knob{ transform:translateX(24px); background:var(--surface); }
+    #viewPreorder .controls{ display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px; margin-top:8px; }
+    @media (max-width:768px){ #viewPreorder .controls{ grid-template-columns:1fr; } }
+    #viewPreorder .search-input, #viewPreorder .filter-select{
+      width:100%; height:46px; padding:0 14px; font-size:15px; background:var(--bg);
+      border:1px solid var(--border); border-radius:12px; color:var(--text); outline:none;
+    }
+    #viewPreorder .search-input:focus, #viewPreorder .filter-select:focus{
+      border-color:#3B82F6; box-shadow:0 0 0 3px rgba(59,130,246,.2);
+    }
+    #viewPreorder .card-grid{ display:flex; flex-direction:column; gap:12px; }
+    #viewPreorder .card{
+      background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:18px 20px;
+      transition:all .3s ease; box-shadow:0 2px 8px rgba(0,0,0,.04);
+    }
+    #viewPreorder .card.clickable{ cursor:pointer; }
+    #viewPreorder .card.clickable:hover{ transform:translateY(-2px); box-shadow:0 6px 15px rgba(0,0,0,.06); }
+    #viewPreorder .card-header{ display:grid; grid-template-columns:1fr auto; gap:10px; align-items:start; }
+    #viewPreorder .card-name{ font-size:16px; font-weight:700; }
+    #viewPreorder .card-product{ font-size:14px; color:var(--muted); }
+    #viewPreorder .card-date{ font-size:12px; color:var(--muted); margin-top:8px; grid-column:1 / -1; }
+    #viewPreorder .status-badge{ display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:8px; font-size:11px; font-weight:700; text-transform:uppercase; border:1px solid transparent; }
+    #viewPreorder .status-badge::before{ content:''; width:6px; height:6px; border-radius:50%; }
+    #viewPreorder .status-badge.success{ color:#22C55E; background:rgba(34,197,94,.1); border-color:rgba(34,197,94,.2); }
+    #viewPreorder .status-badge.success::before{ background:#22C55E; }
+    #viewPreorder .status-badge.progress{ color:#3B82F6; background:rgba(59,130,246,.1); border-color:rgba(59,130,246,.2); }
+    #viewPreorder .status-badge.progress::before{ background:#3B82F6; }
+    #viewPreorder .status-badge.pending{ color:#F59E0B; background:rgba(245,158,11,.1); border-color:rgba(245,158,11,.2); }
+    #viewPreorder .status-badge.pending::before{ background:#F59E0B; }
+    #viewPreorder .status-badge.failed{ color:#EF4444; background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.2); }
+    #viewPreorder .status-badge.failed::before{ background:#EF4444; }
+    #viewPreorder .card-details{ max-height:0; overflow:hidden; opacity:0; transition:all .35s ease; margin-top:0; }
+    #viewPreorder .card.expanded .card-details{ max-height:500px; opacity:1; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+    #viewPreorder .details-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+    #viewPreorder .detail-label{ font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+    #viewPreorder .detail-value{ font-size:14px; font-weight:600; }
+    #viewPreorder .pagination{ display:flex; justify-content:center; align-items:center; gap:10px; margin-top:12px; }
+    #viewPreorder .pagination-btn{ padding:0 22px; height:42px; background:var(--bg); border:1px solid var(--border); border-radius:12px; font-size:14px; font-weight:600; color:var(--text); cursor:pointer; transition:all .2s ease; }
+    #viewPreorder .pagination-btn:hover:not(:disabled){ background:#3B82F6; color:#fff; border-color:#3B82F6; transform:translateY(-1px); }
+    #viewPreorder .pagination-btn:disabled{ opacity:.45; cursor:not-allowed; }
+    #viewPreorder .loading, #viewPreorder .empty-state{ text-align:center; padding:48px 12px; }
+    #viewPreorder .spinner{ width:22px; height:22px; border:2px solid var(--surface-hover); border-top:2px solid #3B82F6; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 12px; }
+    @keyframes spin{100%{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
   <main class="wrap">
     <header>
-      <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
+      <div class="topbar">
+        <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
+        <div class="mode-badge" id="modeBadge" aria-live="polite">
+          <span class="mode-dot" aria-hidden="true"></span>
+          <span id="modeText">Mode: Katalog</span>
+        </div>
+      </div>
       <h1>PlayPal.ID</h1>
       <p>Destinasi Utama Para Pecinta Game, Film &amp; Musik</p>
 
-      <!-- Burger menu -->
+      <!-- Burger -->
       <div class="burger" id="burger" aria-label="Menu" aria-expanded="false" role="button" tabindex="0">
         <span></span><span></span><span></span>
       </div>
@@ -124,43 +194,81 @@
         <div class="menu-divider"></div>
         <button class="menu-btn" id="closeMenu" type="button">Tutup</button>
       </nav>
-
-      <div class="mode-badge" id="modeBadge" aria-live="polite">
-        <span class="mode-dot" aria-hidden="true"></span>
-        <span id="modeText">Mode: Katalog</span>
-      </div>
     </header>
 
-    <div class="select-wrap">
-      <select id="game-select" class="game-select" aria-label="Pilih Kategori"></select>
-    </div>
-
-    <div class="tools">
-      <div class="search-wrap">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
-        <input id="search" type="search" placeholder="Cari item..." aria-label="Cari">
+    <!-- ====== VIEW: KATALOG ====== -->
+    <section id="viewCatalog" aria-labelledby="modeText">
+      <div class="select-wrap">
+        <select id="game-select" class="game-select" aria-label="Pilih Kategori"></select>
       </div>
-      <span id="countInfo" class="info"></span>
-    </div>
 
-    <section id="list-container" class="list-container" aria-live="polite"></section>
-    <section id="error" class="err"></section>
+      <div class="tools">
+        <div class="search-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
+          <input id="search" type="search" placeholder="Cari item..." aria-label="Cari">
+        </div>
+        <span id="countInfo" class="info"></span>
+      </div>
 
-    <template id="itemTmpl">
-      <a class="list-item" target="_blank" rel="noopener">
-        <span class="title"></span>
-        <span class="price"></span>
-      </a>
-    </template>
+      <section id="list-container" class="list-container" aria-live="polite"></section>
+      <section id="error" class="err"></section>
+
+      <template id="itemTmpl">
+        <a class="list-item" target="_blank" rel="noopener">
+          <span class="title"></span>
+          <span class="price"></span>
+        </a>
+      </template>
+    </section>
+
+    <!-- ====== VIEW: PRE-ORDER ====== -->
+    <section id="viewPreorder" aria-label="Pre-Order">
+      <div class="po-head">
+        <div class="head-row">
+          <div>
+            <h2 class="po-title">PlayPal Pre-Order</h2>
+            <p class="po-sub" id="poTotal">Memuat total pesanan...</p>
+          </div>
+          <button class="theme-toggle" id="poThemeToggle" aria-label="Toggle tema Pre-Order">
+            <span class="theme-toggle-knob"></span>
+          </button>
+        </div>
+
+        <div class="controls" aria-label="Kontrol data">
+          <input type="search" class="search-input" id="poSearch" placeholder="Cari nama atau nomor telepon..." />
+          <select class="filter-select" id="poStatus" aria-label="Filter status">
+            <option value="all">Semua Status</option>
+            <option value="success">Success</option>
+            <option value="progress">Progress</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Gagal</option>
+          </select>
+          <select class="filter-select" id="poSheet" aria-label="Filter sheet">
+            <!-- Default pakai Sheet1 sesuai permintaan; opsi lain siap jika dibutuhkan -->
+            <option value="0">Sheet1 · Gift Starlight</option>
+            <option value="1">Sheet2 · PO Event Misi</option>
+            <option value="2">Sheet3 · Pre Order Skin</option>
+            <option value="3">Sheet4 · Pre Order Joki</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="container">
+        <main class="card-grid" id="poList" aria-live="polite"></main>
+        <nav class="pagination" aria-label="Pagination">
+          <button class="pagination-btn" id="poPrev" disabled>Sebelumnya</button>
+          <button class="pagination-btn" id="poNext" disabled>Selanjutnya</button>
+        </nav>
+      </div>
+    </section>
   </main>
 
   <script>
-    // ========= KONFIG =========
+    // ========= GLOBAL KONFIG =========
     const SHEET_ID = '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw';
-    // Sheet3 = katalog normal, Sheet1 = preorder
     const SHEETS = {
-      katalog : { name:'Sheet3' },
-      preorder: { name:'Sheet1' } // <<-- sesuai permintaan: "sheet satu" sebagai Pre-Order
+      katalog : { name:'Sheet3' },   // katalog normal
+      preorder: { name:'Sheet1' }    // pre-order default Sheet1 (sesuai permintaan)
     };
     const WA_NUMBER   = '6285877001999';
     const WA_GREETING = '*Detail pesanan:*';
@@ -175,18 +283,49 @@
     }
     burger.addEventListener('click', () => setMenuOpen(menu.style.display !== 'flex'));
     document.getElementById('closeMenu').addEventListener('click', () => setMenuOpen(false));
-    // Tutup menu saat klik di luar
     document.addEventListener('click', (e) => {
       if (!menu.contains(e.target) && !burger.contains(e.target)) setMenuOpen(false);
     });
 
-    // ========= UTIL / PARSER =========
+    // ========= MODE SWITCH =========
+    const viewCatalog  = document.getElementById('viewCatalog');
+    const viewPreorder = document.getElementById('viewPreorder');
+    const modeText     = document.getElementById('modeText');
+    const modeBadge    = document.getElementById('modeBadge');
+    let MODE = 'katalog'; // 'katalog' | 'preorder'
+
+    function setMode(next){
+      MODE = next;
+      modeText.textContent = 'Mode: ' + (MODE === 'preorder' ? 'Pre-Order' : 'Katalog');
+      viewCatalog.style.display  = MODE === 'katalog'  ? 'block' : 'none';
+      viewPreorder.style.display = MODE === 'preorder' ? 'block' : 'none';
+      setMenuOpen(false);
+      if (MODE === 'preorder' && poState.initialized === false){
+        poInit(); // lazy init UI PO ketika pertama kali dibuka
+      }
+    }
+    menu.querySelectorAll('.menu-btn[data-mode]').forEach(btn => {
+      btn.addEventListener('click', () => setMode(btn.getAttribute('data-mode')));
+    });
+
+    // ========= UTIL UMUM =========
     function prettyLabel(raw){ return String(raw||'').trim().replace(/\s+/g,' '); }
     const toIDR = v => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(v);
-    const sheetUrl = (sheetName) =>
+    const sheetUrlJSON = (sheetName) =>
       `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
+    const sheetUrlCSV = (sheetIndex0) =>
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet${sheetIndex0+1}`;
 
-    // Parser GViz kolom berpasangan (Judul | Harga)
+    // ========= VIEW KATALOG (GViz JSON pasangan kolom) =========
+    const gameSelectEl = document.getElementById('game-select');
+    const listEl = document.getElementById('list-container');
+    const searchEl = document.getElementById('search');
+    const countInfoEl = document.getElementById('countInfo');
+    const itemTmpl = document.getElementById('itemTmpl');
+    const errBox = document.getElementById('error');
+
+    let DATA = [], CATS = [], activeCat = '', query = '';
+
     function parseGVizPairs(jsonText){
       const m = jsonText.match(/\{.*\}/s);
       if(!m) throw new Error('Response GViz tidak valid.');
@@ -212,45 +351,22 @@
       return out;
     }
 
-    // ========= STATE =========
-    const gameSelectEl = document.getElementById('game-select');
-    const listEl = document.getElementById('list-container');
-    const searchEl = document.getElementById('search');
-    const countInfoEl = document.getElementById('countInfo');
-    const itemTmpl = document.getElementById('itemTmpl');
-    const errBox = document.getElementById('error');
-    const modeText = document.getElementById('modeText');
-
-    let MODE = 'katalog'; // 'katalog' | 'preorder'
-    let DATA = { katalog:[], preorder:[] };
-    let CATS = { katalog:[], preorder:[] };
-    let activeCat = '';
-    let query = '';
-
-    function updateBadge(){
-      modeText.textContent = 'Mode: ' + (MODE === 'preorder' ? 'Pre-Order' : 'Katalog');
-    }
-
-    function buildCatsFor(mode){
-      const map = new Map();
-      DATA[mode].forEach(it => { if(!map.has(it.catKey)) map.set(it.catKey, it.catLabel); });
-      CATS[mode] = [...map].map(([key,label]) => ({key,label}));
-    }
-
     function buildGameSelect(){
+      const map = new Map();
+      DATA.forEach(it => { if(!map.has(it.catKey)) map.set(it.catKey, it.catLabel) });
+      CATS = [...map].map(([key,label]) => ({key,label}));
       gameSelectEl.innerHTML = '';
-      CATS[MODE].forEach(c => {
+      CATS.forEach(c => {
         const option = document.createElement('option');
         option.value = c.key;
         option.textContent = c.label;
         gameSelectEl.appendChild(option);
       });
-      activeCat = CATS[MODE][0]?.key || '';
+      activeCat = CATS[0]?.key || '';
     }
 
     function renderList(){
-      const items = DATA[MODE].filter(x =>
-        (activeCat ? x.catKey === activeCat : true) &&
+      const items = DATA.filter(x => x.catKey === activeCat &&
         (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))
       );
       listEl.innerHTML = '';
@@ -265,8 +381,7 @@
         const link = clone.querySelector('.list-item');
         link.querySelector('.title').textContent = it.title;
         link.querySelector('.price').textContent = toIDR(it.price);
-        const tipeLabel = MODE === 'preorder' ? 'Pre-Order' : 'Katalog';
-        const text = `${WA_GREETING}\n› Tipe: ${tipeLabel}\n› Game: ${it.catLabel}\n› Item: ${it.title}\n› Harga: ${toIDR(it.price)}`;
+        const text = `${WA_GREETING}\n› Tipe: Katalog\n› Game: ${it.catLabel}\n› Item: ${it.title}\n› Harga: ${toIDR(it.price)}`;
         link.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
         fragment.appendChild(clone);
       }
@@ -274,63 +389,20 @@
       countInfoEl.textContent = `${items.length} item`;
     }
 
-    // ========= EVENT =========
     gameSelectEl.addEventListener('change', e => { activeCat = e.target.value; renderList(); });
-
     let debounceTimer;
     searchEl.addEventListener('input', e => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        query = e.target.value.trim().toLowerCase();
-        renderList();
-      }, 150);
+      debounceTimer = setTimeout(() => { query = e.target.value.trim().toLowerCase(); renderList(); }, 150);
     });
 
-    // Switch mode dari menu
-    menu.querySelectorAll('.menu-btn[data-mode]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const nextMode = btn.getAttribute('data-mode');
-        if (MODE !== nextMode){
-          MODE = nextMode;
-          updateBadge();
-          if (CATS[MODE].length === 0 && DATA[MODE].length === 0){
-            // kalau belum ter-load, akan terisi saat loadAll resolve (sudah terjadi lebih dulu)
-          }
-          buildGameSelect();
-          renderList();
-        }
-        setMenuOpen(false);
-      });
-    });
-
-    // ========= LOAD =========
-    async function loadSheet(sheetName){
-      const res = await fetch(sheetUrl(sheetName), { cache:'no-store' });
-      const txt = await res.text();
-      return parseGVizPairs(txt);
-    }
-
-    async function loadAll(){
+    async function loadCatalog(){
       try{
         errBox.style.display = 'none';
-        const [dataKatalog, dataPre] = await Promise.all([
-          loadSheet(SHEETS.katalog.name),
-          loadSheet(SHEETS.preorder.name)
-        ]);
-        DATA.katalog = dataKatalog;
-        DATA.preorder = dataPre;
-
-        if (DATA.katalog.length === 0 && DATA.preorder.length === 0){
-          throw new Error('Data kosong di kedua sheet atau format kolom tidak sesuai.');
-        }
-
-        buildCatsFor('katalog');
-        buildCatsFor('preorder');
-
-        // Default masuk ke Katalog, tapi kalau kosong, otomatis ke Pre-Order
-        if (CATS.katalog.length === 0 && CATS.preorder.length > 0) MODE = 'preorder';
-
-        updateBadge();
+        const res = await fetch(sheetUrlJSON(SHEETS.katalog.name), {cache:'no-store'});
+        const txt = await res.text();
+        DATA = parseGVizPairs(txt);
+        if(DATA.length === 0) throw new Error('Data kosong atau format kolom tidak sesuai.');
         buildGameSelect();
         renderList();
       }catch(err){
@@ -338,7 +410,166 @@
         errBox.textContent = `Gagal memuat data: ${err.message}`;
       }
     }
-    loadAll();
+    loadCatalog();
+
+    // ========= VIEW PRE-ORDER (CSV, PRIVACY-AWARE) =========
+    const poRoot   = document.getElementById('viewPreorder');
+    const poToggle = document.getElementById('poThemeToggle');
+    const poSearch = document.getElementById('poSearch');
+    const poStatus = document.getElementById('poStatus');
+    const poSheet  = document.getElementById('poSheet');
+    const poList   = document.getElementById('poList');
+    const poPrev   = document.getElementById('poPrev');
+    const poNext   = document.getElementById('poNext');
+    const poTotal  = document.getElementById('poTotal');
+
+    const poState = {
+      initialized:false,
+      allData:[],
+      currentPage:1,
+      perPage:15
+    };
+
+    function poApplyTheme(){
+      // toggle tema lokal hanya di #viewPreorder
+      poRoot.classList.toggle('dark');
+      localStorage.setItem('poTheme', poRoot.classList.contains('dark') ? 'dark' : 'light');
+    }
+    poToggle.addEventListener('click', poApplyTheme);
+
+    function poHiddenKeysFor(item){
+      // Kunci yang disembunyikan: seluruh variasi nomor telp + kolom teknis tak bernama
+      const base = ['Nickname','Produk / Item','Status','Est. Pengiriman','ID / Nick Gift',
+                    'No Telepon','Nomor Telepon','Nomor HP','Telpon'];
+      const anon = Object.keys(item).filter(k => k.startsWith('col_'));
+      return new Set([...base, ...anon]);
+    }
+
+    function poFilterData(){
+      const q = poSearch.value.trim().toLowerCase();
+      const status = poStatus.value; // all | success | progress | pending | failed
+      return poState.allData.filter(item => {
+        const name = (item['Nickname'] || '').toLowerCase();
+        const phone = (item['No Telepon'] || item['Nomor Telepon'] || item['Nomor HP'] || item['Telpon'] || '').toLowerCase();
+        let s = (item['Status'] || '').toLowerCase();
+        if(s === 'gagal') s = 'failed';
+        const match = name.includes(q) || phone.includes(q);
+        return match && (status === 'all' || s === status);
+      });
+    }
+
+    function poUpdatePagination(cur,total){
+      poPrev.disabled = cur <= 1;
+      poNext.disabled = cur >= total;
+    }
+
+    function poRender(){
+      const filtered = poFilterData();
+      poTotal.textContent = `Total Pesanan: ${poState.allData.length}`;
+      const totalPages = Math.max(1, Math.ceil(filtered.length / poState.perPage));
+      poState.currentPage = Math.min(Math.max(1, poState.currentPage), totalPages);
+      const start = (poState.currentPage - 1) * poState.perPage;
+      const pageData = filtered.slice(start, start + poState.perPage);
+
+      poList.innerHTML = '';
+      if(pageData.length === 0){
+        poList.innerHTML = `<div class="empty-state"><p>Tidak Ada Hasil</p></div>`;
+        poUpdatePagination(0,0);
+        return;
+      }
+
+      const frag = document.createDocumentFragment();
+      pageData.forEach(item => {
+        let statusClass = (item['Status'] || '').toLowerCase();
+        if(statusClass === 'gagal') statusClass = 'failed';
+        const card = document.createElement('article');
+
+        const estDelivery = item['Est. Pengiriman'] ? `${item['Est. Pengiriman']} 20:00 WIB` : 'Tanggal tidak tersedia';
+
+        const hidden = poHiddenKeysFor(item);
+        const detailsHtml = Object.entries(item)
+          .filter(([k,v]) => v && !hidden.has(k))
+          .map(([k,v]) => `
+            <div class="detail-item">
+              <div class="detail-label">${k}</div>
+              <div class="detail-value">${v}</div>
+            </div>
+          `).join('');
+
+        card.className = `card ${detailsHtml ? 'clickable' : ''}`;
+        card.innerHTML = `
+          <div class="card-header">
+            <div>
+              <div class="card-name">${item['Nickname'] || 'Tanpa Nama'}</div>
+              <div class="card-product">${item['Produk / Item'] || 'N/A'}</div>
+            </div>
+            <div class="status-badge ${statusClass}">${(item['Status'] || 'Gagal').toUpperCase()}</div>
+          </div>
+          <div class="card-date">Estimasi: ${estDelivery}</div>
+          ${detailsHtml ? `<div class="card-details"><div class="details-grid">${detailsHtml}</div></div>` : ''}
+        `;
+        if(detailsHtml){
+          card.addEventListener('click', () => card.classList.toggle('expanded'));
+        }
+        frag.appendChild(card);
+      });
+
+      poList.appendChild(frag);
+      poUpdatePagination(poState.currentPage, totalPages);
+    }
+
+    function poSortByStatus(data){
+      const order = { 'progress':1, 'pending':2, 'success':3 };
+      return data.sort((a,b) => {
+        const sa = (a.Status || '').toLowerCase();
+        const sb = (b.Status || '').toLowerCase();
+        return (order[sa] || 4) - (order[sb] || 4);
+      });
+    }
+
+    async function poFetch(sheetIndex0){
+      poTotal.textContent = 'Memuat data...';
+      poList.innerHTML = `<div class="loading"><div class="spinner"></div><p>Memuat data...</p></div>`;
+      const url = sheetUrlCSV(sheetIndex0);
+      try{
+        const res = await fetch(url);
+        const text = await res.text();
+
+        // CSV robust split (menghormati kutip)
+        const rows = text.trim().split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
+        if(rows.length < 2){ poState.allData = []; return; }
+        const headers = rows.shift();
+        const raw = rows.map(row => Object.fromEntries(row.map((val,i) => [headers[i] || `col_${i+1}`, val])));
+        poState.allData = poSortByStatus(raw);
+      }catch(e){
+        poState.allData = [];
+        poTotal.textContent = 'Gagal memuat data';
+      }finally{
+        poState.currentPage = 1;
+        poRender();
+      }
+    }
+
+    function poInit(){
+      // tema lokal
+      const saved = localStorage.getItem('poTheme');
+      if(saved === 'dark') poRoot.classList.add('dark');
+
+      // events
+      poSearch.addEventListener('input', () => { poState.currentPage = 1; poRender(); });
+      poStatus.addEventListener('change', () => { poState.currentPage = 1; poRender(); });
+      poSheet.addEventListener('change', (e) => poFetch(parseInt(e.target.value,10)));
+      poPrev.addEventListener('click', () => { if(poState.currentPage>1){ poState.currentPage--; poRender(); window.scrollTo({top:0,behavior:'smooth'}); } });
+      poNext.addEventListener('click', () => { poState.currentPage++; poRender(); window.scrollTo({top:0,behavior:'smooth'}); });
+
+      // default sesuai permintaan: Sheet1 (index 0)
+      poFetch(0);
+      poState.initialized = true;
+    }
+
+    // Optional: buka langsung Pre-Order jika Sheet3 kosong
+    // (kalau mau paksa default ke Pre-Order, panggil setMode('preorder') di sini)
+    // setMode('preorder');
   </script>
 </body>
 </html>
