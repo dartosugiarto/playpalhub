@@ -38,14 +38,6 @@
     header h1{ margin:6px 0 0; font-size:clamp(22px,4vw,28px); font-weight:800; }
     header p{ margin:4px 0 0; color:var(--muted); font-size:14px; }
 
-    /* Mode badge */
-    .mode-badge{
-      display:inline-flex; align-items:center; gap:8px;
-      margin-top:10px; padding:6px 10px; border:1px solid var(--border);
-      background:var(--surface); border-radius:999px; font-size:12px; color:var(--muted);
-    }
-    .mode-dot{ width:8px; height:8px; border-radius:50%; background:var(--primary); }
-
     /* Burger Menu */
     .burger{
       position:absolute; top:16px; right:16px;
@@ -106,10 +98,8 @@
     .err{ border:1px solid #ef4444; background:#fef2f2; color:#b91c1c; display:none }
     @media (prefers-color-scheme: dark){ .err{background:#2a0c0c; color:#fca5a5; border-color:#7f1d1d} }
 
-    /* ====== VIEW: PRE-ORDER (Sheet1, Ultimate UI) ======
-       Semua selector diprefix #viewPreorder agar tidak bentrok. */
+    /* ====== VIEW: PRE-ORDER (Sheet1/2) ====== */
     #viewPreorder{ display:none; }
-    #viewPreorder .container{ max-width:1100px; margin:0 auto; padding:24px 0; display:flex; flex-direction:column; gap:24px; }
     #viewPreorder .po-head{
       position:sticky; top:0; z-index:10; background:rgba(255,255,255,.75);
       backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
@@ -118,16 +108,7 @@
     @media (prefers-color-scheme: dark){
       #viewPreorder .po-head{ background:rgba(31,41,55,.75); border-bottom-color:var(--border); }
     }
-    #viewPreorder .head-row{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
-    #viewPreorder .po-title{ font-size:20px; font-weight:700; margin:0; }
-    #viewPreorder .po-sub{ font-size:13px; color:var(--muted); margin:2px 0 0; }
-    #viewPreorder .theme-toggle{ position:relative; width:56px; height:32px; background:var(--surface); border-radius:16px; border:1px solid var(--border); cursor:pointer; display:flex; align-items:center; padding:0 3px; -webkit-tap-highlight-color:transparent; }
-    #viewPreorder .theme-toggle-knob{ width:26px; height:26px; background:var(--bg); border-radius:50%; position:relative; box-shadow:0 1px 3px rgba(0,0,0,0.1); transform:translateX(0); transition:all .35s cubic-bezier(.4,0,.2,1); }
-    /* tema lokal: toggle hanya memengaruhi #viewPreorder, bukan halaman global */
-    #viewPreorder.dark{ --bg:#121212; --text:#F5F5F7; --muted:#A0A0A0; --surface:#1E1E1E; --surface-hover:#2A2A2A; --border:#333; }
-    #viewPreorder.dark .theme-toggle{ background:var(--surface); border-color:var(--border); }
-    #viewPreorder.dark .theme-toggle-knob{ transform:translateX(24px); background:var(--surface); }
-    #viewPreorder .controls{ display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px; margin-top:8px; }
+    #viewPreorder .controls{ display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px; max-width:1100px; margin:0 auto; padding:0 0 8px; }
     @media (max-width:768px){ #viewPreorder .controls{ grid-template-columns:1fr; } }
     #viewPreorder .search-input, #viewPreorder .filter-select{
       width:100%; height:46px; padding:0 14px; font-size:15px; background:var(--bg);
@@ -136,6 +117,9 @@
     #viewPreorder .search-input:focus, #viewPreorder .filter-select:focus{
       border-color:#3B82F6; box-shadow:0 0 0 3px rgba(59,130,246,.2);
     }
+    #viewPreorder .meta{ max-width:1100px; margin:6px auto 0; padding:0 2px; font-size:13px; color:var(--muted); }
+
+    #viewPreorder .container{ max-width:1100px; margin:0 auto; padding:24px 0; display:flex; flex-direction:column; gap:24px; }
     #viewPreorder .card-grid{ display:flex; flex-direction:column; gap:12px; }
     #viewPreorder .card{
       background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:18px 20px;
@@ -176,10 +160,6 @@
     <header>
       <div class="topbar">
         <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
-        <div class="mode-badge" id="modeBadge" aria-live="polite">
-          <span class="mode-dot" aria-hidden="true"></span>
-          <span id="modeText">Mode: Katalog</span>
-        </div>
       </div>
       <h1>PlayPal.ID</h1>
       <p>Destinasi Utama Para Pecinta Game, Film &amp; Musik</p>
@@ -197,7 +177,7 @@
     </header>
 
     <!-- ====== VIEW: KATALOG ====== -->
-    <section id="viewCatalog" aria-labelledby="modeText">
+    <section id="viewCatalog">
       <div class="select-wrap">
         <select id="game-select" class="game-select" aria-label="Pilih Kategori"></select>
       </div>
@@ -224,18 +204,8 @@
     <!-- ====== VIEW: PRE-ORDER ====== -->
     <section id="viewPreorder" aria-label="Pre-Order">
       <div class="po-head">
-        <div class="head-row">
-          <div>
-            <h2 class="po-title">PlayPal Pre-Order</h2>
-            <p class="po-sub" id="poTotal">Memuat total pesanan...</p>
-          </div>
-          <button class="theme-toggle" id="poThemeToggle" aria-label="Toggle tema Pre-Order">
-            <span class="theme-toggle-knob"></span>
-          </button>
-        </div>
-
         <div class="controls" aria-label="Kontrol data">
-          <input type="search" class="search-input" id="poSearch" placeholder="Cari nama atau nomor telepon..." />
+          <input type="search" class="search-input" id="poSearch" placeholder="Cari nama / ID Server / item..." />
           <select class="filter-select" id="poStatus" aria-label="Filter status">
             <option value="all">Semua Status</option>
             <option value="success">Success</option>
@@ -243,14 +213,12 @@
             <option value="pending">Pending</option>
             <option value="failed">Gagal</option>
           </select>
-          <select class="filter-select" id="poSheet" aria-label="Filter sheet">
-            <!-- Default pakai Sheet1 sesuai permintaan; opsi lain siap jika dibutuhkan -->
-            <option value="0">Sheet1 · Gift Starlight</option>
-            <option value="1">Sheet2 · PO Event Misi</option>
-            <option value="2">Sheet3 · Pre Order Skin</option>
-            <option value="3">Sheet4 · Pre Order Joki</option>
+          <select class="filter-select" id="poSheet" aria-label="Pilih kategori pesanan">
+            <option value="0">Starlight Member</option>
+            <option value="1">Pesanan Umum</option>
           </select>
         </div>
+        <div class="meta" id="poTotal">Memuat total pesanan...</div>
       </div>
 
       <div class="container">
@@ -267,8 +235,8 @@
     // ========= GLOBAL KONFIG =========
     const SHEET_ID = '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw';
     const SHEETS = {
-      katalog : { name:'Sheet3' },   // katalog normal
-      preorder: { name:'Sheet1' }    // pre-order default Sheet1 (sesuai permintaan)
+      katalog : { name:'Sheet3' }, // katalog normal
+      preorder: { name1:'Sheet1', name2:'Sheet2' } // Pre-Order: hanya Sheet1 & Sheet2
     };
     const WA_NUMBER   = '6285877001999';
     const WA_GREETING = '*Detail pesanan:*';
@@ -290,19 +258,13 @@
     // ========= MODE SWITCH =========
     const viewCatalog  = document.getElementById('viewCatalog');
     const viewPreorder = document.getElementById('viewPreorder');
-    const modeText     = document.getElementById('modeText');
-    const modeBadge    = document.getElementById('modeBadge');
     let MODE = 'katalog'; // 'katalog' | 'preorder'
-
     function setMode(next){
       MODE = next;
-      modeText.textContent = 'Mode: ' + (MODE === 'preorder' ? 'Pre-Order' : 'Katalog');
       viewCatalog.style.display  = MODE === 'katalog'  ? 'block' : 'none';
       viewPreorder.style.display = MODE === 'preorder' ? 'block' : 'none';
       setMenuOpen(false);
-      if (MODE === 'preorder' && poState.initialized === false){
-        poInit(); // lazy init UI PO ketika pertama kali dibuka
-      }
+      if (MODE === 'preorder' && poState.initialized === false){ poInit(); }
     }
     menu.querySelectorAll('.menu-btn[data-mode]').forEach(btn => {
       btn.addEventListener('click', () => setMode(btn.getAttribute('data-mode')));
@@ -412,9 +374,8 @@
     }
     loadCatalog();
 
-    // ========= VIEW PRE-ORDER (CSV, PRIVACY-AWARE) =========
+    // ========= VIEW PRE-ORDER (Sheet1 & Sheet2) =========
     const poRoot   = document.getElementById('viewPreorder');
-    const poToggle = document.getElementById('poThemeToggle');
     const poSearch = document.getElementById('poSearch');
     const poStatus = document.getElementById('poStatus');
     const poSheet  = document.getElementById('poSheet');
@@ -430,30 +391,25 @@
       perPage:15
     };
 
-    function poApplyTheme(){
-      // toggle tema lokal hanya di #viewPreorder
-      poRoot.classList.toggle('dark');
-      localStorage.setItem('poTheme', poRoot.classList.contains('dark') ? 'dark' : 'light');
-    }
-    poToggle.addEventListener('click', poApplyTheme);
-
-    function poHiddenKeysFor(item){
-      // Kunci yang disembunyikan: seluruh variasi nomor telp + kolom teknis tak bernama
-      const base = ['Nickname','Produk / Item','Status','Est. Pengiriman','ID / Nick Gift',
-                    'No Telepon','Nomor Telepon','Nomor HP','Telpon'];
-      const anon = Object.keys(item).filter(k => k.startsWith('col_'));
-      return new Set([...base, ...anon]);
+    // normalisasi status ke {success,progress,pending,failed}
+    function normalizeStatus(raw){
+      let s = String(raw||'').trim().toLowerCase();
+      if(s === 'gagal') s = 'failed';
+      if(s === 'selesai' || s === 'berhasil' || s === 'done') s = 'success';
+      if(s === 'proses' || s === 'diproses' || s === 'processing') s = 'progress';
+      return s;
     }
 
     function poFilterData(){
       const q = poSearch.value.trim().toLowerCase();
-      const status = poStatus.value; // all | success | progress | pending | failed
+      const status = poStatus.value;
       return poState.allData.filter(item => {
+        // cari di Nickname (Sheet1), ID Server (Sheet2), dan Produk / Item
         const name = (item['Nickname'] || '').toLowerCase();
-        const phone = (item['No Telepon'] || item['Nomor Telepon'] || item['Nomor HP'] || item['Telpon'] || '').toLowerCase();
-        let s = (item['Status'] || '').toLowerCase();
-        if(s === 'gagal') s = 'failed';
-        const match = name.includes(q) || phone.includes(q);
+        const idServer = (item['ID Server'] || '').toLowerCase();
+        const product = (item['Produk / Item'] || '').toLowerCase();
+        const match = name.includes(q) || idServer.includes(q) || product.includes(q);
+        const s = normalizeStatus(item['Status']);
         return match && (status === 'all' || s === status);
       });
     }
@@ -480,15 +436,21 @@
 
       const frag = document.createDocumentFragment();
       pageData.forEach(item => {
-        let statusClass = (item['Status'] || '').toLowerCase();
-        if(statusClass === 'gagal') statusClass = 'failed';
-        const card = document.createElement('article');
+        let statusClass = normalizeStatus(item['Status']) || 'failed';
 
-        const estDelivery = item['Est. Pengiriman'] ? `${item['Est. Pengiriman']} 20:00 WIB` : 'Tanggal tidak tersedia';
+        // Tentukan tampilan judul: pakai Nickname (Sheet1) atau ID Server (Sheet2)
+        const name = item['Nickname'] || item['ID Server'] || 'Tanpa Nama';
+        const product = item['Produk / Item'] || item['Item'] || 'N/A';
 
-        const hidden = poHiddenKeysFor(item);
+        // Estimasi kirim jika ada (Sheet1), opsional
+        const estDelivery = item['Est. Pengiriman'] ? `${item['Est. Pengiriman']} 20:00 WIB` : '';
+
+        // Susun detail selain field utama
+        const hiddenKeys = new Set([
+          'Nickname','ID Server','Produk / Item','Item','Status','Est. Pengiriman'
+        ]);
         const detailsHtml = Object.entries(item)
-          .filter(([k,v]) => v && !hidden.has(k))
+          .filter(([k,v]) => v && !hiddenKeys.has(k))
           .map(([k,v]) => `
             <div class="detail-item">
               <div class="detail-label">${k}</div>
@@ -496,16 +458,17 @@
             </div>
           `).join('');
 
+        const card = document.createElement('article');
         card.className = `card ${detailsHtml ? 'clickable' : ''}`;
         card.innerHTML = `
           <div class="card-header">
             <div>
-              <div class="card-name">${item['Nickname'] || 'Tanpa Nama'}</div>
-              <div class="card-product">${item['Produk / Item'] || 'N/A'}</div>
+              <div class="card-name">${name}</div>
+              <div class="card-product">${product}</div>
             </div>
             <div class="status-badge ${statusClass}">${(item['Status'] || 'Gagal').toUpperCase()}</div>
           </div>
-          <div class="card-date">Estimasi: ${estDelivery}</div>
+          ${estDelivery ? `<div class="card-date">Estimasi: ${estDelivery}</div>` : ''}
           ${detailsHtml ? `<div class="card-details"><div class="details-grid">${detailsHtml}</div></div>` : ''}
         `;
         if(detailsHtml){
@@ -521,8 +484,8 @@
     function poSortByStatus(data){
       const order = { 'progress':1, 'pending':2, 'success':3 };
       return data.sort((a,b) => {
-        const sa = (a.Status || '').toLowerCase();
-        const sb = (b.Status || '').toLowerCase();
+        const sa = normalizeStatus(a.Status);
+        const sb = normalizeStatus(b.Status);
         return (order[sa] || 4) - (order[sb] || 4);
       });
     }
@@ -534,13 +497,28 @@
       try{
         const res = await fetch(url);
         const text = await res.text();
+        const rows = text.trim().split('\n')
+          .map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
 
-        // CSV robust split (menghormati kutip)
-        const rows = text.trim().split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
-        if(rows.length < 2){ poState.allData = []; return; }
-        const headers = rows.shift();
-        const raw = rows.map(row => Object.fromEntries(row.map((val,i) => [headers[i] || `col_${i+1}`, val])));
-        poState.allData = poSortByStatus(raw);
+        if(rows.length < 1){ poState.allData = []; poRender(); return; }
+
+        if(sheetIndex0 === 0){
+          // SHEET1: gunakan header baris pertama apa adanya
+          const headers = rows.shift();
+          const raw = rows.map(row => Object.fromEntries(row.map((val,i) => [headers[i] || `col_${i+1}`, val])));
+          poState.allData = poSortByStatus(raw);
+        }else{
+          // SHEET2: format A|B|C (ID Server | Item | Status) TANPA header
+          // Jika ternyata baris pertama berisi header, tetap aman karena kita map HARDCODE by index.
+          const bodyRows = rows[0]?.length === 3 && ['id server','item','status'].includes(rows[0][0].toLowerCase())
+            ? rows.slice(1) : rows;
+          const mapped = bodyRows.map(r => ({
+            'ID Server': r[0] || '',
+            'Item': r[1] || '',
+            'Status': r[2] || ''
+          }));
+          poState.allData = poSortByStatus(mapped);
+        }
       }catch(e){
         poState.allData = [];
         poTotal.textContent = 'Gagal memuat data';
@@ -551,10 +529,6 @@
     }
 
     function poInit(){
-      // tema lokal
-      const saved = localStorage.getItem('poTheme');
-      if(saved === 'dark') poRoot.classList.add('dark');
-
       // events
       poSearch.addEventListener('input', () => { poState.currentPage = 1; poRender(); });
       poStatus.addEventListener('change', () => { poState.currentPage = 1; poRender(); });
@@ -562,14 +536,10 @@
       poPrev.addEventListener('click', () => { if(poState.currentPage>1){ poState.currentPage--; poRender(); window.scrollTo({top:0,behavior:'smooth'}); } });
       poNext.addEventListener('click', () => { poState.currentPage++; poRender(); window.scrollTo({top:0,behavior:'smooth'}); });
 
-      // default sesuai permintaan: Sheet1 (index 0)
+      // default: Starlight Member (Sheet1, index 0)
       poFetch(0);
       poState.initialized = true;
     }
-
-    // Optional: buka langsung Pre-Order jika Sheet3 kosong
-    // (kalau mau paksa default ke Pre-Order, panggil setMode('preorder') di sini)
-    // setMode('preorder');
   </script>
 </body>
 </html>
