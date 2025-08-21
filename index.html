@@ -40,34 +40,32 @@
     header h1{margin:10px 0 0;font-size:clamp(26px,3.5vw,34px);font-weight:700;letter-spacing:-.02em}
     header p{margin:4px 0 0;color:var(--text-secondary);font-size:16px}
 
-    /* FLYOUT MENU yang ter-anchored ke bar kontrol katalog */
+    /* FLYOUT MENU (dipakai di Katalog & Pre‑Order) */
     .menu{
-      position:absolute;z-index:100;right:0;top:56px;
-      background:rgba(255,255,255,.72);border:1px solid rgba(0,0,0,.04);
-      border-radius:var(--radius-medium);
-      backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-      display:flex;flex-direction:column;min-width:210px;overflow:clip;
-      opacity:0;transform:translateY(-6px) scale(.98);
-      transition:opacity .24s var(--transition-curve),transform .24s var(--transition-curve);
+      position:absolute; z-index:100; right:0; top:56px;
+      background:rgba(255,255,255,.72); border:1px solid rgba(0,0,0,.04);
+      border-radius:var(--radius-medium); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      display:flex; flex-direction:column; min-width:210px; overflow:clip;
+      opacity:0; transform:translateY(-6px) scale(.98);
+      transition:opacity .24s var(--transition-curve), transform .24s var(--transition-curve);
       pointer-events:none;
     }
-    .menu.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+    .menu.open{opacity:1; transform:translateY(0) scale(1); pointer-events:auto}
     .menu-btn{
-      padding:12px 16px;border:0;background:transparent;text-align:left;
-      color:var(--text-primary);font-weight:700;font-size:15px;cursor:pointer;letter-spacing:-.01em
+      padding:12px 16px; border:0; background:transparent; text-align:left;
+      color:var(--text-primary); font-weight:700; font-size:15px; cursor:pointer; letter-spacing:-.01em;
     }
     .menu-btn:hover{background:rgba(0,0,0,.04)}
-    .menu-divider{height:1px;background:var(--separator);margin:6px 0}
+    .menu-divider{height:1px; background:var(--separator); margin:6px 0}
     @media (prefers-color-scheme: dark){
-      .menu{background:rgba(20,20,22,.72);border-color:rgba(255,255,255,.08)}
+      .menu{background:rgba(20,20,22,.72); border-color:rgba(255,255,255,.08)}
       .menu-btn:hover{background:rgba(255,255,255,.06)}
     }
 
     /* ============ KATALOG ============ */
     #viewCatalog{display:block}
-    /* Bar kontrol: dropdown normal + burger di samping, search di bawah */
     .controls-katalog{
-      position:relative;
+      position:relative; /* anchor untuk #menu-katalog */
       display:grid;
       grid-template-columns:minmax(320px,1fr) auto;
       grid-template-areas:
@@ -76,131 +74,150 @@
       gap:10px;
       margin:20px 0 14px;
     }
-    .controls-katalog #custom-select-wrapper{grid-area:select;min-width:0}
+    .controls-katalog #custom-select-wrapper{grid-area:select; min-width:0}
     .controls-katalog .burger{grid-area:menu}
     .controls-katalog .search-wrap{grid-area:search}
 
     /* Custom select (ukuran normal) */
     .custom-select-wrapper{position:relative}
     .custom-select-btn{
-      width:100%;height:52px;padding:12px 16px;
-      background:var(--fill-primary);border:1px solid var(--separator);border-radius:var(--radius-medium);
-      color:var(--text-primary);font-size:16px;font-weight:700;text-align:left;
-      display:flex;justify-content:space-between;align-items:center;cursor:pointer;
-      transition:border-color .2s,box-shadow .2s;
+      width:100%; height:52px; padding:12px 16px;
+      background:var(--fill-primary); border:1px solid var(--separator); border-radius:var(--radius-medium);
+      color:var(--text-primary); font-size:16px; font-weight:700; text-align:left;
+      display:flex; justify-content:space-between; align-items:center; cursor:pointer;
+      transition:border-color .2s, box-shadow .2s;
     }
-    .custom-select-btn:focus{border-color:var(--primary-blue);box-shadow:0 0 0 3px rgba(var(--primary-blue-rgb),.18);outline:none}
-    .custom-select-btn svg{width:16px;height:16px;color:var(--text-tertiary);transition:transform .24s var(--transition-curve)}
+    .custom-select-btn:focus{border-color:var(--primary-blue); box-shadow:0 0 0 3px rgba(var(--primary-blue-rgb),.18); outline:none}
+    .custom-select-btn svg{width:16px; height:16px; color:var(--text-tertiary); transition:transform .24s var(--transition-curve)}
     .custom-select-wrapper.open .custom-select-btn svg{transform:rotate(180deg)}
     .custom-select-options{
-      position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:50;
-      background:var(--fill-primary);border:1px solid var(--separator);
-      border-radius:var(--radius-medium);max-height:256px;overflow-y:auto;padding:6px 0;
-      opacity:0;transform:translateY(-6px);transition:opacity .24s,transform .24s;pointer-events:none;
+      position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:50;
+      background:var(--fill-primary); border:1px solid var(--separator);
+      border-radius:var(--radius-medium); max-height:256px; overflow-y:auto; padding:6px 0;
+      opacity:0; transform:translateY(-6px); transition:opacity .24s, transform .24s; pointer-events:none;
     }
-    .custom-select-wrapper.open .custom-select-options{opacity:1;transform:translateY(0);pointer-events:auto}
-    .custom-select-option{padding:10px 14px;font-size:14px;cursor:pointer;color:var(--text-secondary)}
-    .custom-select-option:hover,.custom-select-option.selected{background:var(--fill-secondary);color:var(--text-primary)}
+    .custom-select-wrapper.open .custom-select-options{opacity:1; transform:translateY(0); pointer-events:auto}
+    .custom-select-option{padding:10px 14px; font-size:14px; cursor:pointer; color:var(--text-secondary)}
+    .custom-select-option:hover, .custom-select-option.selected{background:var(--fill-secondary); color:var(--text-primary)}
 
     /* Burger tombol (match tinggi dropdown) */
     .icon-btn.burger{
-      width:52px;height:52px;border:1px solid var(--separator);border-radius:var(--radius-medium);
-      background:var(--fill-primary);display:grid;place-content:center;cursor:pointer;
-      transition:border-color .2s,background .2s,transform .18s;
+      width:52px; height:52px; border:1px solid var(--separator); border-radius:var(--radius-medium);
+      background:var(--fill-primary); display:grid; place-content:center; cursor:pointer;
+      transition:border-color .2s, background .2s, transform .18s;
     }
-    .icon-btn.burger:hover{background:var(--fill-secondary);transform:translateY(-1px)}
-    .icon-btn.burger span{display:block;width:18px;height:1.6px;background:var(--text-secondary);border-radius:1px;margin:3.3px 0;transition:transform .25s,opacity .25s}
+    .icon-btn.burger:hover{background:var(--fill-secondary); transform:translateY(-1px)}
+    .icon-btn.burger span{display:block; width:18px; height:1.6px; background:var(--text-secondary); border-radius:1px; margin:3.3px 0; transition:transform .25s, opacity .25s}
     .icon-btn.burger.active span:nth-child(1){transform:translateY(4.9px) rotate(45deg)}
-    .icon-btn.burger.active span:nth-child(2){opacity:0;transform:scaleX(0)}
+    .icon-btn.burger.active span:nth-child(2){opacity:0; transform:scaleX(0)}
     .icon-btn.burger.active span:nth-child(3){transform:translateY(-4.9px) rotate(-45deg)}
 
     /* Search */
     .search-wrap{position:relative}
-    .search-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--text-tertiary)}
+    .search-wrap svg{position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--text-tertiary)}
     #search{
-      width:100%;height:52px;padding:0 14px 0 44px;background:var(--fill-primary);
-      border:1px solid var(--separator);border-radius:var(--radius-medium);font-size:16px;color:var(--text-primary);outline:none;
-      transition:border-color .2s,box-shadow .2s;
+      width:100%; height:52px; padding:0 14px 0 44px; background:var(--fill-primary);
+      border:1px solid var(--separator); border-radius:var(--radius-medium); font-size:16px; color:var(--text-primary); outline:none;
+      transition:border-color .2s, box-shadow .2s;
     }
-    #search:focus{border-color:var(--primary-blue);box-shadow:0 0 0 3px rgba(var(--primary-blue-rgb),.18)}
+    #search:focus{border-color:var(--primary-blue); box-shadow:0 0 0 3px rgba(var(--primary-blue-rgb),.18)}
 
-    #countInfo{color:var(--text-secondary);font-size:14px;font-weight:700;margin-top:6px;text-align:right}
-    .list-container{display:flex;flex-direction:column;gap:8px}
+    #countInfo{color:var(--text-secondary); font-size:14px; font-weight:700; margin-top:6px; text-align:right}
+    .list-container{display:flex; flex-direction:column; gap:8px}
     .list-item{
-      display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--fill-primary);
-      border:1px solid var(--separator);border-radius:var(--radius-medium);text-decoration:none;color:inherit;
-      transition:transform .18s,background-color .18s,border-color .18s;
+      display:flex; justify-content:space-between; align-items:center; padding:16px; background:var(--fill-primary);
+      border:1px solid var(--separator); border-radius:var(--radius-medium); text-decoration:none; color:inherit;
+      transition:transform .18s, background-color .18s, border-color .18s;
     }
-    .list-item:hover{transform:translateY(-2px);background:var(--fill-secondary);border-color:var(--fill-tertiary)}
-    .list-item .title{font-size:15px;font-weight:700;letter-spacing:-.01em}
-    .list-item .price{font-size:15px;font-weight:800;color:var(--primary-blue)}
-    .empty,.err{border:1px dashed var(--separator);border-radius:var(--radius-large);padding:56px;text-align:center;color:var(--text-secondary);font-size:16px}
+    .list-item:hover{transform:translateY(-2px); background:var(--fill-secondary); border-color:var(--fill-tertiary)}
+    .list-item .title{font-size:15px; font-weight:700; letter-spacing:-.01em}
+    .list-item .price{font-size:15px; font-weight:800; color:var(--primary-blue)}
+    .empty,.err{border:1px dashed var(--separator); border-radius:var(--radius-large); padding:56px; text-align:center; color:var(--text-secondary); font-size:16px}
 
     /* ============ PRE-ORDER ============ */
     #viewPreorder{display:none}
     .po-head{
-      position:sticky;top:0;z-index:10;background:rgba(245,245,247,.72);
-      backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-      border-bottom:1px solid var(--separator);padding:12px 0;margin-bottom:18px;
+      position:sticky; top:0; z-index:10; background:rgba(245,245,247,.72);
+      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      border-bottom:1px solid var(--separator); padding:12px 0 6px; margin-bottom:18px;
     }
     @media (prefers-color-scheme: dark){ .po-head{background:rgba(0,0,0,.62)} }
+
+    /* Topbar pre-order: dropdown (ukuran sama) + burger */
+    .po-topbar{
+      position:relative; /* anchor untuk #menu-preorder */
+      display:grid; grid-template-columns:minmax(320px,1fr) auto; gap:10px;
+      max-width:var(--maxw); margin:0 auto; padding:0 20px 10px;
+    }
+    .po-topbar .po-sheet{
+      width:100%; height:52px; padding:0 16px; appearance:none;
+      background:var(--fill-primary); border:1px solid var(--separator); border-radius:var(--radius-medium);
+      font-size:16px; font-weight:700; color:var(--text-primary);
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2386868b'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 12px center; background-size:18px;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    .po-topbar .po-sheet:focus{border-color:var(--primary-blue); box-shadow:0 0 0 3px rgba(var(--primary-blue-rgb),.18); outline:none}
+
+    /* Bar kontrol lanjutan: search + status (52px juga) */
     #viewPreorder .controls{
-      display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;max-width:var(--maxw);margin:0 auto;padding:0 20px;
+      display:grid; grid-template-columns:2fr 1fr; gap:12px; max-width:var(--maxw); margin:0 auto; padding:0 20px;
     }
     @media (max-width:768px){ #viewPreorder .controls{grid-template-columns:1fr} }
-    #viewPreorder .search-input,#viewPreorder .filter-select{
-      width:100%;height:48px;padding:0 14px;font-size:15px;background:var(--fill-primary);
-      border:1px solid var(--separator);border-radius:var(--radius-medium);color:var(--text-primary);outline:none;appearance:none;
+    #viewPreorder .search-input, #viewPreorder .filter-select{
+      width:100%; height:52px; padding:0 14px; font-size:16px; background:var(--fill-primary);
+      border:1px solid var(--separator); border-radius:var(--radius-medium); color:var(--text-primary); outline:none; appearance:none;
+      transition:border-color .2s, box-shadow .2s;
     }
     #viewPreorder .filter-select{
       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2386868b'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E");
-      background-repeat:no-repeat;background-position:right 12px center;background-size:18px;
+      background-repeat:no-repeat; background-position:right 12px center; background-size:18px;
     }
-    #viewPreorder .search-input:focus,#viewPreorder .filter-select:focus{border-color:var(--primary-blue);box-shadow:0 0 0 3px rgba(var(--primary-blue-rgb),.18)}
-    #viewPreorder .meta{max-width:var(--maxw);margin:10px auto 0;padding:0 20px;font-size:13px;color:var(--text-secondary);font-weight:700}
+    #viewPreorder .search-input:focus, #viewPreorder .filter-select:focus{border-color:var(--primary-blue); box-shadow:0 0 0 3px rgba(var(--primary-blue-rgb),.18)}
+    #viewPreorder .meta{max-width:var(--maxw); margin:10px auto 0; padding:0 20px; font-size:13px; color:var(--text-secondary); font-weight:700}
 
-    #viewPreorder .card-grid{display:flex;flex-direction:column;gap:12px}
+    #viewPreorder .card-grid{display:flex; flex-direction:column; gap:12px}
     #viewPreorder .card{
-      background:var(--fill-primary);border:1px solid var(--separator);border-radius:var(--radius-large);padding:18px;
-      transition:background .18s,border-color .18s,transform .18s;
+      background:var(--fill-primary); border:1px solid var(--separator); border-radius:var(--radius-large); padding:18px;
+      transition:background .18s, border-color .18s, transform .18s;
     }
     #viewPreorder .card.clickable{cursor:pointer}
-    #viewPreorder .card.clickable:hover{transform:translateY(-2px);background:var(--fill-secondary);border-color:var(--fill-tertiary)}
-    #viewPreorder .card-header{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
-    #viewPreorder .card-name{font-size:16px;font-weight:800;letter-spacing:-.01em}
-    #viewPreorder .card-product{font-size:14px;color:var(--text-secondary)}
-    #viewPreorder .card-date{font-size:12px;color:var(--text-tertiary);margin-top:8px;grid-column:1/-1}
+    #viewPreorder .card.clickable:hover{transform:translateY(-2px); background:var(--fill-secondary); border-color:var(--fill-tertiary)}
+    #viewPreorder .card-header{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:start}
+    #viewPreorder .card-name{font-size:16px; font-weight:800; letter-spacing:-.01em}
+    #viewPreorder .card-product{font-size:14px; color:var(--text-secondary)}
+    #viewPreorder .card-date{font-size:12px; color:var(--text-tertiary); margin-top:8px; grid-column:1/-1}
 
     #viewPreorder .status-badge{
-      display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:9999px;
-      font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;border:1px solid transparent;
+      display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:9999px;
+      font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.04em; border:1px solid transparent;
     }
-    #viewPreorder .status-badge::before{content:'';width:6px;height:6px;border-radius:50%}
-    #viewPreorder .status-badge.success{color:#166534;background:#ecfdf5;border-color:#d1fae5}
+    #viewPreorder .status-badge::before{content:''; width:6px; height:6px; border-radius:50%}
+    #viewPreorder .status-badge.success{color:#166534; background:#ecfdf5; border-color:#d1fae5}
     #viewPreorder .status-badge.success::before{background:#22c55e}
-    #viewPreorder .status-badge.progress{color:#1e3a8a;background:#eff6ff;border-color:#dbeafe}
+    #viewPreorder .status-badge.progress{color:#1e3a8a; background:#eff6ff; border-color:#dbeafe}
     #viewPreorder .status-badge.progress::before{background:#3b82f6}
-    #viewPreorder .status-badge.pending{color:#854d0e;background:#fefce8;border-color:#fde68a}
+    #viewPreorder .status-badge.pending{color:#854d0e; background:#fefce8; border-color:#fde68a}
     #viewPreorder .status-badge.pending::before{background:#f59e0b}
-    #viewPreorder .status-badge.failed{color:#991b1b;background:#fef2f2;border-color:#fecaca}
+    #viewPreorder .status-badge.failed{color:#991b1b; background:#fef2f2; border-color:#fecaca}
     #viewPreorder .status-badge.failed::before{background:#ef4444}
 
-    #viewPreorder .card-details{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s,opacity .25s,margin-top .25s,padding-top .25s;margin-top:0}
-    #viewPreorder .card.expanded .card-details{max-height:520px;opacity:1;margin-top:14px;padding-top:14px;border-top:1px solid var(--separator)}
-    #viewPreorder .details-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-    #viewPreorder .detail-label{font-size:12px;font-weight:800;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.04em}
-    #viewPreorder .detail-value{font-size:14px;font-weight:800;letter-spacing:-.01em}
+    #viewPreorder .card-details{max-height:0; overflow:hidden; opacity:0; transition:max-height .35s, opacity .25s, margin-top .25s, padding-top .25s; margin-top:0}
+    #viewPreorder .card.expanded .card-details{max-height:520px; opacity:1; margin-top:14px; padding-top:14px; border-top:1px solid var(--separator)}
+    #viewPreorder .details-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px}
+    #viewPreorder .detail-label{font-size:12px; font-weight:800; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.04em}
+    #viewPreorder .detail-value{font-size:14px; font-weight:800; letter-spacing:-.01em}
 
-    #viewPreorder .pagination{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:24px}
+    #viewPreorder .pagination{display:flex; justify-content:center; align-items:center; gap:10px; margin-top:24px}
     #viewPreorder .pagination-btn{
-      padding:0 18px;height:42px;background:var(--fill-secondary);border:1px solid var(--separator);border-radius:var(--radius-small);
-      font-size:14px;font-weight:800;color:var(--text-primary);cursor:pointer;transition:transform .18s,background .18s,border-color .18s;
+      padding:0 18px; height:42px; background:var(--fill-secondary); border:1px solid var(--separator); border-radius:var(--radius-small);
+      font-size:14px; font-weight:800; color:var(--text-primary); cursor:pointer; transition:transform .18s, background .18s, border-color .18s;
     }
-    #viewPreorder .pagination-btn:hover:not(:disabled){transform:translateY(-1px);background:var(--fill-tertiary);border-color:var(--fill-tertiary)}
-    #viewPreorder .pagination-btn:disabled{opacity:.55;cursor:not-allowed}
+    #viewPreorder .pagination-btn:hover:not(:disabled){transform:translateY(-1px); background:var(--fill-tertiary); border-color:var(--fill-tertiary)}
+    #viewPreorder .pagination-btn:disabled{opacity:.55; cursor:not-allowed}
 
-    #viewPreorder .loading,#viewPreorder .empty-state{text-align:center;padding:56px 12px}
-    #viewPreorder .spinner{width:22px;height:22px;border:2px solid var(--fill-tertiary);border-top:2px solid var(--primary-blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+    #viewPreorder .loading, #viewPreorder .empty-state{text-align:center; padding:56px 12px}
+    #viewPreorder .spinner{width:22px; height:22px; border:2px solid var(--fill-tertiary); border-top:2px solid var(--primary-blue); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 12px}
     @keyframes spin{100%{transform:rotate(360deg)}}
   </style>
 </head>
@@ -212,10 +229,10 @@
       <p>Destinasi Utama Para Pecinta Game, Film &amp; Musik</p>
     </header>
 
-    <!-- KATALOG -->
+    <!-- ====== KATALOG ====== -->
     <section id="viewCatalog" aria-label="Katalog">
       <div class="controls-katalog" aria-label="Kontrol Katalog">
-        <!-- dropdown kategori ukuran normal -->
+        <!-- dropdown kategori -->
         <div class="custom-select-wrapper" id="custom-select-wrapper">
           <button class="custom-select-btn" id="custom-select-btn" aria-haspopup="listbox" aria-expanded="false">
             <span id="custom-select-value">Pilih Kategori</span>
@@ -224,22 +241,22 @@
           <div class="custom-select-options" id="custom-select-options" role="listbox"></div>
         </div>
 
-        <!-- burger di samping dropdown -->
-        <button class="icon-btn burger" id="burger" aria-label="Menu" aria-expanded="false" type="button">
+        <!-- burger katalog -->
+        <button class="icon-btn burger" id="burgerCat" aria-label="Menu" aria-expanded="false" type="button">
           <span></span><span></span><span></span>
         </button>
 
-        <!-- flyout menu anchored ke bar kontrol -->
-        <nav class="menu" id="menu" aria-label="Menu tampilan">
+        <!-- flyout menu — anchor ke bar ini -->
+        <nav class="menu" id="menuCat" aria-label="Menu tampilan (Katalog)">
           <button class="menu-btn" data-mode="katalog" type="button">Katalog</button>
           <button class="menu-btn" data-mode="preorder" type="button">Lacak Pre‑Order</button>
           <div class="menu-divider"></div>
-          <button class="menu-btn" id="closeMenu" type="button">Tutup</button>
+          <button class="menu-btn" id="closeMenuCat" type="button">Tutup</button>
         </nav>
 
-        <!-- search: full width baris kedua -->
+        <!-- search -->
         <div class="search-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a.75.75 0 100 11 .75.75 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
           <input id="search" type="search" placeholder="Cari item..." aria-label="Cari">
         </div>
       </div>
@@ -255,9 +272,29 @@
       </template>
     </section>
 
-    <!-- PRE-ORDER -->
+    <!-- ====== PRE-ORDER ====== -->
     <section id="viewPreorder" aria-label="Pre-Order">
       <div class="po-head">
+        <!-- topbar: dropdown (sama ukuran) + burger -->
+        <div class="po-topbar">
+          <select class="po-sheet" id="poSheet" aria-label="Pilih kategori pesanan">
+            <option value="0">Starlight Member</option>
+            <option value="1">Pesanan Umum</option>
+          </select>
+
+          <button class="icon-btn burger" id="burgerPO" aria-label="Menu" aria-expanded="false" type="button">
+            <span></span><span></span><span></span>
+          </button>
+
+          <nav class="menu" id="menuPO" aria-label="Menu tampilan (Pre‑Order)">
+            <button class="menu-btn" data-mode="katalog" type="button">Katalog</button>
+            <button class="menu-btn" data-mode="preorder" type="button">Lacak Pre‑Order</button>
+            <div class="menu-divider"></div>
+            <button class="menu-btn" id="closeMenuPO" type="button">Tutup</button>
+          </nav>
+        </div>
+
+        <!-- bar kedua: search + status -->
         <div class="controls" aria-label="Kontrol data">
           <input type="search" class="search-input" id="poSearch" placeholder="Cari nama / ID Server / item..." />
           <select class="filter-select" id="poStatus" aria-label="Filter status">
@@ -267,13 +304,10 @@
             <option value="pending">Pending</option>
             <option value="failed">Gagal</option>
           </select>
-          <select class="filter-select" id="poSheet" aria-label="Pilih kategori pesanan">
-            <option value="0">Starlight Member</option>
-            <option value="1">Pesanan Umum</option>
-          </select>
         </div>
         <div class="meta" id="poTotal"></div>
       </div>
+
       <div class="container">
         <main class="card-grid" id="poList" aria-live="polite"></main>
         <nav class="pagination" aria-label="Pagination">
@@ -294,53 +328,69 @@
 
       let DATA=[],CATS=[],activeCat='',query='';
 
-      // ======== ELEM ========
+      // ======== ELEMENTS ========
       const viewCatalog=document.getElementById('viewCatalog');
       const viewPreorder=document.getElementById('viewPreorder');
 
+      // Katalog
       const listEl=document.getElementById('list-container');
       const searchEl=document.getElementById('search');
       const countInfoEl=document.getElementById('countInfo');
       const itemTmpl=document.getElementById('itemTmpl');
       const errBox=document.getElementById('error');
-
       const customSelectWrapper=document.getElementById('custom-select-wrapper');
       const customSelectBtn=document.getElementById('custom-select-btn');
       const customSelectValue=document.getElementById('custom-select-value');
       const customSelectOptions=document.getElementById('custom-select-options');
 
-      const burger=document.getElementById('burger');
-      const menu=document.getElementById('menu');
+      // Burgers & Menus
+      const burgerCat=document.getElementById('burgerCat');
+      const burgerPO =document.getElementById('burgerPO');
+      const menuCat  =document.getElementById('menuCat');
+      const menuPO   =document.getElementById('menuPO');
 
-      // ======== BURGER MENU ========
-      function setMenuOpen(open){
-        burger.classList.toggle('active',open);
-        menu.classList.toggle('open',open);
-        burger.setAttribute('aria-expanded',open);
+      // ======== MENU LOGIC (sinkron dua trigger) ========
+      function closeAllMenus(){
+        [burgerCat,burgerPO].forEach(b=>b && b.classList.remove('active'));
+        [menuCat,menuPO].forEach(m=>m && m.classList.remove('open'));
       }
-      burger.addEventListener('click',()=>setMenuOpen(!burger.classList.contains('active')));
-      document.getElementById('closeMenu').addEventListener('click',()=>setMenuOpen(false));
-      document.addEventListener('click',(e)=>{ if(!menu.contains(e.target)&&!burger.contains(e.target)) setMenuOpen(false); });
+      function toggleMenu(which){
+        const targetBtn = which==='cat' ? burgerCat : burgerPO;
+        const targetMenu= which==='cat' ? menuCat  : menuPO;
+        const isOpen = targetMenu.classList.contains('open');
+        closeAllMenus();
+        if(!isOpen){
+          targetBtn?.classList.add('active');
+          targetMenu?.classList.add('open');
+        }
+      }
+      burgerCat?.addEventListener('click',()=>toggleMenu('cat'));
+      burgerPO ?.addEventListener('click',()=>toggleMenu('po'));
+      document.getElementById('closeMenuCat')?.addEventListener('click',closeAllMenus);
+      document.getElementById('closeMenuPO') ?.addEventListener('click',closeAllMenus);
+      document.addEventListener('click',(e)=>{
+        const clickInside = (menuCat?.contains(e.target) || burgerCat?.contains(e.target) ||
+                             menuPO ?.contains(e.target) || burgerPO ?.contains(e.target));
+        if(!clickInside) closeAllMenus();
+      });
 
-      // ======== MODE SWITCH ========
-      let MODE='katalog';
+      // Mode switch dari kedua menu
       function setMode(next){
-        MODE=next;
-        viewCatalog.style.display=MODE==='katalog'?'block':'none';
-        viewPreorder.style.display=MODE==='preorder'?'block':'none';
-        setMenuOpen(false);
-        if(MODE==='preorder'&&!poState.initialized) poInit();
+        viewCatalog.style.display = next==='katalog' ? 'block' : 'none';
+        viewPreorder.style.display= next==='preorder' ? 'block' : 'none';
+        closeAllMenus();
+        if(next==='preorder' && !poState.initialized) poInit();
         window.scrollTo({top:0,behavior:'smooth'});
       }
-      menu.querySelectorAll('.menu-btn[data-mode]').forEach(btn=>{
-        btn.addEventListener('click',()=>setMode(btn.getAttribute('data-mode')));
-      });
+      [...(menuCat?.querySelectorAll('.menu-btn[data-mode]')||[]),
+       ...(menuPO ?.querySelectorAll('.menu-btn[data-mode]')||[])]
+        .forEach(btn=>btn.addEventListener('click',()=>setMode(btn.getAttribute('data-mode'))));
 
       // ======== UTILS ========
       const prettyLabel=(raw)=>String(raw||'').trim().replace(/\s+/g,' ');
       const toIDR=v=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(v);
       const sheetUrlJSON=(sheetName)=>`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
-      const sheetUrlCSV=(sheetIndex0)=>`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet${sheetIndex0+1}`;
+      const sheetUrlCSV =(sheetIndex0)=>`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet${sheetIndex0+1}`;
 
       // ======== KATALOG ========
       function parseGVizPairs(txt){
@@ -365,7 +415,9 @@
         customSelectBtn.setAttribute('aria-expanded',isOpen);
       }
       customSelectBtn.addEventListener('click',()=>toggleCustomSelect());
-      document.addEventListener('click',(e)=>{ if(!customSelectWrapper.contains(e.target)&&!customSelectBtn.contains(e.target)) toggleCustomSelect(false); });
+      document.addEventListener('click',(e)=>{
+        if(!customSelectWrapper.contains(e.target) && !customSelectBtn.contains(e.target)) toggleCustomSelect(false);
+      });
 
       function buildGameSelect(){
         const map=new Map(); DATA.forEach(it=>{ if(!map.has(it.catKey)) map.set(it.catKey,it.catLabel); });
@@ -431,11 +483,11 @@
       // ======== PRE-ORDER ========
       const poSearch=document.getElementById('poSearch');
       const poStatus=document.getElementById('poStatus');
-      const poSheet=document.getElementById('poSheet');
-      const poList=document.getElementById('poList');
-      const poPrev=document.getElementById('poPrev');
-      const poNext=document.getElementById('poNext');
-      const poTotal=document.getElementById('poTotal');
+      const poSheet =document.getElementById('poSheet');
+      const poList  =document.getElementById('poList');
+      const poPrev  =document.getElementById('poPrev');
+      const poNext  =document.getElementById('poNext');
+      const poTotal =document.getElementById('poTotal');
 
       const poState={initialized:false,allData:[],currentPage:1,perPage:15};
 
@@ -483,7 +535,7 @@
           const statusClass=normalizeStatus(clean['Status']);
           const name=clean['Nickname']||clean['ID Server']||'Tanpa Nama';
           const product=clean['Produk / Item']||clean['Item']||'N/A';
-          const estDelivery=clean['Est. Pengiriman']?`${clean['Est. Pengiriman']} 20:00 WIB`:''; // tetap placeholder jam
+          const estDelivery=clean['Est. Pengiriman']?`${clean['Est. Pengiriman']} 20:00 WIB`:''; // placeholder jam
 
           const HIDE_KEYS=new Set(['Nickname','ID Server','Produk / Item','Item','Status','Est. Pengiriman',...Object.keys(clean).filter(isPrivacyKey)]);
           const detailsHtml=Object.entries(clean).filter(([k,v])=>v&&!HIDE_KEYS.has(k)).map(([k,v])=>`
@@ -546,7 +598,8 @@
         poSheet.addEventListener('change',e=>poFetch(parseInt(e.target.value,10)));
         poPrev.addEventListener('click',()=>{ if(poState.currentPage>1){ poState.currentPage--; poRender(); window.scrollTo({top:0,behavior:'smooth'});} });
         poNext.addEventListener('click',()=>{ poState.currentPage++; poRender(); window.scrollTo({top:0,behavior:'smooth'});} );
-        poFetch(0); poState.initialized=true;
+        poFetch(parseInt(poSheet.value,10) || 0);
+        poState.initialized=true;
       }
 
       // ======== START ========
