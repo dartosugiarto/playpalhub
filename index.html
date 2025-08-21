@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <style>
     :root {
-      /* Palet super flat & elegan */
+      /* Palet super flat premium */
       --primary-blue: #5C80BC;
       --primary-blue-rgb: 92, 128, 188;
       --bg: #f5f5f7;
@@ -28,7 +28,8 @@
       --transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* (Opsional) Dark mode global. Hapus blok ini bila mau seluruh situs always-light. */
+    /* Biarkan mengikuti prefers-color-scheme sistem. 
+       Jika ingin always-light, hapus seluruh blok @media ini. */
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #000000;
@@ -58,63 +59,37 @@
     .wrap { max-width: var(--maxw); margin: 0 auto; padding: 48px 20px; }
 
     /* === HEADER === */
-    header { position: relative; text-align: center; margin-bottom: 24px; }
+    header { text-align: center; margin-bottom: 16px; }
     .logo { height: 44px; width: auto; }
     header h1 { margin: 10px 0 0; font-size: clamp(26px, 3.5vw, 34px); font-weight: 700; letter-spacing: -0.02em; }
     header p { margin: 4px 0 0; color: var(--text-secondary); font-size: 16px; }
 
-    /* === BURGER MENU (Minimal) === */
-    .burger {
-      position: absolute; top: 16px; right: 20px; z-index: 101;
-      width: 24px; height: 24px; cursor: pointer;
-      display: grid; place-content: center; gap: 5px;
+    /* === VIEW SWITCHER (Dropdown menggantikan burger) === */
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+    .view-switch { position: relative; width: 100%; max-width: 340px; margin: 16px auto 0; }
+    .view-switch select {
+      width: 100%; height: 48px; appearance: none;
+      background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium);
+      padding: 0 44px 0 14px; font-size: 15px; font-weight: 700; color: var(--text-primary); outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
     }
-    .burger span {
-      display: block; height: 1.5px; width: 18px; background: var(--text-secondary); border-radius: 1px;
-      transition: transform 0.28s var(--transition-curve), opacity 0.28s var(--transition-curve);
-      transform-origin: center;
-    }
-    .burger.active span:nth-child(1) { transform: translateY(3.25px) rotate(45deg); }
-    .burger.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-    .burger.active span:nth-child(3) { transform: translateY(-3.25px) rotate(-45deg); }
-
-    /* === DROPDOWN MENU (Translucent, super flat) === */
-    .menu {
-      position: absolute; top: 56px; right: 20px; z-index: 100;
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      border-radius: var(--radius-medium);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      display: flex; flex-direction: column;
-      min-width: 210px; overflow: clip;
-      opacity: 0; transform: translateY(-6px) scale(0.98);
-      transition: opacity 0.24s var(--transition-curve), transform 0.24s var(--transition-curve);
-      pointer-events: none;
-    }
-    .menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-    .menu-btn {
-      padding: 12px 16px; border: 0; background: transparent; text-align: left;
-      color: var(--text-primary); font-weight: 600; font-size: 15px; cursor: pointer;
-      letter-spacing: -0.01em;
-    }
-    .menu-btn:hover { background: rgba(0, 0, 0, 0.04); }
-    .menu-divider { height: 1px; background: var(--separator); margin: 6px 0; }
-    @media (prefers-color-scheme: dark) {
-      .menu { background: rgba(20, 20, 22, 0.72); border-color: rgba(255, 255, 255, 0.08); }
-      .menu-btn:hover { background: rgba(255, 255, 255, 0.06); }
+    .view-switch select:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), .18); }
+    .view-switch .chev {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      width: 18px; height: 18px; color: var(--text-tertiary); pointer-events: none;
     }
 
     /* === VIEW: KATALOG === */
     #viewCatalog { display: block; }
-    .controls-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 20px; }
+    .controls-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 20px 0; }
     @media (min-width: 768px) { .controls-grid { grid-template-columns: 2fr 3fr; } }
 
-    /* CUSTOM SELECT */
+    /* CUSTOM SELECT (kategori game) */
     .custom-select-wrapper { position: relative; }
     .custom-select-btn {
       width: 100%; height: 52px; padding: 12px 16px;
       background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium);
-      color: var(--text-primary); font-size: 16px; font-weight: 600; text-align: left;
+      color: var(--text-primary); font-size: 16px; font-weight: 700; text-align: left;
       display: flex; justify-content: space-between; align-items: center; cursor: pointer;
     }
     .custom-select-btn svg { width: 16px; height: 16px; color: var(--text-tertiary); transition: transform 0.24s var(--transition-curve); }
@@ -122,15 +97,12 @@
     .custom-select-options {
       position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 50;
       background: var(--fill-primary); border: 1px solid var(--separator);
-      border-radius: var(--radius-medium);
-      max-height: 256px; overflow-y: auto; padding: 6px 0;
+      border-radius: var(--radius-medium); max-height: 256px; overflow-y: auto; padding: 6px 0;
       opacity: 0; transform: translateY(-6px); transition: opacity .24s var(--transition-curve), transform .24s var(--transition-curve);
       pointer-events: none;
     }
     .custom-select-wrapper.open .custom-select-options { opacity: 1; transform: translateY(0); pointer-events: auto; }
-    .custom-select-option {
-      padding: 10px 14px; font-size: 15px; cursor: pointer; color: var(--text-secondary);
-    }
+    .custom-select-option { padding: 10px 14px; font-size: 15px; cursor: pointer; color: var(--text-secondary); }
     .custom-select-option:hover, .custom-select-option.selected { background: var(--fill-secondary); color: var(--text-primary); }
 
     /* SEARCH INPUT */
@@ -143,7 +115,7 @@
     }
     #search:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.18); }
 
-    #countInfo { color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-top: 6px; text-align: right; }
+    #countInfo { color: var(--text-secondary); font-size: 14px; font-weight: 700; margin-top: 6px; text-align: right; }
     .list-container { display: flex; flex-direction: column; gap: 8px; }
     .list-item {
       display: flex; justify-content: space-between; align-items: center;
@@ -152,8 +124,8 @@
       transition: transform 0.18s var(--transition-curve), background-color 0.18s ease, border-color 0.18s ease;
     }
     .list-item:hover { transform: translateY(-2px); background-color: var(--fill-secondary); border-color: var(--fill-tertiary); }
-    .list-item .title { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
-    .list-item .price { font-size: 15px; font-weight: 700; color: var(--primary-blue); }
+    .list-item .title { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+    .list-item .price { font-size: 15px; font-weight: 800; color: var(--primary-blue); }
     .empty, .err {
       border: 1px dashed var(--separator); border-radius: var(--radius-large);
       padding: 56px; text-align: center; color: var(--text-secondary); font-size: 16px;
@@ -185,7 +157,7 @@
     #viewPreorder .search-input:focus, #viewPreorder .filter-select:focus {
       border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.18);
     }
-    #viewPreorder .meta { max-width: var(--maxw); margin: 10px auto 0; padding: 0 20px; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+    #viewPreorder .meta { max-width: var(--maxw); margin: 10px auto 0; padding: 0 20px; font-size: 13px; color: var(--text-secondary); font-weight: 700; }
 
     #viewPreorder .card-grid { display: flex; flex-direction: column; gap: 12px; }
     #viewPreorder .card {
@@ -195,14 +167,14 @@
     #viewPreorder .card.clickable { cursor: pointer; }
     #viewPreorder .card.clickable:hover { transform: translateY(-2px); background: var(--fill-secondary); border-color: var(--fill-tertiary); }
     #viewPreorder .card-header { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
-    #viewPreorder .card-name { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+    #viewPreorder .card-name { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
     #viewPreorder .card-product { font-size: 14px; color: var(--text-secondary); }
     #viewPreorder .card-date { font-size: 12px; color: var(--text-tertiary); margin-top: 8px; grid-column: 1 / -1; }
 
-    /* Status super flat */
+    /* Status badge super flat */
     #viewPreorder .status-badge {
       display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 9999px;
-      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; border: 1px solid transparent;
+      font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; border: 1px solid transparent;
     }
     #viewPreorder .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
     #viewPreorder .status-badge.success { color: #166534; background-color: #ecfdf5; border-color: #d1fae5; }
@@ -217,13 +189,13 @@
     #viewPreorder .card-details { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .35s var(--transition-curve), opacity .25s var(--transition-curve), margin-top .25s var(--transition-curve), padding-top .25s var(--transition-curve); margin-top: 0; }
     #viewPreorder .card.expanded .card-details { max-height: 520px; opacity: 1; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--separator); }
     #viewPreorder .details-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 12px; }
-    #viewPreorder .detail-label { font-size: 12px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .04em; }
-    #viewPreorder .detail-value { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+    #viewPreorder .detail-label { font-size: 12px; font-weight: 800; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .04em; }
+    #viewPreorder .detail-value { font-size: 14px; font-weight: 800; letter-spacing: -0.01em; }
 
     #viewPreorder .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 24px; }
     #viewPreorder .pagination-btn {
       padding: 0 18px; height: 42px; background: var(--fill-secondary); border: 1px solid var(--separator); border-radius: var(--radius-small);
-      font-size: 14px; font-weight: 700; color: var(--text-primary); cursor: pointer; transition: transform .18s ease, background .18s ease, border-color .18s ease;
+      font-size: 14px; font-weight: 800; color: var(--text-primary); cursor: pointer; transition: transform .18s ease, background .18s ease, border-color .18s ease;
     }
     #viewPreorder .pagination-btn:hover:not(:disabled) { transform: translateY(-1px); background: var(--fill-tertiary); border-color: var(--fill-tertiary); }
     #viewPreorder .pagination-btn:disabled { opacity:.55; cursor:not-allowed; }
@@ -239,15 +211,20 @@
       <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
       <h1>PlayPal.ID</h1>
       <p>Destinasi Utama Para Pecinta Game, Film &amp; Musik</p>
-      <div class="burger" id="burger" aria-label="Menu" aria-expanded="false" role="button" tabindex="0">
-        <span></span><span></span><span></span>
+
+      <!-- Dropdown switcher menggantikan burger/flyout -->
+      <div class="view-switch">
+        <label for="viewSwitcher" class="sr-only">Pilih tampilan</label>
+        <select id="viewSwitcher" aria-label="Pilih tampilan">
+          <option value="katalog">Katalog</option>
+          <option value="preorder">Lacak Pre‑Order</option>
+        </select>
+        <svg class="chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill="currentColor" fill-rule="evenodd"
+                d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06z"
+                clip-rule="evenodd"/>
+        </svg>
       </div>
-      <nav class="menu" id="menu" aria-label="Navigasi tampilan">
-        <button class="menu-btn" data-mode="katalog" type="button">Katalog</button>
-        <button class="menu-btn" data-mode="preorder" type="button">Lacak Pre‑Order</button>
-        <div class="menu-divider"></div>
-        <button class="menu-btn" id="closeMenu" type="button">Tutup</button>
-      </nav>
     </header>
 
     <!-- KATALOG -->
@@ -319,8 +296,7 @@
       let DATA = [], CATS = [], activeCat = '', query = '';
 
       // ========= ELEMENTS =========
-      const burger = document.getElementById('burger');
-      const menu = document.getElementById('menu');
+      const viewSwitcher = document.getElementById('viewSwitcher');
       const viewCatalog = document.getElementById('viewCatalog');
       const viewPreorder = document.getElementById('viewPreorder');
       const listEl = document.getElementById('list-container');
@@ -333,30 +309,18 @@
       const customSelectValue = document.getElementById('custom-select-value');
       const customSelectOptions = document.getElementById('custom-select-options');
 
-      // ========= MENU (burger) =========
-      function setMenuOpen(open) {
-        burger.classList.toggle('active', open);
-        menu.classList.toggle('open', open);
-        burger.setAttribute('aria-expanded', open);
-      }
-      burger.addEventListener('click', () => setMenuOpen(!burger.classList.contains('active')));
-      document.getElementById('closeMenu').addEventListener('click', () => setMenuOpen(false));
-      document.addEventListener('click', (e) => {
-        if (!menu.contains(e.target) && !burger.contains(e.target)) setMenuOpen(false);
-      });
-
       // ========= MODE SWITCH =========
       let MODE = 'katalog';
       function setMode(next) {
         MODE = next;
         viewCatalog.style.display = MODE === 'katalog' ? 'block' : 'none';
         viewPreorder.style.display = MODE === 'preorder' ? 'block' : 'none';
-        setMenuOpen(false);
         if (MODE === 'preorder' && !poState.initialized) poInit();
+        if (viewSwitcher && viewSwitcher.value !== MODE) viewSwitcher.value = MODE;
       }
-      menu.querySelectorAll('.menu-btn[data-mode]').forEach(btn => {
-        btn.addEventListener('click', () => setMode(btn.getAttribute('data-mode')));
-      });
+      if (viewSwitcher) {
+        viewSwitcher.addEventListener('change', (e) => setMode(e.target.value));
+      }
 
       // ========= UTILS =========
       const prettyLabel = (raw) => String(raw || '').trim().replace(/\s+/g, ' ');
@@ -368,8 +332,8 @@
       function parseGVizPairs(jsonText) {
         const m = jsonText.match(/\{.*\}/s);
         if (!m) throw new Error('Invalid GViz response.');
-        const obj = JSON.parse(m[0]);
-        const table = obj.table || {}, rows = table.rows || [], cols = table.cols || [];
+        theObj = JSON.parse(m[0]);
+        const table = theObj.table || {}, rows = table.rows || [], cols = table.cols || [];
         const pairs = Array.from({ length: Math.floor(cols.length / 2) }, (_, i) => ({
           iTitle: i * 2, iPrice: i * 2 + 1, label: cols[i * 2]?.label || ''
         })).filter(p => p.label && cols[p.iPrice]);
@@ -381,9 +345,7 @@
             const title = String(c[p.iTitle]?.v || '').trim();
             const priceRaw = c[p.iPrice]?.v;
             const price = (priceRaw != null && priceRaw !== '') ? Number(priceRaw) : NaN;
-            if (title && !isNaN(price)) {
-              out.push({ catKey: p.label, catLabel: prettyLabel(p.label), title, price });
-            }
+            if (title && !isNaN(price)) out.push({ catKey: p.label, catLabel: prettyLabel(p.label), title, price });
           }
         }
         return out;
@@ -488,31 +450,27 @@
 
       const poState = { initialized: false, allData: [], currentPage: 1, perPage: 15 };
 
-      // Kunci PRIVASI: selalu kosongkan ID Gift & Nomor Telepon (dan variasi namanya)
+      // PRIVASI: kosongkan ID Gift & Nomor Telepon (berbagai variasi penamaan)
       const PRIVACY_KEYS = [
-        'id gift', 'gift id', 'gift', 
-        'nomor', 'no', 'telepon', 'no telepon', 'no. telepon', 'nomor telepon',
-        'phone', 'hp', 'whatsapp', 'wa', 'no wa', 'no. wa'
+        'id gift','gift id','gift',
+        'nomor','no','telepon','no telepon','no. telepon','nomor telepon',
+        'phone','hp','whatsapp','wa','no wa','no. wa'
       ];
-
       const isPrivacyKey = (k) => {
         const s = String(k || '').trim().toLowerCase();
         return PRIVACY_KEYS.some(key => s === key || s.includes(key));
       };
-
       function scrubRecord(rec) {
         const out = { ...rec };
-        for (const k of Object.keys(out)) {
-          if (isPrivacyKey(k)) out[k] = ''; // kosongkan value sensitif
-        }
+        for (const k of Object.keys(out)) if (isPrivacyKey(k)) out[k] = '';
         return out;
       }
 
       const normalizeStatus = (raw) => {
         const s = String(raw || '').trim().toLowerCase();
-        if (['success', 'selesai', 'berhasil', 'done'].includes(s)) return 'success';
-        if (['progress', 'proses', 'diproses', 'processing'].includes(s)) return 'progress';
-        if (['failed', 'gagal', 'dibatalkan', 'cancel', 'error'].includes(s)) return 'failed';
+        if (['success','selesai','berhasil','done'].includes(s)) return 'success';
+        if (['progress','proses','diproses','processing'].includes(s)) return 'progress';
+        if (['failed','gagal','dibatalkan','cancel','error'].includes(s)) return 'failed';
         return 'pending';
       };
 
@@ -553,29 +511,26 @@
 
         const frag = document.createDocumentFragment();
         pageData.forEach(item => {
-          // pastikan data yang dirender sudah bersih dari field sensitif
-          const clean = scrubRecord(item);
+          const clean = scrubRecord(item); // pastikan bersih
 
           let statusClass = normalizeStatus(clean['Status']);
           const name = clean['Nickname'] || clean['ID Server'] || 'Tanpa Nama';
           const product = clean['Produk / Item'] || clean['Item'] || 'N/A';
           const estDelivery = clean['Est. Pengiriman'] ? `${clean['Est. Pengiriman']} 20:00 WIB` : '';
 
-          // jangan tampilkan field sensitif & field utama agar tidak dobel
           const HIDE_KEYS = new Set([
-            'Nickname', 'ID Server', 'Produk / Item', 'Item', 'Status', 'Est. Pengiriman',
-            // sembunyikan kunci privasi juga walau value sudah dikosongkan
+            'Nickname','ID Server','Produk / Item','Item','Status','Est. Pengiriman',
             ...Object.keys(clean).filter(isPrivacyKey)
           ]);
 
           const detailsHtml = Object.entries(clean)
-            .filter(([k, v]) => v && !HIDE_KEYS.has(k))
-            .map(([k, v]) =>
-              `<div class="detail-item">
-                 <div class="detail-label">${k}</div>
-                 <div class="detail-value">${v}</div>
-               </div>`
-            ).join('');
+            .filter(([k,v]) => v && !HIDE_KEYS.has(k))
+            .map(([k,v]) => `
+              <div class="detail-item">
+                <div class="detail-label">${k}</div>
+                <div class="detail-value">${v}</div>
+              </div>
+            `).join('');
 
           const card = document.createElement('article');
           card.className = `card ${detailsHtml ? 'clickable' : ''}`;
@@ -590,9 +545,7 @@
             ${estDelivery ? `<div class="card-date">Estimasi Pengiriman: ${estDelivery}</div>` : ''}
             ${detailsHtml ? `<div class="card-details"><div class="details-grid">${detailsHtml}</div></div>` : ''}
           `;
-          if (detailsHtml) {
-            card.addEventListener('click', () => card.classList.toggle('expanded'));
-          }
+          if (detailsHtml) card.addEventListener('click', () => card.classList.toggle('expanded'));
           frag.appendChild(card);
         });
 
@@ -613,32 +566,23 @@
           if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
           const text = await res.text();
 
-          const rows = text
-            .trim()
-            .split('\n')
+          const rows = text.trim().split('\n')
             .map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
 
           if (rows.length < 1) { poState.allData = []; return; }
 
           if (sheetIndex0 === 0) {
-            // Sheet1: pakai header
             const headers = rows.shift();
             const mapped = rows
               .map(row => Object.fromEntries(row.map((val, i) => [headers[i] || `col_${i+1}`, val])))
               .filter(item => item[headers[0]]);
-
-            // scrub privacy lalu sort
             poState.allData = poSortByStatus(mapped.map(scrubRecord));
           } else {
-            // Sheet2: 3 kolom (ID Server, Item, Status)
             const bodyRows = rows[0]?.length === 3 && ['id server','item','status'].includes(rows[0][0].toLowerCase())
-              ? rows.slice(1)
-              : rows;
-
+              ? rows.slice(1) : rows;
             const mapped = bodyRows
               .map(r => ({ 'ID Server': r[0] || '', 'Item': r[1] || '', 'Status': r[2] || '' }))
               .filter(item => item['ID Server']);
-
             poState.allData = poSortByStatus(mapped.map(scrubRecord));
           }
         } catch (e) {
@@ -662,7 +606,7 @@
         poState.initialized = true;
       }
 
-      // Initial Load
+      // Initial
       loadCatalog();
     })();
   </script>
