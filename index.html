@@ -17,9 +17,9 @@
       --fill-secondary: #f5f5f7;
       --separator: #e5e5e7;
       --separator-subtle: #f0f0f2;
-      --maxw: 1200px;
-      --radius-large: 20px;
-      --radius-medium: 12px;
+      --maxw: 1180px;
+      --radius-large: 18px;
+      --radius-medium: 10px;
       --transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -43,42 +43,43 @@
       background: var(--bg);
       color: var(--text-primary);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 16px;
+      font-size: 15px; /* Base font size reduced */
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 24px; }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 16px; }
 
-    /* === HEADER & NAVIGATION (Professional) === */
+    /* === HEADER & NAVIGATION (Integrated) === */
     header {
-      padding: 24px 0;
+      padding: 16px 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 16px;
     }
-    .header-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-    .logo { height: 40px; }
-    .header-brand h1 { margin: 0; font-size: 22px; font-weight: 600; color: var(--text-primary); }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo { height: 36px; }
+    .header-title { margin: 0; font-size: 24px; font-weight: 600; color: var(--text-primary); }
 
     .desktop-nav { display: none; }
     @media (min-width: 768px) {
-      .desktop-nav { display: flex; align-items: center; gap: 8px; }
+      .desktop-nav { display: flex; align-items: center; gap: 4px; }
       .desktop-nav-btn {
-        padding: 10px 18px; border: 0; background: none; border-radius: var(--radius-medium);
-        color: var(--text-secondary); font-size: 15px; font-weight: 500; cursor: pointer;
+        padding: 8px 16px; border: 0; background: none; border-radius: var(--radius-medium);
+        color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer;
         transition: all .2s ease;
       }
       .desktop-nav-btn:hover { background: var(--fill-secondary); color: var(--text-primary); }
-      .desktop-nav-btn.active { color: var(--primary-blue); font-weight: 600; }
+      .desktop-nav-btn.active { background: var(--fill-secondary); color: var(--text-primary); font-weight: 600; }
     }
     .mobile-only { display: block; }
     @media (min-width: 768px) { .mobile-only { display: none; } }
     
     /* === SLIDE-IN MENU (Mobile) === */
-    .burger { z-index: 101; width: 44px; height: 44px; cursor: pointer; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; transition: background-color .2s ease; }
+    .burger { z-index: 101; width: 40px; height: 40px; cursor: pointer; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; transition: background-color .2s ease; }
     .burger:hover { background-color: var(--fill-secondary); }
-    .burger span { display: block; height: 1.5px; width: 18px; background: var(--text-secondary); border-radius: 1px; transition: all 0.35s var(--transition-curve); transform-origin: center; }
+    .burger span { display: block; height: 1.5px; width: 16px; background: var(--text-secondary); border-radius: 1px; transition: all 0.35s var(--transition-curve); transform-origin: center; }
     .burger.active span:nth-child(1) { transform: translateY(2.75px) rotate(45deg); } .burger.active span:nth-child(2) { opacity: 0; } .burger.active span:nth-child(3) { transform: translateY(-2.75px) rotate(-45deg); }
     
     .menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 98; opacity: 0; transition: opacity .4s ease; pointer-events: none; }
@@ -87,59 +88,49 @@
     .menu.open { transform: translateX(0); }
     .menu-btn { padding: 14px 24px; border: 0; background: transparent; text-align: left; color: var(--text-secondary); font-weight: 500; font-size: 16px; cursor: pointer; transition: all 0.2s ease; }
     .menu-btn:hover { color: var(--text-primary); } .menu-btn.active { color: var(--primary-blue); font-weight: 600; }
-
-    /* === PAGE INTRO === */
-    .page-intro { text-align: center; padding: 48px 24px; }
-    .page-intro h2 { font-size: 40px; font-weight: 700; letter-spacing: -1px; margin: 0 0 8px; }
-    .page-intro p { font-size: 18px; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
-
-    /* === VIEW: KATALOG (Grid View) === */
-    .catalog-controls { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
-    @media (min-width: 768px) { .catalog-controls { flex-direction: row; justify-content: space-between; align-items: center; } }
+    
+    /* === VIEW CONTROLS (Compact) === */
+    .view-controls { display: flex; flex-direction: column; gap: 12px; margin: 16px 0 24px; }
+    @media (min-width: 768px) { .view-controls { flex-direction: row; justify-content: space-between; align-items: center; } }
     .search-wrap { position: relative; flex-grow: 1; }
-    #search { width: 100%; height: 48px; padding: 0 16px 0 44px; background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); font-size: 15px; outline: none; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02), inset 0 0 0 1px transparent; }
-    #search:focus { border-color: var(--primary-blue); background-color: var(--fill-primary); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.15), inset 0 0 0 1px var(--primary-blue); }
-    .search-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-tertiary); }
-    #game-select { min-width: 240px; height: 48px; padding: 0 40px 0 16px; font-size: 15px; font-weight: 500; background-color: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238a8a8e'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 18px; }
+    .control-input { width: 100%; height: 42px; padding: 0 16px; background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); font-size: 14px; outline: none; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+    .control-input:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.15); }
+    #search { padding-left: 42px; }
+    .search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-tertiary); }
+    #game-select { min-width: 220px; padding-right: 40px; -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238a8a8e'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px; }
 
-    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    /* === KATALOG GRID (Denser) === */
+    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
     .product-card {
       background: var(--fill-primary); border-radius: var(--radius-large); text-decoration: none; color: inherit;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.04), inset 0 0 0 1px var(--separator-subtle);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04), inset 0 0 0 1px var(--separator-subtle);
       transition: transform 0.3s var(--transition-curve), box-shadow 0.3s var(--transition-curve);
     }
-    .product-card:hover { transform: translateY(-5px); box-shadow: 0 12px 32px rgba(0,0,0,0.08), inset 0 0 0 1px var(--separator); }
-    .product-card-image { height: 160px; background-color: var(--fill-secondary); border-radius: var(--radius-large) var(--radius-large) 0 0; }
-    .product-card-content { padding: 20px; }
-    .product-card-title { font-size: 17px; font-weight: 600; margin: 0 0 8px; }
-    .product-card-price { font-size: 16px; font-weight: 600; color: var(--primary-blue); }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.08), inset 0 0 0 1px var(--separator); }
+    .product-card-image { height: 120px; background-color: var(--fill-secondary); border-radius: var(--radius-large) var(--radius-large) 0 0; }
+    .product-card-content { padding: 16px; }
+    .product-card-title { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+    .product-card-price { font-size: 15px; font-weight: 600; color: var(--primary-blue); }
 
-    /* === VIEW: PRE-ORDER (Refined) === */
-    #viewPreorder { display: none; }
-    #viewPreorder .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+    /* === PRE-ORDER VIEW (Simplified) === */
+    #viewPreorder .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin: 16px 0 24px; }
     @media (max-width: 768px) { #viewPreorder .controls { grid-template-columns: 1fr; } }
-    #viewPreorder .po-input { height: 48px; padding: 0 16px; font-size: 15px; background-color: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); outline: none; transition: all .2s ease; }
-    #viewPreorder .po-input:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.15); }
-    .card-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .card-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
     @media (min-width: 1024px) { .card-grid { grid-template-columns: 1fr 1fr; } }
     .po-card {
-      background: var(--fill-primary); border-radius: var(--radius-large); padding: 24px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.04), inset 0 0 0 1px var(--separator-subtle);
-      transition: all .3s var(--transition-curve);
+      background: var(--fill-primary); border-radius: var(--radius-large); padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04), inset 0 0 0 1px var(--separator-subtle);
     }
-    .po-card.clickable:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.06), inset 0 0 0 1px var(--separator); }
     .po-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
     .po-card-info { flex-grow: 1; }
-    .po-card-name { font-size: 17px; font-weight: 600; }
-    .po-card-product { font-size: 15px; color: var(--text-secondary); }
-    .po-card-details { max-height: 0; overflow: hidden; opacity: 0; transition: all .45s var(--transition-curve); margin-top: 0; }
-    .po-card.expanded .po-card-details { max-height: 500px; opacity: 1; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--separator); }
+    .po-card-name { font-size: 16px; font-weight: 600; }
+    .po-card-product { font-size: 14px; color: var(--text-secondary); }
 
     .status-badge { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     .status-badge.success { color: #16a34a; background-color: #f0fdf4; } .status-badge.progress { color: #2563eb; background-color: #eff6ff; } .status-badge.pending { color: #ca8a04; background-color: #fefce8; } .status-badge.failed { color: #dc2626; background-color: #fef2f2; }
     @media (prefers-color-scheme: dark) { .status-badge.success { color: #4ade80; background-color: rgba(34, 197, 94, 0.15); } .status-badge.progress { color: #60a5fa; background-color: rgba(59, 130, 246, 0.15); } .status-badge.pending { color: #facc15; background-color: rgba(245, 158, 11, 0.15); } .status-badge.failed { color: #f87171; background-color: rgba(239, 68, 68, 0.15); } }
 
-    .empty, .err { border: 1px dashed var(--separator); border-radius: var(--radius-large); padding: 64px; text-align: center; color: var(--text-secondary); font-size: 15px; margin-top: 20px; grid-column: 1 / -1; }
+    .empty, .err { border: 1px dashed var(--separator); border-radius: var(--radius-large); padding: 48px; text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 20px; grid-column: 1 / -1; }
     .err { border-color: #ef4444; background-color: #fef2f2; color: #dc2626; }
     @media (prefers-color-scheme: dark) { .err { border-color: #b91c1c; background-color: rgba(239,68,68,0.1); color: #f87171; } }
   </style>
@@ -153,10 +144,10 @@
 
   <div class="wrap">
     <header>
-      <a href="#" class="header-brand">
+      <div class="header-left">
         <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
-        <h1>PlayPal.ID</h1>
-      </a>
+        <h1 id="header-title" class="header-title">Katalog Produk</h1>
+      </div>
       <nav class="desktop-nav">
         <button class="desktop-nav-btn active" data-mode="katalog">Katalog</button>
         <button class="desktop-nav-btn" data-mode="preorder">Lacak Pesanan</button>
@@ -170,16 +161,12 @@
 
     <main>
       <section id="viewCatalog">
-        <div class="page-intro">
-          <h2>Jelajahi Dunia Hiburan</h2>
-          <p>Temukan game, film, dan musik favorit Anda dalam satu destinasi utama.</p>
-        </div>
-        <div class="catalog-controls">
+        <div class="view-controls">
             <div class="search-wrap">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
-              <input id="search" type="search" placeholder="Cari item..." aria-label="Cari">
+              <input id="search" class="control-input" type="search" placeholder="Cari item dalam kategori ini..." aria-label="Cari">
             </div>
-            <select id="game-select" aria-label="Pilih Kategori"></select>
+            <select id="game-select" class="control-input" aria-label="Pilih Kategori"></select>
         </div>
         <div id="catalog-grid" class="catalog-grid" aria-live="polite"></div>
         <div id="error-katalog" class="err" style="display: none;"></div>
@@ -194,21 +181,17 @@
         </template>
       </section>
 
-      <section id="viewPreorder">
-        <div class="page-intro">
-            <h2>Lacak Status Pesanan Anda</h2>
-            <p>Masukkan detail pesanan untuk melihat progres pengiriman secara real-time.</p>
-        </div>
-        <div class="controls" aria-label="Kontrol data">
-          <input type="search" class="po-input" id="poSearch" placeholder="Cari nama / ID Server..." />
-          <select class="po-input" id="poStatus" aria-label="Filter status">
+      <section id="viewPreorder" style="display: none;">
+        <div class="controls view-controls" aria-label="Kontrol data">
+          <input type="search" class="control-input" id="poSearch" placeholder="Cari nama / ID Server..." />
+          <select class="control-input" id="poStatus" aria-label="Filter status">
             <option value="all">Semua Status</option>
             <option value="success">Success</option>
             <option value="progress">Progress</option>
             <option value="pending">Pending</option>
             <option value="failed">Gagal</option>
           </select>
-          <select class="po-input" id="poSheet" aria-label="Pilih kategori pesanan">
+          <select class="control-input" id="poSheet" aria-label="Pilih kategori pesanan">
             <option value="0">Starlight Member</option>
             <option value="1">Pesanan Umum</option>
           </select>
@@ -224,23 +207,24 @@
       // ========= CONFIG =========
       const SHEET_ID = '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw';
       const WA_NUMBER = '6285877001999';
+      const GID_SHEET_1 = '1920703350'; // GID untuk Starlight
+      const GID_SHEET_2 = '1657613615'; // GID untuk Pesanan Umum
 
       // ========= ELEMENTS =========
       const burger = document.getElementById('burger');
       const menu = document.getElementById('menu');
       const menuOverlay = document.getElementById('menu-overlay');
       const allNavButtons = document.querySelectorAll('[data-mode]');
+      const headerTitleEl = document.getElementById('header-title');
       const viewCatalog = document.getElementById('viewCatalog');
       const viewPreorder = document.getElementById('viewPreorder');
       
-      // Katalog Elements
       const gameSelectEl = document.getElementById('game-select');
       const searchEl = document.getElementById('search');
       const catalogGridEl = document.getElementById('catalog-grid');
       const productCardTmpl = document.getElementById('productCardTmpl');
       const errorKatalogEl = document.getElementById('error-katalog');
       
-      // Pre-Order Elements
       const poSearchEl = document.getElementById('poSearch');
       const poStatusEl = document.getElementById('poStatus');
       const poSheetEl = document.getElementById('poSheet');
@@ -264,7 +248,8 @@
         if (MODE === nextMode && menu.classList.contains('open')) return setMenuOpen(false);
         MODE = nextMode;
         viewCatalog.style.display = MODE === 'katalog' ? 'block' : 'none';
-        viewPreorder.style.display = MODE === 'preorder' ? 'none' : 'block';
+        viewPreorder.style.display = MODE === 'preorder' ? 'block' : 'none';
+        headerTitleEl.textContent = MODE === 'katalog' ? 'Katalog Produk' : 'Lacak Pesanan';
         
         allNavButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === MODE));
         setMenuOpen(false);
@@ -279,7 +264,7 @@
       // ========= UTILS =========
       const toIDR = v => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v);
       const sheetUrlJSON = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
-      const sheetUrlCSV = (sheetIndex) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${sheetIndex}`;
+      const sheetUrlCSV = (gid) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
 
       // ========= KATALOG LOGIC =========
       const parseKatalogData = (jsonText) => {
@@ -321,14 +306,10 @@
         for (const item of filteredItems) {
           const card = productCardTmpl.content.cloneNode(true);
           const link = card.querySelector('.product-card');
-          const titleEl = card.querySelector('.product-card-title');
-          const priceEl = card.querySelector('.product-card-price');
-          
-          titleEl.textContent = item.title;
-          priceEl.textContent = toIDR(item.price);
+          card.querySelector('.product-card-title').textContent = item.title;
+          card.querySelector('.product-card-price').textContent = toIDR(item.price);
           const text = `*Pesan Item:*\n› Kategori: ${item.category}\n› Item: ${item.title}\n› Harga: ${toIDR(item.price)}`;
           link.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-          
           fragment.appendChild(card);
         }
         catalogGridEl.appendChild(fragment);
@@ -380,6 +361,7 @@
         for (const item of filtered) {
           const card = document.createElement('div');
           card.className = 'po-card';
+          // Menampilkan hanya data esensial, sesuai permintaan.
           const name = item['Nickname'] || item['ID Server'] || 'N/A';
           const product = item['Produk / Item'] || item['Item'] || 'N/A';
           
@@ -397,20 +379,24 @@
         poGridEl.appendChild(fragment);
       };
 
-      const loadPO = async (sheetId) => {
+      const loadPO = async (sheetType) => {
         try {
           poGridEl.innerHTML = `<div class="empty">Memuat...</div>`;
           errorPOEl.style.display = 'none';
-          const sheetIndex = sheetId === '0' ? '1920703350' : '1657613615'; // GID Starlight & Umum
-          const res = await fetch(sheetUrlCSV(sheetIndex));
+          const gid = sheetType === '0' ? GID_SHEET_1 : GID_SHEET_2;
+          const res = await fetch(sheetUrlCSV(gid));
           if (!res.ok) throw new Error(`Network Error: ${res.statusText}`);
           const text = await res.text();
           const rows = text.trim().split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
           
           const headers = rows.shift();
+          // Data disaring di sini, hanya kolom yang relevan yang disimpan jika perlu,
+          // namun penyaringan utama ada di 'renderPO' untuk memastikan tidak ada data sensitif yang ditampilkan.
           poData = rows.map(row => Object.fromEntries(row.map((val, i) => [headers[i], val]))).filter(item => item[headers[0]]);
           renderPO();
         } catch(e) {
+          poData = []; // Clear data on error
+          renderPO(); // Render empty state
           errorPOEl.textContent = e.message;
           errorPOEl.style.display = 'block';
         }
