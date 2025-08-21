@@ -7,192 +7,244 @@
   <meta name="description" content="Destinasi Utama Para Pecinta Game, Film & Musik">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#ffffff; --text:#1f2937; --muted:#6b7280;
-      --surface:#f3f3f3; --border:#e5e7eb; --surface-hover:#e9e9e9;
-      --primary:#5C80BC; --primary-hover:#4a6b9a;
-      --maxw:1100px; --radius:8px;
+    :root {
+      --primary-blue: #5C80BC;
+      --primary-blue-rgb: 92, 128, 188;
+      --bg: #f5f5f7;
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #86868b;
+      --fill-primary: #ffffff;
+      --fill-secondary: #f0f0f2;
+      --fill-tertiary: #e8e8ea;
+      --separator: #d2d2d7;
+      --maxw: 1100px;
+      --radius-large: 18px;
+      --radius-medium: 12px;
+      --transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
     }
-    @media (prefers-color-scheme: dark){
-      :root{
-        --bg:#111827; --text:#f3f4f6; --muted:#9ca3af;
-        --surface:#1f2937; --border:#374151; --surface-hover:#374151;
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000;
+        --text-primary: #f5f5f7;
+        --text-secondary: #86868b;
+        --text-tertiary: #6e6e73;
+        --fill-primary: #1d1d1f;
+        --fill-secondary: #2c2c2e;
+        --fill-tertiary: #3a3a3c;
+        --separator: #3a3a3c;
       }
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:var(--bg); color:var(--text);
-      font-family:'Inter',ui-sans-serif,-apple-system,system-ui,"Segoe UI",sans-serif;
-      font-size:15px; line-height:1.5;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    }
-    .wrap{max-width:var(--maxw); margin:0 auto; padding:32px 16px}
 
-    /* HEADER */
-    header{ position:relative; text-align:center; margin-bottom:16px; }
-    .topbar{display:flex; align-items:center; justify-content:center; gap:12px}
-    header .logo{ height:44px; width:auto; }
-    header h1{ margin:6px 0 0; font-size:clamp(22px,4vw,28px); font-weight:800; }
-    header p{ margin:4px 0 0; color:var(--muted); font-size:14px; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 48px 24px; }
 
-    /* Burger Menu */
-    .burger{
-      position:absolute; top:16px; right:16px;
-      width:28px; height:20px; cursor:pointer;
-      display:flex; flex-direction:column; justify-content:space-between;
-    }
-    .burger span{ display:block; height:2px; width:100%; background:var(--text); border-radius:2px; transition:all .3s ease; }
-    .burger.active span:nth-child(1){ transform:rotate(45deg) translate(5px,5px); }
-    .burger.active span:nth-child(2){ opacity:0; }
-    .burger.active span:nth-child(3){ transform:rotate(-45deg) translate(5px,-5px); }
+    /* === HEADER === */
+    header { position: relative; text-align: center; margin-bottom: 24px; }
+    .logo { height: 48px; width: auto; }
+    header h1 { margin: 12px 0 0; font-size: clamp(28px, 4vw, 36px); font-weight: 700; letter-spacing: -0.5px; }
+    header p { margin: 4px 0 0; color: var(--text-secondary); font-size: 17px; }
 
-    /* Dropdown Menu */
-    .menu{
-      position:absolute; top:48px; right:16px;
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:0 4px 16px rgba(0,0,0,0.15);
-      display:none; flex-direction:column;
-      min-width:180px; overflow:hidden; z-index:20;
+    /* === BURGER MENU (Minimalist) === */
+    .burger {
+      position: absolute; top: 16px; right: 24px; z-index: 101;
+      width: 24px; height: 24px; cursor: pointer;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
     }
-    .menu .menu-btn{
-      padding:12px 16px; border:0; background:transparent; text-align:left;
-      color:var(--text); font-weight:600; font-size:14px; cursor:pointer;
-      transition:background .2s ease;
+    .burger span {
+      display: block; height: 1.5px; width: 20px; background: var(--text-secondary); border-radius: 1px;
+      transition: transform 0.35s var(--transition-curve), opacity 0.35s var(--transition-curve);
+      transform-origin: center;
     }
-    .menu .menu-btn:hover{ background:var(--surface-hover); }
-    .menu .menu-divider{ height:1px; background:var(--border); margin:4px 0; }
+    .burger.active span:nth-child(1) { transform: translateY(3.25px) rotate(45deg); }
+    .burger.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .burger.active span:nth-child(3) { transform: translateY(-3.25px) rotate(-45deg); }
 
-    /* ====== VIEW: KATALOG (Sheet3) ====== */
-    #viewCatalog{ display:block; }
-    .select-wrap{ position:relative; margin:20px 0; }
-    .game-select{
-      width:100%; padding:12px 16px; border:1px solid var(--border);
-      background-color:var(--bg); color:var(--text); border-radius:var(--radius);
-      font-size:15px; font-weight:600;
-      -webkit-appearance:none; -moz-appearance:none; appearance:none;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%236b7280' viewBox='0 0 20 20'%3E%3Cpath d='M5.22 8.22a.75.75 0 011.06 0L10 11.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 9.28a.75.75 0 010-1.06z'/%3E%3C/svg%3E");
-      background-repeat:no-repeat; background-position:right 12px center; background-size:20px;
+    /* === DROPDOWN MENU (Premium) === */
+    .menu {
+      position: absolute; top: 56px; right: 24px; z-index: 100;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      border-radius: var(--radius-medium);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      display: flex; flex-direction: column;
+      min-width: 220px; overflow: hidden;
+      opacity: 0; transform: translateY(-10px) scale(0.95);
+      transition: opacity 0.3s var(--transition-curve), transform 0.3s var(--transition-curve);
+      pointer-events: none;
     }
-    .tools{display:flex; flex-wrap:wrap; align-items:center; margin-bottom:16px}
-    .search-wrap{position:relative; flex:1 1 260px;}
-    .search-wrap svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--muted); }
-    .tools input[type="search"]{
-      width:100%; padding:8px 12px 8px 38px; border:1px solid var(--border);
-      background:var(--bg); color:var(--text); border-radius:var(--radius); font-size:14px;
+    .menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    .menu-btn {
+      padding: 12px 18px; border: 0; background: transparent; text-align: left;
+      color: var(--text-primary); font-weight: 500; font-size: 15px; cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
-    .tools .info{color:var(--muted); font-size:13px; font-weight:500; padding-left:12px;}
-    .list-container{ display:flex; flex-direction:column; gap:8px; }
-    .list-item{
-      display:flex; justify-content:space-between; align-items:center;
-      padding:12px 16px; background:var(--surface); border-radius:var(--radius);
-      text-decoration:none; color:inherit; transition:background-color .2s ease;
+    .menu-btn:hover { background: rgba(0, 0, 0, 0.05); }
+    .menu-divider { height: 1px; background: var(--separator); margin: 6px 0; }
+    @media (prefers-color-scheme: dark) {
+      .menu { background: rgba(29, 29, 31, 0.7); border-color: rgba(255, 255, 255, 0.08); }
+      .menu-btn:hover { background: rgba(255, 255, 255, 0.08); }
     }
-    .list-item:hover{ background-color:var(--surface-hover); }
-    .list-item .title{ font-size:14px; font-weight:500; color:var(--text); }
-    .list-item .price{ font-size:14px; font-weight:600; color:var(--primary); }
-    .empty, .err{ border:1px dashed var(--border); border-radius:var(--radius); padding:40px; text-align:center; color:var(--muted); font-size:14px; }
-    .err{ border:1px solid #ef4444; background:#fef2f2; color:#b91c1c; display:none }
-    @media (prefers-color-scheme: dark){ .err{background:#2a0c0c; color:#fca5a5; border-color:#7f1d1d} }
 
-    /* ====== VIEW: PRE-ORDER (Sheet1/2) ====== */
-    #viewPreorder{ display:none; }
-    #viewPreorder .po-head{
-      position:sticky; top:0; z-index:10; background:rgba(255,255,255,.75);
-      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-      border-bottom:1px solid var(--border); padding:12px 0 10px;
+    /* === VIEW: KATALOG (Upgraded) === */
+    #viewCatalog { display: block; }
+    .controls-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+    @media (min-width: 768px) { .controls-grid { grid-template-columns: 2fr 3fr; } }
+    
+    /* CUSTOM DROPDOWN (Replaces <select>) */
+    .custom-select-wrapper { position: relative; }
+    .custom-select-btn {
+      width: 100%; padding: 14px 20px;
+      background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium);
+      color: var(--text-primary); font-size: 16px; font-weight: 500; text-align: left;
+      display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+      transition: all 0.2s ease;
     }
-    @media (prefers-color-scheme: dark){
-      #viewPreorder .po-head{ background:rgba(31,41,55,.75); border-bottom-color:var(--border); }
+    .custom-select-btn:hover { border-color: var(--text-tertiary); }
+    .custom-select-btn svg { width: 16px; height: 16px; color: var(--text-tertiary); transition: transform 0.3s var(--transition-curve); }
+    .custom-select-wrapper.open .custom-select-btn svg { transform: rotate(180deg); }
+    .custom-select-options {
+      position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 50;
+      background: var(--fill-primary); border: 1px solid var(--separator);
+      border-radius: var(--radius-medium); box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      max-height: 250px; overflow-y: auto;
+      opacity: 0; transform: translateY(-10px); transition: all 0.3s var(--transition-curve); pointer-events: none;
     }
-    #viewPreorder .controls{ display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px; max-width:1100px; margin:0 auto; padding:0 0 8px; }
-    @media (max-width:768px){ #viewPreorder .controls{ grid-template-columns:1fr; } }
-    #viewPreorder .search-input, #viewPreorder .filter-select{
-      width:100%; height:46px; padding:0 14px; font-size:15px; background:var(--bg);
-      border:1px solid var(--border); border-radius:12px; color:var(--text); outline:none;
+    .custom-select-wrapper.open .custom-select-options { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .custom-select-option {
+      padding: 12px 20px; font-size: 15px; cursor: pointer;
+      color: var(--text-secondary);
     }
-    #viewPreorder .search-input:focus, #viewPreorder .filter-select:focus{
-      border-color:#3B82F6; box-shadow:0 0 0 3px rgba(59,130,246,.2);
-    }
-    #viewPreorder .meta{ max-width:1100px; margin:6px auto 0; padding:0 2px; font-size:13px; color:var(--muted); }
+    .custom-select-option:hover, .custom-select-option.selected { background: var(--fill-secondary); color: var(--text-primary); }
 
-    #viewPreorder .container{ max-width:1100px; margin:0 auto; padding:24px 0; display:flex; flex-direction:column; gap:24px; }
-    #viewPreorder .card-grid{ display:flex; flex-direction:column; gap:12px; }
-    #viewPreorder .card{
-      background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:18px 20px;
-      transition:all .3s ease; box-shadow:0 2px 8px rgba(0,0,0,.04);
+    /* REFINED SEARCH INPUT */
+    .search-wrap { position: relative; }
+    .search-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-tertiary); }
+    #search {
+      width: 100%; height: 54px; padding: 14px 20px 14px 48px;
+      background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium);
+      color: var(--text-primary); font-size: 16px;
+      outline: none; transition: all 0.2s ease;
     }
-    #viewPreorder .card.clickable{ cursor:pointer; }
-    #viewPreorder .card.clickable:hover{ transform:translateY(-2px); box-shadow:0 6px 15px rgba(0,0,0,.06); }
-    #viewPreorder .card-header{ display:grid; grid-template-columns:1fr auto; gap:10px; align-items:start; }
-    #viewPreorder .card-name{ font-size:16px; font-weight:700; }
-    #viewPreorder .card-product{ font-size:14px; color:var(--muted); }
-    #viewPreorder .card-date{ font-size:12px; color:var(--muted); margin-top:8px; grid-column:1 / -1; }
-    #viewPreorder .status-badge{ display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:8px; font-size:11px; font-weight:700; text-transform:uppercase; border:1px solid transparent; }
-    #viewPreorder .status-badge::before{ content:''; width:6px; height:6px; border-radius:50%; }
-    #viewPreorder .status-badge.success{ color:#22C55E; background:rgba(34,197,94,.1); border-color:rgba(34,197,94,.2); }
-    #viewPreorder .status-badge.success::before{ background:#22C55E; }
-    #viewPreorder .status-badge.progress{ color:#3B82F6; background:rgba(59,130,246,.1); border-color:rgba(59,130,246,.2); }
-    #viewPreorder .status-badge.progress::before{ background:#3B82F6; }
-    #viewPreorder .status-badge.pending{ color:#F59E0B; background:rgba(245,158,11,.1); border-color:rgba(245,158,11,.2); }
-    #viewPreorder .status-badge.pending::before{ background:#F59E0B; }
-    #viewPreorder .status-badge.failed{ color:#EF4444; background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.2); }
-    #viewPreorder .status-badge.failed::before{ background:#EF4444; }
-    #viewPreorder .card-details{ max-height:0; overflow:hidden; opacity:0; transition:all .35s ease; margin-top:0; }
-    #viewPreorder .card.expanded .card-details{ max-height:500px; opacity:1; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
-    #viewPreorder .details-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
-    #viewPreorder .detail-label{ font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
-    #viewPreorder .detail-value{ font-size:14px; font-weight:600; }
-    #viewPreorder .pagination{ display:flex; justify-content:center; align-items:center; gap:10px; margin-top:12px; }
-    #viewPreorder .pagination-btn{ padding:0 22px; height:42px; background:var(--bg); border:1px solid var(--border); border-radius:12px; font-size:14px; font-weight:600; color:var(--text); cursor:pointer; transition:all .2s ease; }
-    #viewPreorder .pagination-btn:hover:not(:disabled){ background:#3B82F6; color:#fff; border-color:#3B82F6; transform:translateY(-1px); }
-    #viewPreorder .pagination-btn:disabled{ opacity:.45; cursor:not-allowed; }
-    #viewPreorder .loading, #viewPreorder .empty-state{ text-align:center; padding:48px 12px; }
-    #viewPreorder .spinner{ width:22px; height:22px; border:2px solid var(--surface-hover); border-top:2px solid #3B82F6; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 12px; }
-    @keyframes spin{100%{transform:rotate(360deg)}}
+    #search:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.2); }
+    
+    #countInfo { color: var(--text-secondary); font-size: 14px; font-weight: 500; margin-top: 8px; text-align: right;}
+    .list-container { display: flex; flex-direction: column; gap: 10px; }
+    .list-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px; background: var(--fill-primary); border-radius: var(--radius-medium);
+      text-decoration: none; color: inherit;
+      transition: transform 0.2s var(--transition-curve), background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .list-item:hover { transform: translateY(-3px); background-color: var(--fill-secondary); box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+    .list-item .title { font-size: 16px; font-weight: 500; color: var(--text-primary); }
+    .list-item .price { font-size: 16px; font-weight: 600; color: var(--primary-blue); }
+    .empty, .err { border: 1px dashed var(--separator); border-radius: var(--radius-large); padding: 64px; text-align: center; color: var(--text-secondary); font-size: 16px; }
+
+    /* === VIEW: PRE-ORDER (Polished) === */
+    #viewPreorder { display: none; }
+    .po-head {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(245, 245, 247, 0.7);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--separator);
+      padding: 16px 0; margin-bottom: 24px;
+    }
+    @media (prefers-color-scheme: dark) { .po-head { background: rgba(0, 0, 0, 0.7); } }
+    #viewPreorder .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; max-width: 1100px; margin: 0 auto; padding: 0 24px;}
+    @media (max-width: 768px) { #viewPreorder .controls { grid-template-columns: 1fr; } }
+    #viewPreorder .search-input, #viewPreorder .filter-select {
+      width: 100%; height: 48px; padding: 0 16px; font-size: 15px; background: var(--fill-primary);
+      border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); outline: none;
+      -webkit-appearance: none; -moz-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2386868b'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 16px center; background-size: 18px;
+    }
+    #viewPreorder .search-input { background-image: none; }
+    #viewPreorder .search-input:focus, #viewPreorder .filter-select:focus {
+      border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.2);
+    }
+    #viewPreorder .meta { max-width: 1100px; margin: 12px auto 0; padding: 0 24px; font-size: 14px; color: var(--text-secondary); }
+
+    #viewPreorder .card-grid { display: flex; flex-direction: column; gap: 16px; }
+    #viewPreorder .card {
+      background: var(--fill-primary); border: 1px solid transparent; border-radius: var(--radius-large); padding: 24px;
+      transition: all .3s var(--transition-curve); box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+    #viewPreorder .card.clickable { cursor: pointer; }
+    #viewPreorder .card.clickable:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); border-color: var(--separator); }
+    #viewPreorder .card-header { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
+    #viewPreorder .card-name { font-size: 18px; font-weight: 600; }
+    #viewPreorder .card-product { font-size: 15px; color: var(--text-secondary); }
+    #viewPreorder .card-date { font-size: 13px; color: var(--text-tertiary); margin-top: 10px; grid-column: 1 / -1; }
+    #viewPreorder .status-badge { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    #viewPreorder .status-badge::before { content:''; width: 8px; height: 8px; border-radius: 50%; }
+    #viewPreorder .status-badge.success { color:#30d158; background:rgba(48,209,88,.15); } #viewPreorder .status-badge.success::before { background:#30d158; }
+    #viewPreorder .status-badge.progress { color:#0a84ff; background:rgba(10,132,255,.15); } #viewPreorder .status-badge.progress::before { background:#0a84ff; }
+    #viewPreorder .status-badge.pending { color:#ff9f0a; background:rgba(255,159,10,.15); } #viewPreorder .status-badge.pending::before { background:#ff9f0a; }
+    #viewPreorder .status-badge.failed { color:#ff453a; background:rgba(255,69,58,.15); } #viewPreorder .status-badge.failed::before { background:#ff453a; }
+    #viewPreorder .card-details { max-height: 0; overflow: hidden; opacity: 0; transition: all .45s var(--transition-curve); margin-top: 0; }
+    #viewPreorder .card.expanded .card-details { max-height: 500px; opacity: 1; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--separator); }
+    #viewPreorder .details-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 16px; }
+    #viewPreorder .detail-label { font-size: 13px; font-weight: 500; color: var(--text-tertiary); }
+    #viewPreorder .detail-value { font-size: 15px; font-weight: 600; }
+    #viewPreorder .pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 32px; }
+    #viewPreorder .pagination-btn { padding: 0 24px; height: 44px; background: var(--fill-secondary); border: 1px solid var(--separator); border-radius: var(--radius-medium); font-size: 15px; font-weight: 500; color: var(--text-primary); cursor: pointer; transition: all .2s ease; }
+    #viewPreorder .pagination-btn:hover:not(:disabled) { background: var(--fill-tertiary); transform: translateY(-2px); }
+    #viewPreorder .pagination-btn:disabled { opacity:.5; cursor:not-allowed; }
+    #viewPreorder .loading, #viewPreorder .empty-state { text-align:center; padding:64px 12px; }
+    #viewPreorder .spinner { width: 24px; height: 24px; border: 2px solid var(--fill-tertiary); border-top: 2px solid var(--primary-blue); border-radius: 50%; animation:spin 1s linear infinite; margin:0 auto 16px; }
+    @keyframes spin { 100% { transform:rotate(360deg) } }
   </style>
 </head>
 <body>
   <main class="wrap">
     <header>
-      <div class="topbar">
-        <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
-      </div>
+      <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
       <h1>PlayPal.ID</h1>
       <p>Destinasi Utama Para Pecinta Game, Film &amp; Musik</p>
-
-      <!-- Burger -->
       <div class="burger" id="burger" aria-label="Menu" aria-expanded="false" role="button" tabindex="0">
         <span></span><span></span><span></span>
       </div>
       <nav class="menu" id="menu" aria-label="Navigasi tampilan">
         <button class="menu-btn" data-mode="katalog" type="button">Katalog</button>
-        <button class="menu-btn" data-mode="preorder" type="button">Pre-Order</button>
+        <button class="menu-btn" data-mode="preorder" type="button">Lacak Pre-Order</button>
         <div class="menu-divider"></div>
         <button class="menu-btn" id="closeMenu" type="button">Tutup</button>
       </nav>
     </header>
 
-    <!-- ====== VIEW: KATALOG ====== -->
     <section id="viewCatalog">
-      <div class="select-wrap">
-        <select id="game-select" class="game-select" aria-label="Pilih Kategori"></select>
-      </div>
-
-      <div class="tools">
+      <div class="controls-grid">
+        <div class="custom-select-wrapper" id="custom-select-wrapper">
+          <button class="custom-select-btn" id="custom-select-btn" aria-haspopup="listbox" aria-expanded="false">
+            <span id="custom-select-value">Pilih Kategori</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+          </button>
+          <div class="custom-select-options" id="custom-select-options" role="listbox"></div>
+        </div>
         <div class="search-wrap">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
           <input id="search" type="search" placeholder="Cari item..." aria-label="Cari">
         </div>
-        <span id="countInfo" class="info"></span>
       </div>
-
+      <div id="countInfo"></div>
       <section id="list-container" class="list-container" aria-live="polite"></section>
       <section id="error" class="err"></section>
-
       <template id="itemTmpl">
         <a class="list-item" target="_blank" rel="noopener">
           <span class="title"></span>
@@ -201,7 +253,6 @@
       </template>
     </section>
 
-    <!-- ====== VIEW: PRE-ORDER ====== -->
     <section id="viewPreorder" aria-label="Pre-Order">
       <div class="po-head">
         <div class="controls" aria-label="Kontrol data">
@@ -218,9 +269,8 @@
             <option value="1">Pesanan Umum</option>
           </select>
         </div>
-        <div class="meta" id="poTotal">Memuat total pesanan...</div>
+        <div class="meta" id="poTotal"></div>
       </div>
-
       <div class="container">
         <main class="card-grid" id="poList" aria-live="polite"></main>
         <nav class="pagination" aria-label="Pagination">
@@ -232,314 +282,317 @@
   </main>
 
   <script>
-    // ========= GLOBAL KONFIG =========
-    const SHEET_ID = '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw';
-    const SHEETS = {
-      katalog : { name:'Sheet3' }, // katalog normal
-      preorder: { name1:'Sheet1', name2:'Sheet2' } // Pre-Order: hanya Sheet1 & Sheet2
-    };
-    const WA_NUMBER   = '6285877001999';
-    const WA_GREETING = '*Detail pesanan:*';
+    (function() { // IIFE to encapsulate and avoid global scope pollution
+      // ========= GLOBAL CONFIG =========
+      const SHEET_ID = '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw';
+      const SHEETS = {
+        katalog: { name: 'Sheet3' },
+        preorder: { name1: 'Sheet1', name2: 'Sheet2' }
+      };
+      const WA_NUMBER = '6285877001999';
+      const WA_GREETING = '*Detail pesanan:*';
+      
+      let DATA = [], CATS = [], activeCat = '', query = '';
 
-    // ========= MENU (burger) =========
-    const burger = document.getElementById('burger');
-    const menu = document.getElementById('menu');
-    function setMenuOpen(open){
-      burger.classList.toggle('active', open);
-      menu.style.display = open ? 'flex' : 'none';
-      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-    }
-    burger.addEventListener('click', () => setMenuOpen(menu.style.display !== 'flex'));
-    document.getElementById('closeMenu').addEventListener('click', () => setMenuOpen(false));
-    document.addEventListener('click', (e) => {
-      if (!menu.contains(e.target) && !burger.contains(e.target)) setMenuOpen(false);
-    });
+      // ========= ELEMENTS =========
+      const burger = document.getElementById('burger');
+      const menu = document.getElementById('menu');
+      const viewCatalog = document.getElementById('viewCatalog');
+      const viewPreorder = document.getElementById('viewPreorder');
+      const listEl = document.getElementById('list-container');
+      const searchEl = document.getElementById('search');
+      const countInfoEl = document.getElementById('countInfo');
+      const itemTmpl = document.getElementById('itemTmpl');
+      const errBox = document.getElementById('error');
+      // Custom Select Elements
+      const customSelectWrapper = document.getElementById('custom-select-wrapper');
+      const customSelectBtn = document.getElementById('custom-select-btn');
+      const customSelectValue = document.getElementById('custom-select-value');
+      const customSelectOptions = document.getElementById('custom-select-options');
 
-    // ========= MODE SWITCH =========
-    const viewCatalog  = document.getElementById('viewCatalog');
-    const viewPreorder = document.getElementById('viewPreorder');
-    let MODE = 'katalog'; // 'katalog' | 'preorder'
-    function setMode(next){
-      MODE = next;
-      viewCatalog.style.display  = MODE === 'katalog'  ? 'block' : 'none';
-      viewPreorder.style.display = MODE === 'preorder' ? 'block' : 'none';
-      setMenuOpen(false);
-      if (MODE === 'preorder' && poState.initialized === false){ poInit(); }
-    }
-    menu.querySelectorAll('.menu-btn[data-mode]').forEach(btn => {
-      btn.addEventListener('click', () => setMode(btn.getAttribute('data-mode')));
-    });
-
-    // ========= UTIL UMUM =========
-    function prettyLabel(raw){ return String(raw||'').trim().replace(/\s+/g,' '); }
-    const toIDR = v => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(v);
-    const sheetUrlJSON = (sheetName) =>
-      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
-    const sheetUrlCSV = (sheetIndex0) =>
-      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet${sheetIndex0+1}`;
-
-    // ========= VIEW KATALOG (GViz JSON pasangan kolom) =========
-    const gameSelectEl = document.getElementById('game-select');
-    const listEl = document.getElementById('list-container');
-    const searchEl = document.getElementById('search');
-    const countInfoEl = document.getElementById('countInfo');
-    const itemTmpl = document.getElementById('itemTmpl');
-    const errBox = document.getElementById('error');
-
-    let DATA = [], CATS = [], activeCat = '', query = '';
-
-    function parseGVizPairs(jsonText){
-      const m = jsonText.match(/\{.*\}/s);
-      if(!m) throw new Error('Response GViz tidak valid.');
-      const obj = JSON.parse(m[0]);
-      const table = obj.table || {}, rows = table.rows || [], cols = table.cols || [];
-      const pairs = [];
-      for(let i=0; i<cols.length; i+=2){
-        const label = cols[i]?.label || '';
-        if(label && cols[i+1]) pairs.push({ iTitle:i, iPrice:i+1, label });
+      // ========= MENU (burger) =========
+      function setMenuOpen(open) {
+        burger.classList.toggle('active', open);
+        menu.classList.toggle('open', open);
+        burger.setAttribute('aria-expanded', open);
       }
-      const out = [];
-      for(const r of rows){
-        const c = r.c || [];
-        for(const p of pairs){
-          const title = c[p.iTitle]?.v != null ? String(c[p.iTitle].v).trim() : '';
-          const priceRaw = c[p.iPrice]?.v;
-          const price = priceRaw!=null && priceRaw!=='' ? Number(priceRaw) : NaN;
-          if(title && !isNaN(price)){
-            out.push({ catKey:p.label, catLabel:prettyLabel(p.label), title, price });
+      burger.addEventListener('click', () => setMenuOpen(!burger.classList.contains('active')));
+      document.getElementById('closeMenu').addEventListener('click', () => setMenuOpen(false));
+      document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target) && !burger.contains(e.target)) {
+          setMenuOpen(false);
+        }
+      });
+
+      // ========= MODE SWITCH =========
+      let MODE = 'katalog';
+      function setMode(next) {
+        MODE = next;
+        viewCatalog.style.display = MODE === 'katalog' ? 'block' : 'none';
+        viewPreorder.style.display = MODE === 'preorder' ? 'block' : 'none';
+        setMenuOpen(false);
+        if (MODE === 'preorder' && !poState.initialized) { poInit(); }
+      }
+      menu.querySelectorAll('.menu-btn[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => setMode(btn.getAttribute('data-mode')));
+      });
+
+      // ========= UTILS =========
+      const prettyLabel = (raw) => String(raw || '').trim().replace(/\s+/g, ' ');
+      const toIDR = v => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v);
+      const sheetUrlJSON = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
+      const sheetUrlCSV = (sheetIndex0) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet${sheetIndex0 + 1}`;
+
+      // ========= KATALOG VIEW =========
+      function parseGVizPairs(jsonText) {
+        const m = jsonText.match(/\{.*\}/s);
+        if (!m) throw new Error('Invalid GViz response.');
+        const obj = JSON.parse(m[0]);
+        const table = obj.table || {}, rows = table.rows || [], cols = table.cols || [];
+        const pairs = Array.from({ length: Math.floor(cols.length / 2) }, (_, i) => ({
+          iTitle: i * 2, iPrice: i * 2 + 1, label: cols[i * 2]?.label || ''
+        })).filter(p => p.label && cols[p.iPrice]);
+
+        const out = [];
+        for (const r of rows) {
+          const c = r.c || [];
+          for (const p of pairs) {
+            const title = String(c[p.iTitle]?.v || '').trim();
+            const priceRaw = c[p.iPrice]?.v;
+            const price = (priceRaw != null && priceRaw !== '') ? Number(priceRaw) : NaN;
+            if (title && !isNaN(price)) {
+              out.push({ catKey: p.label, catLabel: prettyLabel(p.label), title, price });
+            }
           }
         }
+        return out;
       }
-      return out;
-    }
 
-    function buildGameSelect(){
-      const map = new Map();
-      DATA.forEach(it => { if(!map.has(it.catKey)) map.set(it.catKey, it.catLabel) });
-      CATS = [...map].map(([key,label]) => ({key,label}));
-      gameSelectEl.innerHTML = '';
-      CATS.forEach(c => {
-        const option = document.createElement('option');
-        option.value = c.key;
-        option.textContent = c.label;
-        gameSelectEl.appendChild(option);
+      // CUSTOM SELECT LOGIC
+      function toggleCustomSelect(open) {
+        const isOpen = typeof open === 'boolean' ? open : !customSelectWrapper.classList.contains('open');
+        customSelectWrapper.classList.toggle('open', isOpen);
+        customSelectBtn.setAttribute('aria-expanded', isOpen);
+      }
+      
+      customSelectBtn.addEventListener('click', () => toggleCustomSelect());
+      document.addEventListener('click', (e) => {
+        if (!customSelectWrapper.contains(e.target)) toggleCustomSelect(false);
       });
-      activeCat = CATS[0]?.key || '';
-    }
 
-    function renderList(){
-      const items = DATA.filter(x => x.catKey === activeCat &&
-        (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))
-      );
-      listEl.innerHTML = '';
-      if(items.length === 0){
-        listEl.innerHTML = `<div class="empty">Tidak ada hasil ditemukan.</div>`;
-        countInfoEl.textContent = '';
-        return;
-      }
-      const fragment = document.createDocumentFragment();
-      for(const it of items){
-        const clone = itemTmpl.content.cloneNode(true);
-        const link = clone.querySelector('.list-item');
-        link.querySelector('.title').textContent = it.title;
-        link.querySelector('.price').textContent = toIDR(it.price);
-        const text = `${WA_GREETING}\n› Tipe: Katalog\n› Game: ${it.catLabel}\n› Item: ${it.title}\n› Harga: ${toIDR(it.price)}`;
-        link.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-        fragment.appendChild(clone);
-      }
-      listEl.appendChild(fragment);
-      countInfoEl.textContent = `${items.length} item`;
-    }
+      function buildGameSelect() {
+        const map = new Map();
+        DATA.forEach(it => { if (!map.has(it.catKey)) map.set(it.catKey, it.catLabel) });
+        CATS = [...map].map(([key, label]) => ({ key, label }));
+        
+        customSelectOptions.innerHTML = '';
+        CATS.forEach((c, index) => {
+          const optionEl = document.createElement('div');
+          optionEl.className = 'custom-select-option';
+          optionEl.textContent = c.label;
+          optionEl.dataset.value = c.key;
+          optionEl.setAttribute('role', 'option');
+          if (index === 0) {
+            optionEl.classList.add('selected');
+          }
+          optionEl.addEventListener('click', () => {
+            activeCat = c.key;
+            customSelectValue.textContent = c.label;
+            document.querySelector('.custom-select-option.selected')?.classList.remove('selected');
+            optionEl.classList.add('selected');
+            toggleCustomSelect(false);
+            renderList();
+          });
+          customSelectOptions.appendChild(optionEl);
+        });
 
-    gameSelectEl.addEventListener('change', e => { activeCat = e.target.value; renderList(); });
-    let debounceTimer;
-    searchEl.addEventListener('input', e => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => { query = e.target.value.trim().toLowerCase(); renderList(); }, 150);
-    });
-
-    async function loadCatalog(){
-      try{
-        errBox.style.display = 'none';
-        const res = await fetch(sheetUrlJSON(SHEETS.katalog.name), {cache:'no-store'});
-        const txt = await res.text();
-        DATA = parseGVizPairs(txt);
-        if(DATA.length === 0) throw new Error('Data kosong atau format kolom tidak sesuai.');
-        buildGameSelect();
-        renderList();
-      }catch(err){
-        errBox.style.display = 'block';
-        errBox.textContent = `Gagal memuat data: ${err.message}`;
-      }
-    }
-    loadCatalog();
-
-    // ========= VIEW PRE-ORDER (Sheet1 & Sheet2) =========
-    const poRoot   = document.getElementById('viewPreorder');
-    const poSearch = document.getElementById('poSearch');
-    const poStatus = document.getElementById('poStatus');
-    const poSheet  = document.getElementById('poSheet');
-    const poList   = document.getElementById('poList');
-    const poPrev   = document.getElementById('poPrev');
-    const poNext   = document.getElementById('poNext');
-    const poTotal  = document.getElementById('poTotal');
-
-    const poState = {
-      initialized:false,
-      allData:[],
-      currentPage:1,
-      perPage:15
-    };
-
-    // normalisasi status ke {success,progress,pending,failed}
-    function normalizeStatus(raw){
-      let s = String(raw||'').trim().toLowerCase();
-      if(s === 'gagal') s = 'failed';
-      if(s === 'selesai' || s === 'berhasil' || s === 'done') s = 'success';
-      if(s === 'proses' || s === 'diproses' || s === 'processing') s = 'progress';
-      return s;
-    }
-
-    function poFilterData(){
-      const q = poSearch.value.trim().toLowerCase();
-      const status = poStatus.value;
-      return poState.allData.filter(item => {
-        // cari di Nickname (Sheet1), ID Server (Sheet2), dan Produk / Item
-        const name = (item['Nickname'] || '').toLowerCase();
-        const idServer = (item['ID Server'] || '').toLowerCase();
-        const product = (item['Produk / Item'] || '').toLowerCase();
-        const match = name.includes(q) || idServer.includes(q) || product.includes(q);
-        const s = normalizeStatus(item['Status']);
-        return match && (status === 'all' || s === status);
-      });
-    }
-
-    function poUpdatePagination(cur,total){
-      poPrev.disabled = cur <= 1;
-      poNext.disabled = cur >= total;
-    }
-
-    function poRender(){
-      const filtered = poFilterData();
-      poTotal.textContent = `Total Pesanan: ${poState.allData.length}`;
-      const totalPages = Math.max(1, Math.ceil(filtered.length / poState.perPage));
-      poState.currentPage = Math.min(Math.max(1, poState.currentPage), totalPages);
-      const start = (poState.currentPage - 1) * poState.perPage;
-      const pageData = filtered.slice(start, start + poState.perPage);
-
-      poList.innerHTML = '';
-      if(pageData.length === 0){
-        poList.innerHTML = `<div class="empty-state"><p>Tidak Ada Hasil</p></div>`;
-        poUpdatePagination(0,0);
-        return;
-      }
-
-      const frag = document.createDocumentFragment();
-      pageData.forEach(item => {
-        let statusClass = normalizeStatus(item['Status']) || 'failed';
-
-        // Tentukan tampilan judul: pakai Nickname (Sheet1) atau ID Server (Sheet2)
-        const name = item['Nickname'] || item['ID Server'] || 'Tanpa Nama';
-        const product = item['Produk / Item'] || item['Item'] || 'N/A';
-
-        // Estimasi kirim jika ada (Sheet1), opsional
-        const estDelivery = item['Est. Pengiriman'] ? `${item['Est. Pengiriman']} 20:00 WIB` : '';
-
-        // Susun detail selain field utama
-        const hiddenKeys = new Set([
-          'Nickname','ID Server','Produk / Item','Item','Status','Est. Pengiriman'
-        ]);
-        const detailsHtml = Object.entries(item)
-          .filter(([k,v]) => v && !hiddenKeys.has(k))
-          .map(([k,v]) => `
-            <div class="detail-item">
-              <div class="detail-label">${k}</div>
-              <div class="detail-value">${v}</div>
-            </div>
-          `).join('');
-
-        const card = document.createElement('article');
-        card.className = `card ${detailsHtml ? 'clickable' : ''}`;
-        card.innerHTML = `
-          <div class="card-header">
-            <div>
-              <div class="card-name">${name}</div>
-              <div class="card-product">${product}</div>
-            </div>
-            <div class="status-badge ${statusClass}">${(item['Status'] || 'Gagal').toUpperCase()}</div>
-          </div>
-          ${estDelivery ? `<div class="card-date">Estimasi: ${estDelivery}</div>` : ''}
-          ${detailsHtml ? `<div class="card-details"><div class="details-grid">${detailsHtml}</div></div>` : ''}
-        `;
-        if(detailsHtml){
-          card.addEventListener('click', () => card.classList.toggle('expanded'));
+        if (CATS.length > 0) {
+          activeCat = CATS[0].key;
+          customSelectValue.textContent = CATS[0].label;
         }
-        frag.appendChild(card);
-      });
-
-      poList.appendChild(frag);
-      poUpdatePagination(poState.currentPage, totalPages);
-    }
-
-    function poSortByStatus(data){
-      const order = { 'progress':1, 'pending':2, 'success':3 };
-      return data.sort((a,b) => {
-        const sa = normalizeStatus(a.Status);
-        const sb = normalizeStatus(b.Status);
-        return (order[sa] || 4) - (order[sb] || 4);
-      });
-    }
-
-    async function poFetch(sheetIndex0){
-      poTotal.textContent = 'Memuat data...';
-      poList.innerHTML = `<div class="loading"><div class="spinner"></div><p>Memuat data...</p></div>`;
-      const url = sheetUrlCSV(sheetIndex0);
-      try{
-        const res = await fetch(url);
-        const text = await res.text();
-        const rows = text.trim().split('\n')
-          .map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
-
-        if(rows.length < 1){ poState.allData = []; poRender(); return; }
-
-        if(sheetIndex0 === 0){
-          // SHEET1: gunakan header baris pertama apa adanya
-          const headers = rows.shift();
-          const raw = rows.map(row => Object.fromEntries(row.map((val,i) => [headers[i] || `col_${i+1}`, val])));
-          poState.allData = poSortByStatus(raw);
-        }else{
-          // SHEET2: format A|B|C (ID Server | Item | Status) TANPA header
-          // Jika ternyata baris pertama berisi header, tetap aman karena kita map HARDCODE by index.
-          const bodyRows = rows[0]?.length === 3 && ['id server','item','status'].includes(rows[0][0].toLowerCase())
-            ? rows.slice(1) : rows;
-          const mapped = bodyRows.map(r => ({
-            'ID Server': r[0] || '',
-            'Item': r[1] || '',
-            'Status': r[2] || ''
-          }));
-          poState.allData = poSortByStatus(mapped);
-        }
-      }catch(e){
-        poState.allData = [];
-        poTotal.textContent = 'Gagal memuat data';
-      }finally{
-        poState.currentPage = 1;
-        poRender();
       }
-    }
 
-    function poInit(){
-      // events
-      poSearch.addEventListener('input', () => { poState.currentPage = 1; poRender(); });
-      poStatus.addEventListener('change', () => { poState.currentPage = 1; poRender(); });
-      poSheet.addEventListener('change', (e) => poFetch(parseInt(e.target.value,10)));
-      poPrev.addEventListener('click', () => { if(poState.currentPage>1){ poState.currentPage--; poRender(); window.scrollTo({top:0,behavior:'smooth'}); } });
-      poNext.addEventListener('click', () => { poState.currentPage++; poRender(); window.scrollTo({top:0,behavior:'smooth'}); });
+      function renderList() {
+        const items = DATA.filter(x => x.catKey === activeCat &&
+          (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))
+        );
+        listEl.innerHTML = '';
+        if (items.length === 0) {
+          listEl.innerHTML = `<div class="empty">Tidak ada hasil ditemukan.</div>`;
+          countInfoEl.textContent = '';
+          return;
+        }
+        const fragment = document.createDocumentFragment();
+        for (const it of items) {
+          const clone = itemTmpl.content.cloneNode(true);
+          const link = clone.querySelector('.list-item');
+          link.querySelector('.title').textContent = it.title;
+          link.querySelector('.price').textContent = toIDR(it.price);
+          const text = `${WA_GREETING}\n› Tipe: Katalog\n› Game: ${it.catLabel}\n› Item: ${it.title}\n› Harga: ${toIDR(it.price)}`;
+          link.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+          fragment.appendChild(clone);
+        }
+        listEl.appendChild(fragment);
+        countInfoEl.textContent = `${items.length} item ditemukan`;
+      }
 
-      // default: Starlight Member (Sheet1, index 0)
-      poFetch(0);
-      poState.initialized = true;
-    }
+      let debounceTimer;
+      searchEl.addEventListener('input', e => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => { query = e.target.value.trim().toLowerCase(); renderList(); }, 200);
+      });
+
+      async function loadCatalog() {
+        try {
+          errBox.style.display = 'none';
+          listEl.innerHTML = `<div class="empty">Memuat katalog...</div>`;
+          const res = await fetch(sheetUrlJSON(SHEETS.katalog.name), { cache: 'no-store' });
+          const txt = await res.text();
+          DATA = parseGVizPairs(txt);
+          if (DATA.length === 0) throw new Error('Data kosong atau format kolom tidak sesuai.');
+          buildGameSelect();
+          renderList();
+        } catch (err) {
+          errBox.style.display = 'block';
+          errBox.textContent = `Gagal memuat data: ${err.message}`;
+        }
+      }
+      
+      // ========= PRE-ORDER VIEW =========
+      const poRoot = document.getElementById('viewPreorder');
+      const poSearch = document.getElementById('poSearch');
+      const poStatus = document.getElementById('poStatus');
+      const poSheet = document.getElementById('poSheet');
+      const poList = document.getElementById('poList');
+      const poPrev = document.getElementById('poPrev');
+      const poNext = document.getElementById('poNext');
+      const poTotal = document.getElementById('poTotal');
+
+      const poState = {
+        initialized: false, allData: [], currentPage: 1, perPage: 15
+      };
+
+      const normalizeStatus = (raw) => {
+        let s = String(raw || '').trim().toLowerCase();
+        if (['selesai', 'berhasil', 'done'].includes(s)) return 'success';
+        if (['proses', 'diproses', 'processing'].includes(s)) return 'progress';
+        if (s === 'pending') return 'pending';
+        return 'failed';
+      };
+
+      const poFilterData = () => {
+        const q = poSearch.value.trim().toLowerCase();
+        const status = poStatus.value;
+        return poState.allData.filter(item => {
+          const name = (item['Nickname'] || '').toLowerCase();
+          const idServer = (item['ID Server'] || '').toLowerCase();
+          const product = (item['Produk / Item'] || '').toLowerCase();
+          const match = name.includes(q) || idServer.includes(q) || product.includes(q);
+          const s = normalizeStatus(item['Status']);
+          return match && (status === 'all' || s === status);
+        });
+      };
+
+      const poUpdatePagination = (cur, total) => {
+        poPrev.disabled = cur <= 1;
+        poNext.disabled = cur >= total;
+      };
+
+      const poRender = () => {
+        const filtered = poFilterData();
+        const totalItems = poState.allData.length;
+        poTotal.textContent = `${totalItems} total pesanan${filtered.length !== totalItems ? `, ${filtered.length} ditemukan` : ''}`;
+        
+        const totalPages = Math.max(1, Math.ceil(filtered.length / poState.perPage));
+        poState.currentPage = Math.min(Math.max(1, poState.currentPage), totalPages);
+        const start = (poState.currentPage - 1) * poState.perPage;
+        const pageData = filtered.slice(start, start + poState.perPage);
+
+        poList.innerHTML = '';
+        if (pageData.length === 0) {
+          poList.innerHTML = `<div class="empty-state"><p>Tidak Ada Hasil</p></div>`;
+          poUpdatePagination(0, 0);
+          return;
+        }
+        
+        const frag = document.createDocumentFragment();
+        pageData.forEach(item => {
+          let statusClass = normalizeStatus(item['Status']);
+          const name = item['Nickname'] || item['ID Server'] || 'Tanpa Nama';
+          const product = item['Produk / Item'] || item['Item'] || 'N/A';
+          const estDelivery = item['Est. Pengiriman'] ? `${item['Est. Pengiriman']} 20:00 WIB` : '';
+          const hiddenKeys = new Set(['Nickname', 'ID Server', 'Produk / Item', 'Item', 'Status', 'Est. Pengiriman']);
+          const detailsHtml = Object.entries(item).filter(([k, v]) => v && !hiddenKeys.has(k))
+            .map(([k, v]) => `<div class="detail-item"><div class="detail-label">${k}</div><div class="detail-value">${v}</div></div>`).join('');
+
+          const card = document.createElement('article');
+          card.className = `card ${detailsHtml ? 'clickable' : ''}`;
+          card.innerHTML = `
+            <div class="card-header">
+              <div>
+                <div class="card-name">${name}</div>
+                <div class="card-product">${product}</div>
+              </div>
+              <div class="status-badge ${statusClass}">${(item['Status'] || 'Gagal').toUpperCase()}</div>
+            </div>
+            ${estDelivery ? `<div class="card-date">Estimasi Pengiriman: ${estDelivery}</div>` : ''}
+            ${detailsHtml ? `<div class="card-details"><div class="details-grid">${detailsHtml}</div></div>` : ''}
+          `;
+          if (detailsHtml) {
+            card.addEventListener('click', () => card.classList.toggle('expanded'));
+          }
+          frag.appendChild(card);
+        });
+        
+        poList.appendChild(frag);
+        poUpdatePagination(poState.currentPage, totalPages);
+      };
+
+      const poSortByStatus = (data) => {
+        const order = { 'progress': 1, 'pending': 2, 'success': 3, 'failed': 4 };
+        return data.sort((a, b) => order[normalizeStatus(a.Status)] - order[normalizeStatus(b.Status)]);
+      };
+
+      async function poFetch(sheetIndex0) {
+        poTotal.textContent = 'Memuat data...';
+        poList.innerHTML = `<div class="loading"><div class="spinner"></div><p>Memuat data...</p></div>`;
+        try {
+          const res = await fetch(sheetUrlCSV(sheetIndex0));
+          const text = await res.text();
+          const rows = text.trim().split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
+          if (rows.length < 1) { poState.allData = []; return; }
+
+          if (sheetIndex0 === 0) {
+            const headers = rows.shift();
+            poState.allData = poSortByStatus(rows.map(row => Object.fromEntries(row.map((val, i) => [headers[i] || `col_${i+1}`, val]))));
+          } else {
+            const bodyRows = rows[0]?.length === 3 && ['id server','item','status'].includes(rows[0][0].toLowerCase()) ? rows.slice(1) : rows;
+            poState.allData = poSortByStatus(bodyRows.map(r => ({ 'ID Server': r[0] || '', 'Item': r[1] || '', 'Status': r[2] || '' })));
+          }
+        } catch (e) {
+          poState.allData = [];
+          poTotal.textContent = 'Gagal memuat data.';
+          console.error("Fetch Pre-Order failed:", e);
+        } finally {
+          poState.currentPage = 1;
+          poRender();
+        }
+      }
+
+      function poInit() {
+        const poDebouncedRender = () => { poState.currentPage = 1; poRender(); };
+        poSearch.addEventListener('input', poDebouncedRender);
+        poStatus.addEventListener('change', poDebouncedRender);
+        poSheet.addEventListener('change', (e) => poFetch(parseInt(e.target.value, 10)));
+        poPrev.addEventListener('click', () => { if (poState.currentPage > 1) { poState.currentPage--; poRender(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+        poNext.addEventListener('click', () => { poState.currentPage++; poRender(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        poFetch(0);
+        poState.initialized = true;
+      }
+
+      // Initial Load
+      loadCatalog();
+    })();
   </script>
 </body>
 </html>
