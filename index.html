@@ -5,428 +5,626 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>PlayPal.ID</title>
   <meta name="description" content="Destinasi Utama Para Pecinta Game, Film & Musik">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <style>
     :root {
       --primary-blue: #5C80BC;
       --primary-blue-rgb: 92, 128, 188;
-      --bg: #f9f9fb;
+      --bg: #f5f5f7;
       --text-primary: #1d1d1f;
-      --text-secondary: #515154;
-      --text-tertiary: #8a8a8e;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #86868b;
       --fill-primary: #ffffff;
-      --fill-secondary: #f5f5f7;
-      --separator: #e5e5e7;
-      --separator-subtle: #f0f0f2;
-      --maxw: 1180px;
+      --fill-secondary: #f0f0f2;
+      --fill-tertiary: #e8e8ea;
+      --separator: #d2d2d7;
+      --maxw: 1100px;
       --radius-large: 18px;
-      --radius-medium: 10px;
+      --radius-medium: 12px;
       --transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #0a0a0a;
+        --bg: #000000;
         --text-primary: #f5f5f7;
-        --text-secondary: #a0a0a5;
+        --text-secondary: #86868b;
         --text-tertiary: #6e6e73;
-        --fill-primary: #161617;
-        --fill-secondary: #252527;
+        --fill-primary: #1d1d1f;
+        --fill-secondary: #2c2c2e;
+        --fill-tertiary: #3a3a3c;
         --separator: #3a3a3c;
-        --separator-subtle: #252527;
       }
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html, body { height: 100%; }
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text-primary);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 15px; /* Base font size reduced */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      font-size: 16px;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 16px; }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 48px 24px; }
 
-    /* === HEADER & NAVIGATION (Integrated) === */
-    header {
-      padding: 16px 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+    /* === HEADER === */
+    header { position: relative; text-align: center; margin-bottom: 24px; }
+    .logo { height: 48px; width: auto; }
+    header h1 { margin: 12px 0 0; font-size: clamp(28px, 4vw, 36px); font-weight: 700; letter-spacing: -0.5px; }
+    header p { margin: 4px 0 0; color: var(--text-secondary); font-size: 17px; }
+
+    /* === BURGER MENU (Minimalist) === */
+    .burger {
+      position: absolute; top: 16px; right: 24px; z-index: 101;
+      width: 24px; height: 24px; cursor: pointer;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
     }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .logo { height: 36px; }
-    .header-title { margin: 0; font-size: 24px; font-weight: 600; color: var(--text-primary); }
-
-    .desktop-nav { display: none; }
-    @media (min-width: 768px) {
-      .desktop-nav { display: flex; align-items: center; gap: 4px; }
-      .desktop-nav-btn {
-        padding: 8px 16px; border: 0; background: none; border-radius: var(--radius-medium);
-        color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer;
-        transition: all .2s ease;
-      }
-      .desktop-nav-btn:hover { background: var(--fill-secondary); color: var(--text-primary); }
-      .desktop-nav-btn.active { background: var(--fill-secondary); color: var(--text-primary); font-weight: 600; }
+    .burger span {
+      display: block; height: 1.5px; width: 20px; background: var(--text-secondary); border-radius: 1px;
+      transition: transform 0.35s var(--transition-curve), opacity 0.35s var(--transition-curve);
+      transform-origin: center;
     }
-    .mobile-only { display: block; }
-    @media (min-width: 768px) { .mobile-only { display: none; } }
-    
-    /* === SLIDE-IN MENU (Mobile) === */
-    .burger { z-index: 101; width: 40px; height: 40px; cursor: pointer; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; transition: background-color .2s ease; }
-    .burger:hover { background-color: var(--fill-secondary); }
-    .burger span { display: block; height: 1.5px; width: 16px; background: var(--text-secondary); border-radius: 1px; transition: all 0.35s var(--transition-curve); transform-origin: center; }
-    .burger.active span:nth-child(1) { transform: translateY(2.75px) rotate(45deg); } .burger.active span:nth-child(2) { opacity: 0; } .burger.active span:nth-child(3) { transform: translateY(-2.75px) rotate(-45deg); }
-    
-    .menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 98; opacity: 0; transition: opacity .4s ease; pointer-events: none; }
-    .menu-overlay.open { opacity: 1; pointer-events: auto; }
-    .menu { position: fixed; top: 0; right: 0; bottom: 0; z-index: 99; width: 280px; padding: 60px 0 20px; background: var(--bg); box-shadow: -10px 0 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.4s var(--transition-curve); }
-    .menu.open { transform: translateX(0); }
-    .menu-btn { padding: 14px 24px; border: 0; background: transparent; text-align: left; color: var(--text-secondary); font-weight: 500; font-size: 16px; cursor: pointer; transition: all 0.2s ease; }
-    .menu-btn:hover { color: var(--text-primary); } .menu-btn.active { color: var(--primary-blue); font-weight: 600; }
-    
-    /* === VIEW CONTROLS (Compact) === */
-    .view-controls { display: flex; flex-direction: column; gap: 12px; margin: 16px 0 24px; }
-    @media (min-width: 768px) { .view-controls { flex-direction: row; justify-content: space-between; align-items: center; } }
-    .search-wrap { position: relative; flex-grow: 1; }
-    .control-input { width: 100%; height: 42px; padding: 0 16px; background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); font-size: 14px; outline: none; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-    .control-input:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.15); }
-    #search { padding-left: 42px; }
-    .search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-tertiary); }
-    #game-select { min-width: 220px; padding-right: 40px; -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238a8a8e'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px; }
+    .burger.active span:nth-child(1) { transform: translateY(3.25px) rotate(45deg); }
+    .burger.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .burger.active span:nth-child(3) { transform: translateY(-3.25px) rotate(-45deg); }
 
-    /* === KATALOG GRID (Denser) === */
-    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
-    .product-card {
-      background: var(--fill-primary); border-radius: var(--radius-large); text-decoration: none; color: inherit;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04), inset 0 0 0 1px var(--separator-subtle);
-      transition: transform 0.3s var(--transition-curve), box-shadow 0.3s var(--transition-curve);
+    /* === DROPDOWN MENU (Premium) === */
+    .menu {
+      position: absolute; top: 56px; right: 24px; z-index: 100;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      border-radius: var(--radius-medium);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      display: flex; flex-direction: column;
+      min-width: 220px; overflow: hidden;
+      opacity: 0; transform: translateY(-10px) scale(0.95);
+      transition: opacity 0.3s var(--transition-curve), transform 0.3s var(--transition-curve);
+      pointer-events: none;
     }
-    .product-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.08), inset 0 0 0 1px var(--separator); }
-    .product-card-image { height: 120px; background-color: var(--fill-secondary); border-radius: var(--radius-large) var(--radius-large) 0 0; }
-    .product-card-content { padding: 16px; }
-    .product-card-title { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
-    .product-card-price { font-size: 15px; font-weight: 600; color: var(--primary-blue); }
+    .menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    .menu-btn {
+      padding: 12px 18px; border: 0; background: transparent; text-align: left;
+      color: var(--text-primary); font-weight: 500; font-size: 15px; cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .menu-btn:hover { background: rgba(0, 0, 0, 0.05); }
+    .menu-divider { height: 1px; background: var(--separator); margin: 6px 0; }
+    @media (prefers-color-scheme: dark) {
+      .menu { background: rgba(29, 29, 31, 0.7); border-color: rgba(255, 255, 255, 0.08); }
+      .menu-btn:hover { background: rgba(255, 255, 255, 0.08); }
+    }
 
-    /* === PRE-ORDER VIEW (Simplified) === */
-    #viewPreorder .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin: 16px 0 24px; }
+    /* === VIEW: KATALOG (Upgraded) === */
+    #viewCatalog { display: block; }
+    .controls-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+    @media (min-width: 768px) { .controls-grid { grid-template-columns: 2fr 3fr; } }
+    
+    /* CUSTOM DROPDOWN (Replaces <select>) */
+    .custom-select-wrapper { position: relative; }
+    .custom-select-btn {
+      width: 100%; height: 54px; padding: 14px 20px;
+      background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium);
+      color: var(--text-primary); font-size: 16px; font-weight: 500; text-align: left;
+      display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .custom-select-btn:hover { border-color: var(--text-tertiary); }
+    .custom-select-btn svg { width: 16px; height: 16px; color: var(--text-tertiary); transition: transform 0.3s var(--transition-curve); }
+    .custom-select-wrapper.open .custom-select-btn svg { transform: rotate(180deg); }
+    .custom-select-options {
+      position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 50;
+      background: var(--fill-primary); border: 1px solid var(--separator);
+      border-radius: var(--radius-medium); box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      max-height: 250px; overflow-y: auto;
+      opacity: 0; transform: translateY(-10px); transition: all 0.3s var(--transition-curve); pointer-events: none;
+    }
+    .custom-select-wrapper.open .custom-select-options { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .custom-select-option {
+      padding: 12px 20px; font-size: 15px; cursor: pointer;
+      color: var(--text-secondary);
+    }
+    .custom-select-option:hover, .custom-select-option.selected { background: var(--fill-secondary); color: var(--text-primary); }
+
+    /* REFINED SEARCH INPUT */
+    .search-wrap { position: relative; }
+    .search-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-tertiary); }
+    #search {
+      width: 100%; height: 54px; padding: 14px 20px 14px 48px;
+      background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium);
+      color: var(--text-primary); font-size: 16px;
+      outline: none; transition: all 0.2s ease;
+    }
+    #search:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.2); }
+    
+    #countInfo { color: var(--text-secondary); font-size: 14px; font-weight: 500; margin-top: 8px; text-align: right;}
+    .list-container { display: flex; flex-direction: column; gap: 10px; }
+    .list-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px; background: var(--fill-primary); border-radius: var(--radius-medium);
+      text-decoration: none; color: inherit;
+      transition: transform 0.2s var(--transition-curve), background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .list-item:hover { transform: translateY(-3px); background-color: var(--fill-secondary); box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+    .list-item .title { font-size: 16px; font-weight: 500; color: var(--text-primary); }
+    .list-item .price { font-size: 16px; font-weight: 600; color: var(--primary-blue); }
+    .empty, .err { border: 1px dashed var(--separator); border-radius: var(--radius-large); padding: 64px; text-align: center; color: var(--text-secondary); font-size: 16px; }
+
+    /* === VIEW: PRE-ORDER (Polished) === */
+    #viewPreorder { display: none; }
+    .po-head {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(245, 245, 247, 0.7);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--separator);
+      padding: 16px 0; margin-bottom: 24px;
+    }
+    @media (prefers-color-scheme: dark) { .po-head { background: rgba(0, 0, 0, 0.7); } }
+    #viewPreorder .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; max-width: 1100px; margin: 0 auto; padding: 0 24px;}
     @media (max-width: 768px) { #viewPreorder .controls { grid-template-columns: 1fr; } }
-    .card-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 1024px) { .card-grid { grid-template-columns: 1fr 1fr; } }
-    .po-card {
-      background: var(--fill-primary); border-radius: var(--radius-large); padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04), inset 0 0 0 1px var(--separator-subtle);
+    #viewPreorder .search-input, #viewPreorder .filter-select {
+      width: 100%; height: 48px; padding: 0 16px; font-size: 15px; background: var(--fill-primary);
+      border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); outline: none;
+      -webkit-appearance: none; -moz-appearance: none; appearance: none;
     }
-    .po-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-    .po-card-info { flex-grow: 1; }
-    .po-card-name { font-size: 16px; font-weight: 600; }
-    .po-card-product { font-size: 14px; color: var(--text-secondary); }
+    #viewPreorder .filter-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2386868b'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 16px center; background-size: 18px;
+    }
+    #viewPreorder .search-input:focus, #viewPreorder .filter-select:focus {
+      border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.2);
+    }
+    #viewPreorder .meta { max-width: 1100px; margin: 12px auto 0; padding: 0 24px; font-size: 14px; color: var(--text-secondary); }
 
-    .status-badge { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .status-badge.success { color: #16a34a; background-color: #f0fdf4; } .status-badge.progress { color: #2563eb; background-color: #eff6ff; } .status-badge.pending { color: #ca8a04; background-color: #fefce8; } .status-badge.failed { color: #dc2626; background-color: #fef2f2; }
-    @media (prefers-color-scheme: dark) { .status-badge.success { color: #4ade80; background-color: rgba(34, 197, 94, 0.15); } .status-badge.progress { color: #60a5fa; background-color: rgba(59, 130, 246, 0.15); } .status-badge.pending { color: #facc15; background-color: rgba(245, 158, 11, 0.15); } .status-badge.failed { color: #f87171; background-color: rgba(239, 68, 68, 0.15); } }
-
-    .empty, .err { border: 1px dashed var(--separator); border-radius: var(--radius-large); padding: 48px; text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 20px; grid-column: 1 / -1; }
-    .err { border-color: #ef4444; background-color: #fef2f2; color: #dc2626; }
-    @media (prefers-color-scheme: dark) { .err { border-color: #b91c1c; background-color: rgba(239,68,68,0.1); color: #f87171; } }
+    #viewPreorder .card-grid { display: flex; flex-direction: column; gap: 16px; }
+    #viewPreorder .card {
+      background: var(--fill-primary); border: 1px solid transparent; border-radius: var(--radius-large); padding: 24px;
+      transition: all .3s var(--transition-curve); box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+    #viewPreorder .card.clickable { cursor: pointer; }
+    #viewPreorder .card.clickable:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); border-color: var(--separator); }
+    #viewPreorder .card-header { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
+    #viewPreorder .card-name { font-size: 18px; font-weight: 600; }
+    #viewPreorder .card-product { font-size: 15px; color: var(--text-secondary); }
+    #viewPreorder .card-date { font-size: 13px; color: var(--text-tertiary); margin-top: 10px; grid-column: 1 / -1; }
+    
+    /* REFINED STATUS BADGES (Premium Flat) */
+    #viewPreorder .status-badge {
+      display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 9999px; /* Pill shape */
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    #viewPreorder .status-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; }
+    /* SUCCESS - Hijau Tegas */
+    #viewPreorder .status-badge.success { color: #16a34a; background-color: #f0fdf4; }
+    #viewPreorder .status-badge.success::before { background-color: #22c55e; }
+    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.success { color: #4ade80; background-color: rgba(34, 197, 94, 0.15); } }
+    /* PROGRESS - Biru Aktif */
+    #viewPreorder .status-badge.progress { color: #2563eb; background-color: #eff6ff; }
+    #viewPreorder .status-badge.progress::before { background-color: #3b82f6; }
+    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.progress { color: #60a5fa; background-color: rgba(59, 130, 246, 0.15); } }
+    /* PENDING - Kuning Atensi */
+    #viewPreorder .status-badge.pending { color: #ca8a04; background-color: #fefce8; }
+    #viewPreorder .status-badge.pending::before { background-color: #f59e0b; }
+    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.pending { color: #facc15; background-color: rgba(245, 158, 11, 0.15); } }
+    /* FAILED - Merah Jelas */
+    #viewPreorder .status-badge.failed { color: #dc2626; background-color: #fef2f2; }
+    #viewPreorder .status-badge.failed::before { background-color: #ef4444; }
+    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.failed { color: #f87171; background-color: rgba(239, 68, 68, 0.15); } }
+    
+    #viewPreorder .card-details { max-height: 0; overflow: hidden; opacity: 0; transition: all .45s var(--transition-curve); margin-top: 0; }
+    #viewPreorder .card.expanded .card-details { max-height: 500px; opacity: 1; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--separator); }
+    #viewPreorder .details-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 16px; }
+    #viewPreorder .detail-label { font-size: 13px; font-weight: 500; color: var(--text-tertiary); }
+    #viewPreorder .detail-value { font-size: 15px; font-weight: 600; }
+    #viewPreorder .pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 32px; }
+    #viewPreorder .pagination-btn { padding: 0 24px; height: 44px; background: var(--fill-secondary); border: 1px solid var(--separator); border-radius: var(--radius-medium); font-size: 15px; font-weight: 500; color: var(--text-primary); cursor: pointer; transition: all .2s ease; }
+    #viewPreorder .pagination-btn:hover:not(:disabled) { background: var(--fill-tertiary); transform: translateY(-2px); }
+    #viewPreorder .pagination-btn:disabled { opacity:.5; cursor:not-allowed; }
+    #viewPreorder .loading, #viewPreorder .empty-state { text-align:center; padding:64px 12px; }
+    #viewPreorder .spinner { width: 24px; height: 24px; border: 2px solid var(--fill-tertiary); border-top: 2px solid var(--primary-blue); border-radius: 50%; animation:spin 1s linear infinite; margin:0 auto 16px; }
+    @keyframes spin { 100% { transform:rotate(360deg) } }
   </style>
 </head>
 <body>
-  <div class="menu-overlay" id="menu-overlay"></div>
-  <nav class="menu" id="menu">
-    <button class="menu-btn active" data-mode="katalog">Katalog</button>
-    <button class="menu-btn" data-mode="preorder">Lacak Pesanan</button>
-  </nav>
-
-  <div class="wrap">
+  <main class="wrap">
     <header>
-      <div class="header-left">
-        <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
-        <h1 id="header-title" class="header-title">Katalog Produk</h1>
+      <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
+      <h1>PlayPal.ID</h1>
+      <p>Destinasi Utama Para Pecinta Game, Film &amp; Musik</p>
+      <div class="burger" id="burger" aria-label="Menu" aria-expanded="false" role="button" tabindex="0">
+        <span></span><span></span><span></span>
       </div>
-      <nav class="desktop-nav">
-        <button class="desktop-nav-btn active" data-mode="katalog">Katalog</button>
-        <button class="desktop-nav-btn" data-mode="preorder">Lacak Pesanan</button>
+      <nav class="menu" id="menu" aria-label="Navigasi tampilan">
+        <button class="menu-btn" data-mode="katalog" type="button">Katalog</button>
+        <button class="menu-btn" data-mode="preorder" type="button">Lacak Pre-Order</button>
+        <div class="menu-divider"></div>
+        <button class="menu-btn" id="closeMenu" type="button">Tutup</button>
       </nav>
-      <div class="mobile-only">
-        <div class="burger" id="burger" aria-label="Menu" aria-expanded="false" role="button" tabindex="0">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
     </header>
 
-    <main>
-      <section id="viewCatalog">
-        <div class="view-controls">
-            <div class="search-wrap">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
-              <input id="search" class="control-input" type="search" placeholder="Cari item dalam kategori ini..." aria-label="Cari">
-            </div>
-            <select id="game-select" class="control-input" aria-label="Pilih Kategori"></select>
+    <section id="viewCatalog">
+      <div class="controls-grid">
+        <div class="custom-select-wrapper" id="custom-select-wrapper">
+          <button class="custom-select-btn" id="custom-select-btn" aria-haspopup="listbox" aria-expanded="false">
+            <span id="custom-select-value">Pilih Kategori</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+          </button>
+          <div class="custom-select-options" id="custom-select-options" role="listbox"></div>
         </div>
-        <div id="catalog-grid" class="catalog-grid" aria-live="polite"></div>
-        <div id="error-katalog" class="err" style="display: none;"></div>
-        <template id="productCardTmpl">
-          <a class="product-card" target="_blank" rel="noopener">
-            <div class="product-card-image"></div>
-            <div class="product-card-content">
-              <h3 class="product-card-title"></h3>
-              <p class="product-card-price"></p>
-            </div>
-          </a>
-        </template>
-      </section>
+        <div class="search-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
+          <input id="search" type="search" placeholder="Cari item..." aria-label="Cari">
+        </div>
+      </div>
+      <div id="countInfo"></div>
+      <section id="list-container" class="list-container" aria-live="polite"></section>
+      <section id="error" class="err" style="display: none;"></section>
+      <template id="itemTmpl">
+        <a class="list-item" target="_blank" rel="noopener">
+          <span class="title"></span>
+          <span class="price"></span>
+        </a>
+      </template>
+    </section>
 
-      <section id="viewPreorder" style="display: none;">
-        <div class="controls view-controls" aria-label="Kontrol data">
-          <input type="search" class="control-input" id="poSearch" placeholder="Cari nama / ID Server..." />
-          <select class="control-input" id="poStatus" aria-label="Filter status">
+    <section id="viewPreorder" aria-label="Pre-Order">
+      <div class="po-head">
+        <div class="controls" aria-label="Kontrol data">
+          <input type="search" class="search-input" id="poSearch" placeholder="Cari nama / ID Server / item..." />
+          <select class="filter-select" id="poStatus" aria-label="Filter status">
             <option value="all">Semua Status</option>
             <option value="success">Success</option>
             <option value="progress">Progress</option>
             <option value="pending">Pending</option>
             <option value="failed">Gagal</option>
           </select>
-          <select class="control-input" id="poSheet" aria-label="Pilih kategori pesanan">
+          <select class="filter-select" id="poSheet" aria-label="Pilih kategori pesanan">
             <option value="0">Starlight Member</option>
             <option value="1">Pesanan Umum</option>
           </select>
         </div>
-        <div id="po-grid" class="card-grid" aria-live="polite"></div>
-        <div id="error-po" class="err" style="display: none;"></div>
-      </section>
-    </main>
-  </div>
+        <div class="meta" id="poTotal"></div>
+      </div>
+      <div class="container">
+        <main class="card-grid" id="poList" aria-live="polite"></main>
+        <nav class="pagination" aria-label="Pagination">
+          <button class="pagination-btn" id="poPrev" disabled>Sebelumnya</button>
+          <button class="pagination-btn" id="poNext" disabled>Selanjutnya</button>
+        </nav>
+      </div>
+    </section>
+  </main>
 
   <script>
-    (function() {
-      // ========= CONFIG =========
+    (function() { // IIFE to encapsulate and avoid global scope pollution
+      // ========= GLOBAL CONFIG =========
       const SHEET_ID = '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw';
+      const SHEETS = {
+        katalog: { name: 'Sheet3' },
+        preorder: { name1: 'Sheet1', name2: 'Sheet2' }
+      };
       const WA_NUMBER = '6285877001999';
-      const GID_SHEET_1 = '1920703350'; // GID untuk Starlight
-      const GID_SHEET_2 = '1657613615'; // GID untuk Pesanan Umum
+      const WA_GREETING = '*Detail pesanan:*';
+      
+      let DATA = [], CATS = [], activeCat = '', query = '';
 
       // ========= ELEMENTS =========
       const burger = document.getElementById('burger');
       const menu = document.getElementById('menu');
-      const menuOverlay = document.getElementById('menu-overlay');
-      const allNavButtons = document.querySelectorAll('[data-mode]');
-      const headerTitleEl = document.getElementById('header-title');
       const viewCatalog = document.getElementById('viewCatalog');
       const viewPreorder = document.getElementById('viewPreorder');
-      
-      const gameSelectEl = document.getElementById('game-select');
+      const listEl = document.getElementById('list-container');
       const searchEl = document.getElementById('search');
-      const catalogGridEl = document.getElementById('catalog-grid');
-      const productCardTmpl = document.getElementById('productCardTmpl');
-      const errorKatalogEl = document.getElementById('error-katalog');
-      
-      const poSearchEl = document.getElementById('poSearch');
-      const poStatusEl = document.getElementById('poStatus');
-      const poSheetEl = document.getElementById('poSheet');
-      const poGridEl = document.getElementById('po-grid');
-      const errorPOEl = document.getElementById('error-po');
+      const countInfoEl = document.getElementById('countInfo');
+      const itemTmpl = document.getElementById('itemTmpl');
+      const errBox = document.getElementById('error');
+      // Custom Select Elements
+      const customSelectWrapper = document.getElementById('custom-select-wrapper');
+      const customSelectBtn = document.getElementById('custom-select-btn');
+      const customSelectValue = document.getElementById('custom-select-value');
+      const customSelectOptions = document.getElementById('custom-select-options');
 
-      // ========= STATE =========
-      let MODE = 'katalog';
-      let katalogData = [], categories = [], activeCategory = '', searchQuery = '';
-      let poData = [], poState = { initialized: false };
-
-      // ========= MENU & NAVIGATION =========
-      const setMenuOpen = (open) => {
+      // ========= MENU (burger) =========
+      function setMenuOpen(open) {
         burger.classList.toggle('active', open);
         menu.classList.toggle('open', open);
-        menuOverlay.classList.toggle('open', open);
         burger.setAttribute('aria-expanded', open);
-      };
+      }
+      burger.addEventListener('click', () => setMenuOpen(!burger.classList.contains('active')));
+      document.getElementById('closeMenu').addEventListener('click', () => setMenuOpen(false));
+      document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target) && !burger.contains(e.target)) {
+          setMenuOpen(false);
+        }
+      });
 
-      const setMode = (nextMode) => {
-        if (MODE === nextMode && menu.classList.contains('open')) return setMenuOpen(false);
-        MODE = nextMode;
+      // ========= MODE SWITCH =========
+      let MODE = 'katalog';
+      function setMode(next) {
+        MODE = next;
         viewCatalog.style.display = MODE === 'katalog' ? 'block' : 'none';
         viewPreorder.style.display = MODE === 'preorder' ? 'block' : 'none';
-        headerTitleEl.textContent = MODE === 'katalog' ? 'Katalog Produk' : 'Lacak Pesanan';
-        
-        allNavButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === MODE));
         setMenuOpen(false);
-
-        if (MODE === 'preorder' && !poState.initialized) poInit();
-      };
-      
-      burger.addEventListener('click', () => setMenuOpen(!burger.classList.contains('active')));
-      menuOverlay.addEventListener('click', () => setMenuOpen(false));
-      allNavButtons.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+        if (MODE === 'preorder' && !poState.initialized) { poInit(); }
+      }
+      menu.querySelectorAll('.menu-btn[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => setMode(btn.getAttribute('data-mode')));
+      });
 
       // ========= UTILS =========
+      const prettyLabel = (raw) => String(raw || '').trim().replace(/\s+/g, ' ');
       const toIDR = v => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v);
       const sheetUrlJSON = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
-      const sheetUrlCSV = (gid) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
+      const sheetUrlCSV = (sheetIndex0) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet${sheetIndex0 + 1}`;
 
-      // ========= KATALOG LOGIC =========
-      const parseKatalogData = (jsonText) => {
-        const match = jsonText.match(/\{.*\}/s);
-        if (!match) throw new Error('Format respons tidak valid.');
-        const { table } = JSON.parse(match[0]);
-        const { cols, rows } = table;
+      // ========= KATALOG VIEW =========
+      function parseGVizPairs(jsonText) {
+        const m = jsonText.match(/\{.*\}/s);
+        if (!m) throw new Error('Invalid GViz response.');
+        const obj = JSON.parse(m[0]);
+        const table = obj.table || {}, rows = table.rows || [], cols = table.cols || [];
         const pairs = Array.from({ length: Math.floor(cols.length / 2) }, (_, i) => ({
           iTitle: i * 2, iPrice: i * 2 + 1, label: cols[i * 2]?.label || ''
         })).filter(p => p.label && cols[p.iPrice]);
-        
-        return rows.flatMap(r => {
+
+        const out = [];
+        for (const r of rows) {
           const c = r.c || [];
-          return pairs.map(p => {
+          for (const p of pairs) {
             const title = String(c[p.iTitle]?.v || '').trim();
-            const price = Number(c[p.iPrice]?.v);
-            return (title && !isNaN(price)) ? { category: p.label.trim(), title, price } : null;
-          }).filter(Boolean);
+            const priceRaw = c[p.iPrice]?.v;
+            const price = (priceRaw != null && priceRaw !== '') ? Number(priceRaw) : NaN;
+            if (title && !isNaN(price)) {
+              out.push({ catKey: p.label, catLabel: prettyLabel(p.label), title, price });
+            }
+          }
+        }
+        return out;
+      }
+
+      // CUSTOM SELECT LOGIC
+      function toggleCustomSelect(open) {
+        const isOpen = typeof open === 'boolean' ? open : !customSelectWrapper.classList.contains('open');
+        customSelectWrapper.classList.toggle('open', isOpen);
+        customSelectBtn.setAttribute('aria-expanded', isOpen);
+      }
+      
+      customSelectBtn.addEventListener('click', () => toggleCustomSelect());
+      document.addEventListener('click', (e) => {
+        if (!customSelectWrapper.contains(e.target)) toggleCustomSelect(false);
+      });
+
+      function buildGameSelect() {
+        const map = new Map();
+        DATA.forEach(it => { if (!map.has(it.catKey)) map.set(it.catKey, it.catLabel) });
+        CATS = [...map].map(([key, label]) => ({ key, label }));
+        
+        customSelectOptions.innerHTML = '';
+        CATS.forEach((c, index) => {
+          const optionEl = document.createElement('div');
+          optionEl.className = 'custom-select-option';
+          optionEl.textContent = c.label;
+          optionEl.dataset.value = c.key;
+          optionEl.setAttribute('role', 'option');
+          if (index === 0) {
+            optionEl.classList.add('selected');
+          }
+          optionEl.addEventListener('click', () => {
+            activeCat = c.key;
+            customSelectValue.textContent = c.label;
+            document.querySelector('.custom-select-option.selected')?.classList.remove('selected');
+            optionEl.classList.add('selected');
+            toggleCustomSelect(false);
+            renderList();
+          });
+          customSelectOptions.appendChild(optionEl);
         });
-      };
-      
-      const populateCategorySelect = () => {
-        categories = [...new Set(katalogData.map(item => item.category))];
-        gameSelectEl.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-        activeCategory = categories[0] || '';
-      };
-      
-      const renderKatalog = () => {
-        const filteredItems = katalogData.filter(item => 
-          item.category === activeCategory &&
-          item.title.toLowerCase().includes(searchQuery)
+
+        if (CATS.length > 0) {
+          activeCat = CATS[0].key;
+          customSelectValue.textContent = CATS[0].label;
+        } else {
+            customSelectValue.textContent = "Data tidak tersedia";
+        }
+      }
+
+      function renderList() {
+        const items = DATA.filter(x => x.catKey === activeCat &&
+          (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))
         );
-        catalogGridEl.innerHTML = '';
-        if (filteredItems.length === 0) {
-          catalogGridEl.innerHTML = `<div class="empty">Tidak ada item ditemukan.</div>`;
+        listEl.innerHTML = '';
+        if (items.length === 0) {
+          listEl.innerHTML = `<div class="empty">Tidak ada hasil ditemukan.</div>`;
+          countInfoEl.textContent = '';
           return;
         }
         const fragment = document.createDocumentFragment();
-        for (const item of filteredItems) {
-          const card = productCardTmpl.content.cloneNode(true);
-          const link = card.querySelector('.product-card');
-          card.querySelector('.product-card-title').textContent = item.title;
-          card.querySelector('.product-card-price').textContent = toIDR(item.price);
-          const text = `*Pesan Item:*\n› Kategori: ${item.category}\n› Item: ${item.title}\n› Harga: ${toIDR(item.price)}`;
+        for (const it of items) {
+          const clone = itemTmpl.content.cloneNode(true);
+          const link = clone.querySelector('.list-item');
+          link.querySelector('.title').textContent = it.title;
+          link.querySelector('.price').textContent = toIDR(it.price);
+          const text = `${WA_GREETING}\n› Tipe: Katalog\n› Game: ${it.catLabel}\n› Item: ${it.title}\n› Harga: ${toIDR(it.price)}`;
           link.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-          fragment.appendChild(card);
+          fragment.appendChild(clone);
         }
-        catalogGridEl.appendChild(fragment);
-      };
+        listEl.appendChild(fragment);
+        countInfoEl.textContent = `${items.length} item ditemukan`;
+      }
 
-      const loadKatalog = async () => {
+      let debounceTimer;
+      searchEl.addEventListener('input', e => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => { query = e.target.value.trim().toLowerCase(); renderList(); }, 200);
+      });
+
+      async function loadCatalog() {
         try {
-          errorKatalogEl.style.display = 'none';
-          catalogGridEl.innerHTML = `<div class="empty">Memuat...</div>`;
-          const res = await fetch(sheetUrlJSON('Sheet3'));
-          if (!res.ok) throw new Error(`Network Error: ${res.statusText}`);
-          const text = await res.text();
-          katalogData = parseKatalogData(text);
-          if (katalogData.length === 0) throw new Error('Data tidak ditemukan atau format salah.');
-          populateCategorySelect();
-          renderKatalog();
-        } catch (e) {
-          errorKatalogEl.textContent = e.message;
-          errorKatalogEl.style.display = 'block';
+          errBox.style.display = 'none';
+          listEl.innerHTML = `<div class="empty">Memuat katalog...</div>`;
+          const res = await fetch(sheetUrlJSON(SHEETS.katalog.name), { cache: 'no-store' });
+          if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
+          const txt = await res.text();
+          DATA = parseGVizPairs(txt);
+          if (DATA.length === 0) throw new Error('Data kosong atau format kolom tidak sesuai.');
+          buildGameSelect();
+          renderList();
+        } catch (err) {
+          console.error("Fetch Katalog failed:", err);
+          errBox.style.display = 'block';
+          errBox.textContent = `Gagal memuat data: ${err.message}`;
         }
+      }
+      
+      // ========= PRE-ORDER VIEW =========
+      const poRoot = document.getElementById('viewPreorder');
+      const poSearch = document.getElementById('poSearch');
+      const poStatus = document.getElementById('poStatus');
+      const poSheet = document.getElementById('poSheet');
+      const poList = document.getElementById('poList');
+      const poPrev = document.getElementById('poPrev');
+      const poNext = document.getElementById('poNext');
+      const poTotal = document.getElementById('poTotal');
+
+      const poState = {
+        initialized: false, allData: [], currentPage: 1, perPage: 15
       };
 
-      // ========= PRE-ORDER LOGIC =========
       const normalizeStatus = (raw) => {
         const s = String(raw || '').trim().toLowerCase();
         if (['success', 'selesai', 'berhasil', 'done'].includes(s)) return 'success';
         if (['progress', 'proses', 'diproses', 'processing'].includes(s)) return 'progress';
         if (['failed', 'gagal', 'dibatalkan', 'cancel', 'error'].includes(s)) return 'failed';
-        return 'pending';
+        return 'pending'; // Safer default
       };
 
-      const renderPO = () => {
-        const query = poSearchEl.value.trim().toLowerCase();
-        const status = poStatusEl.value;
-        const filtered = poData.filter(item => {
-          const searchIn = `${item['Nickname'] || ''} ${item['ID Server'] || ''} ${item['Produk / Item'] || ''}`.toLowerCase();
-          const matchQuery = searchIn.includes(query);
-          const matchStatus = status === 'all' || normalizeStatus(item['Status']) === status;
-          return matchQuery && matchStatus;
+      const poFilterData = () => {
+        const q = poSearch.value.trim().toLowerCase();
+        const status = poStatus.value;
+        return poState.allData.filter(item => {
+          const name = (item['Nickname'] || '').toLowerCase();
+          const idServer = (item['ID Server'] || '').toLowerCase();
+          const product = (item['Produk / Item'] || '').toLowerCase();
+          const match = name.includes(q) || idServer.includes(q) || product.includes(q);
+          const s = normalizeStatus(item['Status']);
+          return match && (status === 'all' || s === status);
         });
+      };
 
-        poGridEl.innerHTML = '';
-        if (filtered.length === 0) {
-          poGridEl.innerHTML = `<div class="empty">Pesanan tidak ditemukan.</div>`;
+      const poUpdatePagination = (cur, total) => {
+        poPrev.disabled = cur <= 1;
+        poNext.disabled = cur >= total;
+      };
+
+      const poRender = () => {
+        const filtered = poFilterData();
+        const totalItems = poState.allData.length;
+        poTotal.textContent = `${totalItems} total pesanan${filtered.length !== totalItems ? `, ${filtered.length} ditemukan` : ''}`;
+        
+        const totalPages = Math.max(1, Math.ceil(filtered.length / poState.perPage));
+        poState.currentPage = Math.min(Math.max(1, poState.currentPage), totalPages);
+        const start = (poState.currentPage - 1) * poState.perPage;
+        const pageData = filtered.slice(start, start + poState.perPage);
+
+        poList.innerHTML = '';
+        if (pageData.length === 0) {
+          poList.innerHTML = `<div class="empty-state"><p>Tidak Ada Hasil Ditemukan</p></div>`;
+          poUpdatePagination(0, 0);
           return;
         }
-
-        const fragment = document.createDocumentFragment();
-        for (const item of filtered) {
-          const card = document.createElement('div');
-          card.className = 'po-card';
-          // Menampilkan hanya data esensial, sesuai permintaan.
-          const name = item['Nickname'] || item['ID Server'] || 'N/A';
+        
+        const frag = document.createDocumentFragment();
+        pageData.forEach(item => {
+          let statusClass = normalizeStatus(item['Status']);
+          const name = item['Nickname'] || item['ID Server'] || 'Tanpa Nama';
           const product = item['Produk / Item'] || item['Item'] || 'N/A';
-          
+          const estDelivery = item['Est. Pengiriman'] ? `${item['Est. Pengiriman']} 20:00 WIB` : '';
+
+          // =================================================================
+          // ## PERUBAHAN DI SINI ##
+          // Daftar kolom yang akan disembunyikan dari tampilan detail
+          const hiddenKeys = new Set([
+              'Nickname', 'ID Server', 'Produk / Item', 'Item', 'Status', 
+              'Est. Pengiriman', 'ID Gift', 'Nomor Telepon', 'No. Telepon', 'No Telp'
+          ]);
+          // =================================================================
+
+          const detailsHtml = Object.entries(item).filter(([k, v]) => v && !hiddenKeys.has(k))
+            .map(([k, v]) => `<div class="detail-item"><div class="detail-label">${k}</div><div class="detail-value">${v}</div></div>`).join('');
+
+          const card = document.createElement('article');
+          card.className = `card ${detailsHtml ? 'clickable' : ''}`;
           card.innerHTML = `
-            <div class="po-card-header">
-              <div class="po-card-info">
-                <div class="po-card-name">${name}</div>
-                <div class="po-card-product">${product}</div>
+            <div class="card-header">
+              <div>
+                <div class="card-name">${name}</div>
+                <div class="card-product">${product}</div>
               </div>
-              <div class="status-badge ${normalizeStatus(item.Status)}">${item.Status || 'Pending'}</div>
+              <div class="status-badge ${statusClass}">${(item['Status'] || 'Pending').toUpperCase()}</div>
             </div>
+            ${estDelivery ? `<div class="card-date">Estimasi Pengiriman: ${estDelivery}</div>` : ''}
+            ${detailsHtml ? `<div class="card-details"><div class="details-grid">${detailsHtml}</div></div>` : ''}
           `;
-          fragment.appendChild(card);
-        }
-        poGridEl.appendChild(fragment);
+          if (detailsHtml) {
+            card.addEventListener('click', () => card.classList.toggle('expanded'));
+          }
+          frag.appendChild(card);
+        });
+        
+        poList.appendChild(frag);
+        poUpdatePagination(poState.currentPage, totalPages);
       };
 
-      const loadPO = async (sheetType) => {
+      const poSortByStatus = (data) => {
+        const order = { 'progress': 1, 'pending': 2, 'success': 3, 'failed': 4 };
+        return data.sort((a, b) => order[normalizeStatus(a.Status)] - order[normalizeStatus(b.Status)]);
+      };
+
+      async function poFetch(sheetIndex0) {
+        poTotal.textContent = 'Memuat data...';
+        poList.innerHTML = `<div class="loading"><div class="spinner"></div><p>Memuat data...</p></div>`;
         try {
-          poGridEl.innerHTML = `<div class="empty">Memuat...</div>`;
-          errorPOEl.style.display = 'none';
-          const gid = sheetType === '0' ? GID_SHEET_1 : GID_SHEET_2;
-          const res = await fetch(sheetUrlCSV(gid));
-          if (!res.ok) throw new Error(`Network Error: ${res.statusText}`);
+          const res = await fetch(sheetUrlCSV(sheetIndex0));
+          if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
           const text = await res.text();
           const rows = text.trim().split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
-          
-          const headers = rows.shift();
-          // Data disaring di sini, hanya kolom yang relevan yang disimpan jika perlu,
-          // namun penyaringan utama ada di 'renderPO' untuk memastikan tidak ada data sensitif yang ditampilkan.
-          poData = rows.map(row => Object.fromEntries(row.map((val, i) => [headers[i], val]))).filter(item => item[headers[0]]);
-          renderPO();
-        } catch(e) {
-          poData = []; // Clear data on error
-          renderPO(); // Render empty state
-          errorPOEl.textContent = e.message;
-          errorPOEl.style.display = 'block';
+          if (rows.length < 1) { poState.allData = []; return; }
+
+          if (sheetIndex0 === 0) {
+            const headers = rows.shift();
+            poState.allData = poSortByStatus(rows.map(row => Object.fromEntries(row.map((val, i) => [headers[i] || `col_${i+1}`, val]))).filter(item => item[headers[0]]));
+          } else {
+            const bodyRows = rows[0]?.length === 3 && ['id server','item','status'].includes(rows[0][0].toLowerCase()) ? rows.slice(1) : rows;
+            poState.allData = poSortByStatus(bodyRows.map(r => ({ 'ID Server': r[0] || '', 'Item': r[1] || '', 'Status': r[2] || '' })).filter(item => item['ID Server']));
+          }
+        } catch (e) {
+          poState.allData = [];
+          poTotal.textContent = 'Gagal memuat data.';
+          console.error("Fetch Pre-Order failed:", e);
+        } finally {
+          poState.currentPage = 1;
+          poRender();
         }
-      };
+      }
 
-      const poInit = () => {
-        let debounce;
-        poSearchEl.addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(renderPO, 300); });
-        poStatusEl.addEventListener('change', renderPO);
-        poSheetEl.addEventListener('change', e => loadPO(e.target.value));
-        loadPO(poSheetEl.value);
+      function poInit() {
+        const poDebouncedRender = () => { poState.currentPage = 1; poRender(); };
+        poSearch.addEventListener('input', poDebouncedRender);
+        poStatus.addEventListener('change', poDebouncedRender);
+        poSheet.addEventListener('change', (e) => poFetch(parseInt(e.target.value, 10)));
+        poPrev.addEventListener('click', () => { if (poState.currentPage > 1) { poState.currentPage--; poRender(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+        poNext.addEventListener('click', () => { poState.currentPage++; poRender(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        poFetch(0);
         poState.initialized = true;
-      };
+      }
 
-      // ========= INITIALIZATION =========
-      let debounceSearch;
-      searchEl.addEventListener('input', () => {
-        clearTimeout(debounceSearch);
-        debounceSearch = setTimeout(() => {
-          searchQuery = searchEl.value.trim().toLowerCase();
-          renderKatalog();
-        }, 300);
-      });
-      gameSelectEl.addEventListener('change', () => {
-        activeCategory = gameSelectEl.value;
-        renderKatalog();
-      });
-
-      loadKatalog();
-
+      // Initial Load
+      loadCatalog();
     })();
   </script>
 </body>
