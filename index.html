@@ -108,7 +108,7 @@
     /* CUSTOM DROPDOWN (Replaces <select>) */
     .custom-select-wrapper { position: relative; }
     .custom-select-btn {
-      width: 100%; padding: 14px 20px;
+      width: 100%; height: 54px; padding: 14px 20px;
       background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium);
       color: var(--text-primary); font-size: 16px; font-weight: 500; text-align: left;
       display: flex; justify-content: space-between; align-items: center; cursor: pointer;
@@ -171,10 +171,11 @@
       width: 100%; height: 48px; padding: 0 16px; font-size: 15px; background: var(--fill-primary);
       border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); outline: none;
       -webkit-appearance: none; -moz-appearance: none; appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2386868b'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 16px center; background-size: 18px;
     }
-    #viewPreorder .search-input { background-image: none; }
+    #viewPreorder .filter-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2386868b'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 16px center; background-size: 18px;
+    }
     #viewPreorder .search-input:focus, #viewPreorder .filter-select:focus {
       border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.2);
     }
@@ -191,12 +192,30 @@
     #viewPreorder .card-name { font-size: 18px; font-weight: 600; }
     #viewPreorder .card-product { font-size: 15px; color: var(--text-secondary); }
     #viewPreorder .card-date { font-size: 13px; color: var(--text-tertiary); margin-top: 10px; grid-column: 1 / -1; }
-    #viewPreorder .status-badge { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    #viewPreorder .status-badge::before { content:''; width: 8px; height: 8px; border-radius: 50%; }
-    #viewPreorder .status-badge.success { color:#30d158; background:rgba(48,209,88,.15); } #viewPreorder .status-badge.success::before { background:#30d158; }
-    #viewPreorder .status-badge.progress { color:#0a84ff; background:rgba(10,132,255,.15); } #viewPreorder .status-badge.progress::before { background:#0a84ff; }
-    #viewPreorder .status-badge.pending { color:#ff9f0a; background:rgba(255,159,10,.15); } #viewPreorder .status-badge.pending::before { background:#ff9f0a; }
-    #viewPreorder .status-badge.failed { color:#ff453a; background:rgba(255,69,58,.15); } #viewPreorder .status-badge.failed::before { background:#ff453a; }
+    
+    /* REFINED STATUS BADGES (Premium Flat) */
+    #viewPreorder .status-badge {
+      display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 9999px; /* Pill shape */
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    #viewPreorder .status-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; }
+    /* SUCCESS - Hijau Tegas */
+    #viewPreorder .status-badge.success { color: #16a34a; background-color: #f0fdf4; }
+    #viewPreorder .status-badge.success::before { background-color: #22c55e; }
+    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.success { color: #4ade80; background-color: rgba(34, 197, 94, 0.15); } }
+    /* PROGRESS - Biru Aktif */
+    #viewPreorder .status-badge.progress { color: #2563eb; background-color: #eff6ff; }
+    #viewPreorder .status-badge.progress::before { background-color: #3b82f6; }
+    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.progress { color: #60a5fa; background-color: rgba(59, 130, 246, 0.15); } }
+    /* PENDING - Kuning Atensi */
+    #viewPreorder .status-badge.pending { color: #ca8a04; background-color: #fefce8; }
+    #viewPreorder .status-badge.pending::before { background-color: #f59e0b; }
+    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.pending { color: #facc15; background-color: rgba(245, 158, 11, 0.15); } }
+    /* FAILED - Merah Jelas */
+    #viewPreorder .status-badge.failed { color: #dc2626; background-color: #fef2f2; }
+    #viewPreorder .status-badge.failed::before { background-color: #ef4444; }
+    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.failed { color: #f87171; background-color: rgba(239, 68, 68, 0.15); } }
+    
     #viewPreorder .card-details { max-height: 0; overflow: hidden; opacity: 0; transition: all .45s var(--transition-curve); margin-top: 0; }
     #viewPreorder .card.expanded .card-details { max-height: 500px; opacity: 1; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--separator); }
     #viewPreorder .details-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 16px; }
@@ -409,6 +428,8 @@
         if (CATS.length > 0) {
           activeCat = CATS[0].key;
           customSelectValue.textContent = CATS[0].label;
+        } else {
+            customSelectValue.textContent = "Data tidak tersedia";
         }
       }
 
@@ -447,12 +468,14 @@
           errBox.style.display = 'none';
           listEl.innerHTML = `<div class="empty">Memuat katalog...</div>`;
           const res = await fetch(sheetUrlJSON(SHEETS.katalog.name), { cache: 'no-store' });
+          if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
           const txt = await res.text();
           DATA = parseGVizPairs(txt);
           if (DATA.length === 0) throw new Error('Data kosong atau format kolom tidak sesuai.');
           buildGameSelect();
           renderList();
         } catch (err) {
+          console.error("Fetch Katalog failed:", err);
           errBox.style.display = 'block';
           errBox.textContent = `Gagal memuat data: ${err.message}`;
         }
@@ -473,11 +496,11 @@
       };
 
       const normalizeStatus = (raw) => {
-        let s = String(raw || '').trim().toLowerCase();
-        if (['selesai', 'berhasil', 'done'].includes(s)) return 'success';
-        if (['proses', 'diproses', 'processing'].includes(s)) return 'progress';
-        if (s === 'pending') return 'pending';
-        return 'failed';
+        const s = String(raw || '').trim().toLowerCase();
+        if (['success', 'selesai', 'berhasil', 'done'].includes(s)) return 'success';
+        if (['progress', 'proses', 'diproses', 'processing'].includes(s)) return 'progress';
+        if (['failed', 'gagal', 'dibatalkan', 'cancel', 'error'].includes(s)) return 'failed';
+        return 'pending'; // Safer default
       };
 
       const poFilterData = () => {
@@ -510,7 +533,7 @@
 
         poList.innerHTML = '';
         if (pageData.length === 0) {
-          poList.innerHTML = `<div class="empty-state"><p>Tidak Ada Hasil</p></div>`;
+          poList.innerHTML = `<div class="empty-state"><p>Tidak Ada Hasil Ditemukan</p></div>`;
           poUpdatePagination(0, 0);
           return;
         }
@@ -533,7 +556,7 @@
                 <div class="card-name">${name}</div>
                 <div class="card-product">${product}</div>
               </div>
-              <div class="status-badge ${statusClass}">${(item['Status'] || 'Gagal').toUpperCase()}</div>
+              <div class="status-badge ${statusClass}">${(item['Status'] || 'Pending').toUpperCase()}</div>
             </div>
             ${estDelivery ? `<div class="card-date">Estimasi Pengiriman: ${estDelivery}</div>` : ''}
             ${detailsHtml ? `<div class="card-details"><div class="details-grid">${detailsHtml}</div></div>` : ''}
@@ -558,16 +581,17 @@
         poList.innerHTML = `<div class="loading"><div class="spinner"></div><p>Memuat data...</p></div>`;
         try {
           const res = await fetch(sheetUrlCSV(sheetIndex0));
+          if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
           const text = await res.text();
           const rows = text.trim().split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
           if (rows.length < 1) { poState.allData = []; return; }
 
           if (sheetIndex0 === 0) {
             const headers = rows.shift();
-            poState.allData = poSortByStatus(rows.map(row => Object.fromEntries(row.map((val, i) => [headers[i] || `col_${i+1}`, val]))));
+            poState.allData = poSortByStatus(rows.map(row => Object.fromEntries(row.map((val, i) => [headers[i] || `col_${i+1}`, val]))).filter(item => item[headers[0]]));
           } else {
             const bodyRows = rows[0]?.length === 3 && ['id server','item','status'].includes(rows[0][0].toLowerCase()) ? rows.slice(1) : rows;
-            poState.allData = poSortByStatus(bodyRows.map(r => ({ 'ID Server': r[0] || '', 'Item': r[1] || '', 'Status': r[2] || '' })));
+            poState.allData = poSortByStatus(bodyRows.map(r => ({ 'ID Server': r[0] || '', 'Item': r[1] || '', 'Status': r[2] || '' })).filter(item => item['ID Server']));
           }
         } catch (e) {
           poState.allData = [];
