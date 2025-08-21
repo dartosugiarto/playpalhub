@@ -263,7 +263,7 @@
       </div>
       <div id="countInfo"></div>
       <section id="list-container" class="list-container" aria-live="polite"></section>
-      <section id="error" class="err" style="display: none;"></section>
+      <section id="error" class="err"></section>
       <template id="itemTmpl">
         <a class="list-item" target="_blank" rel="noopener">
           <span class="title"></span>
@@ -544,16 +544,7 @@
           const name = item['Nickname'] || item['ID Server'] || 'Tanpa Nama';
           const product = item['Produk / Item'] || item['Item'] || 'N/A';
           const estDelivery = item['Est. Pengiriman'] ? `${item['Est. Pengiriman']} 20:00 WIB` : '';
-
-          // =================================================================
-          // ## PERUBAHAN DI SINI ##
-          // Daftar kolom yang akan disembunyikan dari tampilan detail
-          const hiddenKeys = new Set([
-              'Nickname', 'ID Server', 'Produk / Item', 'Item', 'Status', 
-              'Est. Pengiriman', 'ID Gift', 'Nomor Telepon', 'No. Telepon', 'No Telp'
-          ]);
-          // =================================================================
-
+          const hiddenKeys = new Set(['Nickname', 'ID Server', 'Produk / Item', 'Item', 'Status', 'Est. Pengiriman']);
           const detailsHtml = Object.entries(item).filter(([k, v]) => v && !hiddenKeys.has(k))
             .map(([k, v]) => `<div class="detail-item"><div class="detail-label">${k}</div><div class="detail-value">${v}</div></div>`).join('');
 
