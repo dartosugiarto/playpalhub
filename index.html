@@ -9,315 +9,284 @@
     :root {
       --primary-blue: #5C80BC;
       --primary-blue-rgb: 92, 128, 188;
-      --bg: #f5f5f7;
-      --bg-gradient: linear-gradient(180deg, #fdfdfd 0%, #f5f5f7 100%);
+      --bg: #f9f9fb;
       --text-primary: #1d1d1f;
       --text-secondary: #515154;
       --text-tertiary: #8a8a8e;
       --fill-primary: #ffffff;
-      --fill-secondary: #f0f0f2;
-      --fill-tertiary: #e8e8ea;
-      --separator: #dcdce0;
-      --maxw: 1100px;
-      --radius-large: 16px;
-      --radius-medium: 10px;
+      --fill-secondary: #f5f5f7;
+      --separator: #e5e5e7;
+      --separator-subtle: #f0f0f2;
+      --maxw: 1200px;
+      --radius-large: 20px;
+      --radius-medium: 12px;
       --transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #000000;
-        --bg-gradient: linear-gradient(180deg, #111 0%, #000 100%);
+        --bg: #0a0a0a;
         --text-primary: #f5f5f7;
         --text-secondary: #a0a0a5;
         --text-tertiary: #6e6e73;
-        --fill-primary: #1d1d1f;
-        --fill-secondary: #2c2c2e;
-        --fill-tertiary: #3a3a3c;
+        --fill-primary: #161617;
+        --fill-secondary: #252527;
         --separator: #3a3a3c;
+        --separator-subtle: #252527;
       }
     }
 
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       background: var(--bg);
-      background-image: var(--bg-gradient);
       color: var(--text-primary);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 15px;
+      font-size: 16px;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 24px 20px; }
-    
-    /* === HEADER (Floating Bar) === */
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 24px; }
+
+    /* === HEADER & NAVIGATION (Professional) === */
     header {
-      max-width: var(--maxw); margin: 16px auto; padding: 0 20px;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 52px;
+      padding: 24px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .header-left { display: flex; align-items: center; gap: 10px; }
-    .logo { height: 36px; width: auto; }
-    header h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
+    .header-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo { height: 40px; }
+    .header-brand h1 { margin: 0; font-size: 22px; font-weight: 600; color: var(--text-primary); }
 
-    /* === BURGER MENU (Integrated) === */
-    .burger {
-      z-index: 101; width: 40px; height: 40px; cursor: pointer; border-radius: 50%;
-      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px;
-      transition: background-color .2s ease;
+    .desktop-nav { display: none; }
+    @media (min-width: 768px) {
+      .desktop-nav { display: flex; align-items: center; gap: 8px; }
+      .desktop-nav-btn {
+        padding: 10px 18px; border: 0; background: none; border-radius: var(--radius-medium);
+        color: var(--text-secondary); font-size: 15px; font-weight: 500; cursor: pointer;
+        transition: all .2s ease;
+      }
+      .desktop-nav-btn:hover { background: var(--fill-secondary); color: var(--text-primary); }
+      .desktop-nav-btn.active { color: var(--primary-blue); font-weight: 600; }
     }
-    .burger:hover { background-color: var(--fill-secondary); }
-    .burger span {
-      display: block; height: 1.5px; width: 16px; background: var(--text-secondary); border-radius: 1px;
-      transition: transform 0.35s var(--transition-curve), opacity 0.35s var(--transition-curve);
-      transform-origin: center;
-    }
-    .burger.active span:nth-child(1) { transform: translateY(2.75px) rotate(45deg); }
-    .burger.active span:nth-child(2) { opacity: 0; }
-    .burger.active span:nth-child(3) { transform: translateY(-2.75px) rotate(-45deg); }
-
-    /* === SLIDE-IN MENU PANEL === */
-    .menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 98; opacity: 0; transition: opacity .4s ease; pointer-events: none; }
-    .menu-overlay.open { opacity: 1; pointer-events: auto; }
-    .menu {
-      position: fixed; top: 0; right: 0; bottom: 0; z-index: 99;
-      width: 280px; padding: 60px 0 20px;
-      background: var(--fill-secondary);
-      box-shadow: -10px 0 40px rgba(0,0,0,0.1);
-      display: flex; flex-direction: column;
-      transform: translateX(100%);
-      transition: transform 0.4s var(--transition-curve);
-    }
-    .menu.open { transform: translateX(0); }
-    .menu-btn {
-      padding: 14px 24px; border: 0; background: transparent; text-align: left;
-      color: var(--text-secondary); font-weight: 500; font-size: 16px; cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease;
-    }
-    .menu-btn.active { color: var(--primary-blue); font-weight: 600; }
-    .menu-btn:hover { color: var(--text-primary); }
-
-    /* === VIEW: KATALOG (Tab-Based) === */
-    .page-title { text-align: center; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin: 16px 0 24px; }
-    .category-tabs {
-      display: flex; gap: 8px; padding: 4px; margin: 0 0 20px;
-      overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
-    }
-    .category-tabs::-webkit-scrollbar { display: none; }
-    .category-tab {
-      flex-shrink: 0; padding: 8px 16px; border-radius: var(--radius-medium);
-      border: none; background: var(--fill-secondary);
-      color: var(--text-secondary); font-size: 14px; font-weight: 500;
-      cursor: pointer; transition: all .25s ease;
-    }
-    .category-tab:hover { background-color: var(--fill-tertiary); color: var(--text-primary); }
-    .category-tab.active { background-color: var(--primary-blue); color: #fff; }
+    .mobile-only { display: block; }
+    @media (min-width: 768px) { .mobile-only { display: none; } }
     
-    .list-tools { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    /* === SLIDE-IN MENU (Mobile) === */
+    .burger { z-index: 101; width: 44px; height: 44px; cursor: pointer; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; transition: background-color .2s ease; }
+    .burger:hover { background-color: var(--fill-secondary); }
+    .burger span { display: block; height: 1.5px; width: 18px; background: var(--text-secondary); border-radius: 1px; transition: all 0.35s var(--transition-curve); transform-origin: center; }
+    .burger.active span:nth-child(1) { transform: translateY(2.75px) rotate(45deg); } .burger.active span:nth-child(2) { opacity: 0; } .burger.active span:nth-child(3) { transform: translateY(-2.75px) rotate(-45deg); }
+    
+    .menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 98; opacity: 0; transition: opacity .4s ease; pointer-events: none; }
+    .menu-overlay.open { opacity: 1; pointer-events: auto; }
+    .menu { position: fixed; top: 0; right: 0; bottom: 0; z-index: 99; width: 280px; padding: 60px 0 20px; background: var(--bg); box-shadow: -10px 0 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.4s var(--transition-curve); }
+    .menu.open { transform: translateX(0); }
+    .menu-btn { padding: 14px 24px; border: 0; background: transparent; text-align: left; color: var(--text-secondary); font-weight: 500; font-size: 16px; cursor: pointer; transition: all 0.2s ease; }
+    .menu-btn:hover { color: var(--text-primary); } .menu-btn.active { color: var(--primary-blue); font-weight: 600; }
+
+    /* === PAGE INTRO === */
+    .page-intro { text-align: center; padding: 48px 24px; }
+    .page-intro h2 { font-size: 40px; font-weight: 700; letter-spacing: -1px; margin: 0 0 8px; }
+    .page-intro p { font-size: 18px; color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+
+    /* === VIEW: KATALOG (Grid View) === */
+    .catalog-controls { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+    @media (min-width: 768px) { .catalog-controls { flex-direction: row; justify-content: space-between; align-items: center; } }
     .search-wrap { position: relative; flex-grow: 1; }
-    .search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-tertiary); }
-    #search {
-      width: 100%; height: 44px; padding: 0 16px 0 42px;
-      background: var(--fill-secondary); border: 1px solid var(--fill-secondary); border-radius: var(--radius-medium);
-      color: var(--text-primary); font-size: 14px;
-      outline: none; transition: all 0.2s ease;
-    }
-    #search:focus { border-color: var(--primary-blue); background-color: var(--fill-primary); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.15); }
-    #countInfo { flex-shrink: 0; color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+    #search { width: 100%; height: 48px; padding: 0 16px 0 44px; background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); font-size: 15px; outline: none; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.02), inset 0 0 0 1px transparent; }
+    #search:focus { border-color: var(--primary-blue); background-color: var(--fill-primary); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.15), inset 0 0 0 1px var(--primary-blue); }
+    .search-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-tertiary); }
+    #game-select { min-width: 240px; height: 48px; padding: 0 40px 0 16px; font-size: 15px; font-weight: 500; background-color: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238a8a8e'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd' /%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 18px; }
 
-    .list-container { display: flex; flex-direction: column; gap: 8px; }
-    .list-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 16px; background: var(--fill-primary); border-radius: var(--radius-medium);
-      text-decoration: none; color: inherit; border: 1px solid var(--separator);
-      transition: transform 0.25s var(--transition-curve), box-shadow 0.25s var(--transition-curve);
+    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .product-card {
+      background: var(--fill-primary); border-radius: var(--radius-large); text-decoration: none; color: inherit;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04), inset 0 0 0 1px var(--separator-subtle);
+      transition: transform 0.3s var(--transition-curve), box-shadow 0.3s var(--transition-curve);
     }
-    .list-item:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-    .list-item .title { font-size: 15px; font-weight: 500; color: var(--text-primary); }
-    .list-item .price { font-size: 15px; font-weight: 600; color: var(--primary-blue); }
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 12px 32px rgba(0,0,0,0.08), inset 0 0 0 1px var(--separator); }
+    .product-card-image { height: 160px; background-color: var(--fill-secondary); border-radius: var(--radius-large) var(--radius-large) 0 0; }
+    .product-card-content { padding: 20px; }
+    .product-card-title { font-size: 17px; font-weight: 600; margin: 0 0 8px; }
+    .product-card-price { font-size: 16px; font-weight: 600; color: var(--primary-blue); }
 
-    /* === VIEW: PRE-ORDER (Elegant Density) === */
+    /* === VIEW: PRE-ORDER (Refined) === */
     #viewPreorder { display: none; }
-    .po-head {
-      position: sticky; top: 0; z-index: 10;
-      background: rgba(245, 245, 247, 0.8);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--separator);
-      padding: 12px 0; margin-bottom: 24px;
-    }
-    @media (prefers-color-scheme: dark) { .po-head { background: rgba(0, 0, 0, 0.8); } }
-    #viewPreorder .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; max-width: 1100px; margin: 0 auto; padding: 0 20px;}
+    #viewPreorder .controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-bottom: 32px; }
     @media (max-width: 768px) { #viewPreorder .controls { grid-template-columns: 1fr; } }
-    #viewPreorder .search-input, #viewPreorder .filter-select {
-      width: 100%; height: 44px; padding: 0 14px; font-size: 14px; background: var(--fill-primary);
-      border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); outline: none;
-      -webkit-appearance: none; -moz-appearance: none; appearance: none;
-    }
-    #viewPreorder .search-input:focus, #viewPreorder .filter-select:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.15); }
-
-    #viewPreorder .card-grid { display: flex; flex-direction: column; gap: 12px; }
-    #viewPreorder .card {
-      background: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-large); padding: 20px;
+    #viewPreorder .po-input { height: 48px; padding: 0 16px; font-size: 15px; background-color: var(--fill-primary); border: 1px solid var(--separator); border-radius: var(--radius-medium); color: var(--text-primary); outline: none; transition: all .2s ease; }
+    #viewPreorder .po-input:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(var(--primary-blue-rgb), 0.15); }
+    .card-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 1024px) { .card-grid { grid-template-columns: 1fr 1fr; } }
+    .po-card {
+      background: var(--fill-primary); border-radius: var(--radius-large); padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04), inset 0 0 0 1px var(--separator-subtle);
       transition: all .3s var(--transition-curve);
     }
-    #viewPreorder .card.clickable:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-    #viewPreorder .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-    #viewPreorder .card-info { flex-grow: 1; }
-    #viewPreorder .card-name { font-size: 16px; font-weight: 600; }
-    #viewPreorder .card-product { font-size: 14px; color: var(--text-secondary); }
-    #viewPreorder .card-date { font-size: 13px; color: var(--text-tertiary); margin-top: 8px; }
-    /* REFINED STATUS BADGES (Premium Flat) */
-    #viewPreorder .status-badge {
-      flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 9999px; /* Pill shape */
-      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    #viewPreorder .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
-    #viewPreorder .status-badge.success { color: #16a34a; background-color: #f0fdf4; } #viewPreorder .status-badge.success::before { background-color: #22c55e; }
-    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.success { color: #4ade80; background-color: rgba(34, 197, 94, 0.15); } }
-    #viewPreorder .status-badge.progress { color: #2563eb; background-color: #eff6ff; } #viewPreorder .status-badge.progress::before { background-color: #3b82f6; }
-    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.progress { color: #60a5fa; background-color: rgba(59, 130, 246, 0.15); } }
-    #viewPreorder .status-badge.pending { color: #ca8a04; background-color: #fefce8; } #viewPreorder .status-badge.pending::before { background-color: #f59e0b; }
-    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.pending { color: #facc15; background-color: rgba(245, 158, 11, 0.15); } }
-    #viewPreorder .status-badge.failed { color: #dc2626; background-color: #fef2f2; } #viewPreorder .status-badge.failed::before { background-color: #ef4444; }
-    @media (prefers-color-scheme: dark) { #viewPreorder .status-badge.failed { color: #f87171; background-color: rgba(239, 68, 68, 0.15); } }
-    #viewPreorder .card-details { max-height: 0; overflow: hidden; opacity: 0; transition: all .45s var(--transition-curve); margin-top: 0; }
-    #viewPreorder .card.expanded .card-details { max-height: 500px; opacity: 1; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--separator); }
+    .po-card.clickable:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.06), inset 0 0 0 1px var(--separator); }
+    .po-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .po-card-info { flex-grow: 1; }
+    .po-card-name { font-size: 17px; font-weight: 600; }
+    .po-card-product { font-size: 15px; color: var(--text-secondary); }
+    .po-card-details { max-height: 0; overflow: hidden; opacity: 0; transition: all .45s var(--transition-curve); margin-top: 0; }
+    .po-card.expanded .po-card-details { max-height: 500px; opacity: 1; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--separator); }
 
-    .empty, .err { border: 1px dashed var(--separator); border-radius: var(--radius-large); padding: 48px; text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 20px; }
+    .status-badge { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-badge.success { color: #16a34a; background-color: #f0fdf4; } .status-badge.progress { color: #2563eb; background-color: #eff6ff; } .status-badge.pending { color: #ca8a04; background-color: #fefce8; } .status-badge.failed { color: #dc2626; background-color: #fef2f2; }
+    @media (prefers-color-scheme: dark) { .status-badge.success { color: #4ade80; background-color: rgba(34, 197, 94, 0.15); } .status-badge.progress { color: #60a5fa; background-color: rgba(59, 130, 246, 0.15); } .status-badge.pending { color: #facc15; background-color: rgba(245, 158, 11, 0.15); } .status-badge.failed { color: #f87171; background-color: rgba(239, 68, 68, 0.15); } }
+
+    .empty, .err { border: 1px dashed var(--separator); border-radius: var(--radius-large); padding: 64px; text-align: center; color: var(--text-secondary); font-size: 15px; margin-top: 20px; grid-column: 1 / -1; }
     .err { border-color: #ef4444; background-color: #fef2f2; color: #dc2626; }
     @media (prefers-color-scheme: dark) { .err { border-color: #b91c1c; background-color: rgba(239,68,68,0.1); color: #f87171; } }
-
   </style>
 </head>
 <body>
   <div class="menu-overlay" id="menu-overlay"></div>
-  <nav class="menu" id="menu" aria-label="Navigasi tampilan">
-    <button class="menu-btn active" data-mode="katalog" type="button">Katalog</button>
-    <button class="menu-btn" data-mode="preorder" type="button">Lacak Pre-Order</button>
+  <nav class="menu" id="menu">
+    <button class="menu-btn active" data-mode="katalog">Katalog</button>
+    <button class="menu-btn" data-mode="preorder">Lacak Pesanan</button>
   </nav>
 
-  <header>
-    <div class="header-left">
-      <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
-      <h1>PlayPal.ID</h1>
-    </div>
-    <div class="burger" id="burger" aria-label="Menu" aria-expanded="false" role="button" tabindex="0">
-      <span></span><span></span><span></span>
-    </div>
-  </header>
-  
-  <main class="wrap">
-    <section id="viewCatalog">
-      <h2 class="page-title">Katalog Produk</h2>
-      <div class="category-tabs" id="category-tabs"></div>
-      <div class="list-tools">
-        <div class="search-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
-          <input id="search" type="search" placeholder="Cari item..." aria-label="Cari">
+  <div class="wrap">
+    <header>
+      <a href="#" class="header-brand">
+        <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
+        <h1>PlayPal.ID</h1>
+      </a>
+      <nav class="desktop-nav">
+        <button class="desktop-nav-btn active" data-mode="katalog">Katalog</button>
+        <button class="desktop-nav-btn" data-mode="preorder">Lacak Pesanan</button>
+      </nav>
+      <div class="mobile-only">
+        <div class="burger" id="burger" aria-label="Menu" aria-expanded="false" role="button" tabindex="0">
+          <span></span><span></span><span></span>
         </div>
-        <span id="countInfo"></span>
       </div>
-      <section id="list-container" class="list-container" aria-live="polite"></section>
-      <section id="error" class="err"></section>
-      <template id="itemTmpl">
-        <a class="list-item" target="_blank" rel="noopener">
-          <span class="title"></span>
-          <span class="price"></span>
-        </a>
-      </template>
-    </section>
+    </header>
 
-    <section id="viewPreorder" aria-label="Pre-Order">
-      <h2 class="page-title">Lacak Pre-Order</h2>
-      <div class="po-head">
+    <main>
+      <section id="viewCatalog">
+        <div class="page-intro">
+          <h2>Jelajahi Dunia Hiburan</h2>
+          <p>Temukan game, film, dan musik favorit Anda dalam satu destinasi utama.</p>
+        </div>
+        <div class="catalog-controls">
+            <div class="search-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
+              <input id="search" type="search" placeholder="Cari item..." aria-label="Cari">
+            </div>
+            <select id="game-select" aria-label="Pilih Kategori"></select>
+        </div>
+        <div id="catalog-grid" class="catalog-grid" aria-live="polite"></div>
+        <div id="error-katalog" class="err" style="display: none;"></div>
+        <template id="productCardTmpl">
+          <a class="product-card" target="_blank" rel="noopener">
+            <div class="product-card-image"></div>
+            <div class="product-card-content">
+              <h3 class="product-card-title"></h3>
+              <p class="product-card-price"></p>
+            </div>
+          </a>
+        </template>
+      </section>
+
+      <section id="viewPreorder">
+        <div class="page-intro">
+            <h2>Lacak Status Pesanan Anda</h2>
+            <p>Masukkan detail pesanan untuk melihat progres pengiriman secara real-time.</p>
+        </div>
         <div class="controls" aria-label="Kontrol data">
-          <input type="search" class="search-input" id="poSearch" placeholder="Cari nama / ID Server / item..." />
-          <select class="filter-select" id="poStatus" aria-label="Filter status">
+          <input type="search" class="po-input" id="poSearch" placeholder="Cari nama / ID Server..." />
+          <select class="po-input" id="poStatus" aria-label="Filter status">
             <option value="all">Semua Status</option>
             <option value="success">Success</option>
             <option value="progress">Progress</option>
             <option value="pending">Pending</option>
             <option value="failed">Gagal</option>
           </select>
-          <select class="filter-select" id="poSheet" aria-label="Pilih kategori pesanan">
+          <select class="po-input" id="poSheet" aria-label="Pilih kategori pesanan">
             <option value="0">Starlight Member</option>
             <option value="1">Pesanan Umum</option>
           </select>
         </div>
-      </div>
-      <main class="card-grid" id="poList" aria-live="polite"></main>
-    </section>
-  </main>
+        <div id="po-grid" class="card-grid" aria-live="polite"></div>
+        <div id="error-po" class="err" style="display: none;"></div>
+      </section>
+    </main>
+  </div>
 
   <script>
     (function() {
-      // ========= GLOBAL CONFIG =========
+      // ========= CONFIG =========
       const SHEET_ID = '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw';
       const WA_NUMBER = '6285877001999';
-      const WA_GREETING = '*Detail pesanan:*';
-      
-      let DATA = [], CATS = [], activeCat = '', query = '';
 
       // ========= ELEMENTS =========
       const burger = document.getElementById('burger');
       const menu = document.getElementById('menu');
       const menuOverlay = document.getElementById('menu-overlay');
-      const menuButtons = menu.querySelectorAll('.menu-btn');
+      const allNavButtons = document.querySelectorAll('[data-mode]');
       const viewCatalog = document.getElementById('viewCatalog');
       const viewPreorder = document.getElementById('viewPreorder');
-      const categoryTabsEl = document.getElementById('category-tabs');
-      const listEl = document.getElementById('list-container');
-      const searchEl = document.getElementById('search');
-      const countInfoEl = document.getElementById('countInfo');
-      const itemTmpl = document.getElementById('itemTmpl');
-      const errBox = document.getElementById('error');
       
-      // ========= MENU (Slide-in Panel) =========
-      function setMenuOpen(open) {
+      // Katalog Elements
+      const gameSelectEl = document.getElementById('game-select');
+      const searchEl = document.getElementById('search');
+      const catalogGridEl = document.getElementById('catalog-grid');
+      const productCardTmpl = document.getElementById('productCardTmpl');
+      const errorKatalogEl = document.getElementById('error-katalog');
+      
+      // Pre-Order Elements
+      const poSearchEl = document.getElementById('poSearch');
+      const poStatusEl = document.getElementById('poStatus');
+      const poSheetEl = document.getElementById('poSheet');
+      const poGridEl = document.getElementById('po-grid');
+      const errorPOEl = document.getElementById('error-po');
+
+      // ========= STATE =========
+      let MODE = 'katalog';
+      let katalogData = [], categories = [], activeCategory = '', searchQuery = '';
+      let poData = [], poState = { initialized: false };
+
+      // ========= MENU & NAVIGATION =========
+      const setMenuOpen = (open) => {
         burger.classList.toggle('active', open);
         menu.classList.toggle('open', open);
         menuOverlay.classList.toggle('open', open);
         burger.setAttribute('aria-expanded', open);
-      }
+      };
+
+      const setMode = (nextMode) => {
+        if (MODE === nextMode && menu.classList.contains('open')) return setMenuOpen(false);
+        MODE = nextMode;
+        viewCatalog.style.display = MODE === 'katalog' ? 'block' : 'none';
+        viewPreorder.style.display = MODE === 'preorder' ? 'none' : 'block';
+        
+        allNavButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === MODE));
+        setMenuOpen(false);
+
+        if (MODE === 'preorder' && !poState.initialized) poInit();
+      };
+      
       burger.addEventListener('click', () => setMenuOpen(!burger.classList.contains('active')));
       menuOverlay.addEventListener('click', () => setMenuOpen(false));
-
-      // ========= MODE SWITCH =========
-      let MODE = 'katalog';
-      function setMode(next) {
-        if (MODE === next && menu.classList.contains('open')) {
-          setMenuOpen(false);
-          return;
-        }
-        MODE = next;
-        viewCatalog.style.display = MODE === 'katalog' ? 'block' : 'none';
-        viewPreorder.style.display = MODE === 'preorder' ? 'block' : 'none';
-        
-        menuButtons.forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.mode === MODE);
-        });
-        
-        setMenuOpen(false);
-        if (MODE === 'preorder' && !poState.initialized) { poInit(); }
-      }
-      menuButtons.forEach(btn => {
-        btn.addEventListener('click', () => setMode(btn.dataset.mode));
-      });
+      allNavButtons.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
 
       // ========= UTILS =========
       const toIDR = v => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v);
       const sheetUrlJSON = (sheetName) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
-      const sheetUrlCSV = (sheetIndex0) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet${sheetIndex0 + 1}`;
+      const sheetUrlCSV = (sheetIndex) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${sheetIndex}`;
 
-      // ========= KATALOG VIEW (Tab-Based) =========
-      function parseGVizPairs(jsonText) {
-        const m = jsonText.match(/\{.*\}/s);
-        if (!m) throw new Error('Invalid GViz response.');
-        const obj = JSON.parse(m[0]);
-        const { rows = [], cols = [] } = obj.table || {};
+      // ========= KATALOG LOGIC =========
+      const parseKatalogData = (jsonText) => {
+        const match = jsonText.match(/\{.*\}/s);
+        if (!match) throw new Error('Format respons tidak valid.');
+        const { table } = JSON.parse(match[0]);
+        const { cols, rows } = table;
         const pairs = Array.from({ length: Math.floor(cols.length / 2) }, (_, i) => ({
           iTitle: i * 2, iPrice: i * 2 + 1, label: cols[i * 2]?.label || ''
         })).filter(p => p.label && cols[p.iPrice]);
@@ -327,90 +296,62 @@
           return pairs.map(p => {
             const title = String(c[p.iTitle]?.v || '').trim();
             const price = Number(c[p.iPrice]?.v);
-            return (title && !isNaN(price)) ? { catKey: p.label, catLabel: p.label.trim().replace(/\s+/g, ' '), title, price } : null;
+            return (title && !isNaN(price)) ? { category: p.label.trim(), title, price } : null;
           }).filter(Boolean);
         });
-      }
-
-      function buildCategoryTabs() {
-        const map = new Map();
-        DATA.forEach(it => { if (!map.has(it.catKey)) map.set(it.catKey, it.catLabel) });
-        CATS = [...map].map(([key, label]) => ({ key, label }));
-        
-        categoryTabsEl.innerHTML = '';
-        CATS.forEach((c, index) => {
-          const tabEl = document.createElement('button');
-          tabEl.className = 'category-tab';
-          tabEl.textContent = c.label;
-          tabEl.dataset.key = c.key;
-          if (index === 0) tabEl.classList.add('active');
-          
-          tabEl.addEventListener('click', () => {
-            document.querySelector('.category-tab.active')?.classList.remove('active');
-            tabEl.classList.add('active');
-            activeCat = c.key;
-            renderList();
-          });
-          categoryTabsEl.appendChild(tabEl);
-        });
-        if (CATS.length > 0) activeCat = CATS[0].key;
-      }
-
-      function renderList() {
-        const items = DATA.filter(x => x.catKey === activeCat &&
-          (query === '' || x.title.toLowerCase().includes(query))
+      };
+      
+      const populateCategorySelect = () => {
+        categories = [...new Set(katalogData.map(item => item.category))];
+        gameSelectEl.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+        activeCategory = categories[0] || '';
+      };
+      
+      const renderKatalog = () => {
+        const filteredItems = katalogData.filter(item => 
+          item.category === activeCategory &&
+          item.title.toLowerCase().includes(searchQuery)
         );
-        listEl.innerHTML = '';
-        if (items.length === 0) {
-          listEl.innerHTML = `<div class="empty">Tidak ada hasil ditemukan.</div>`;
-          countInfoEl.textContent = '0 Item';
+        catalogGridEl.innerHTML = '';
+        if (filteredItems.length === 0) {
+          catalogGridEl.innerHTML = `<div class="empty">Tidak ada item ditemukan.</div>`;
           return;
         }
         const fragment = document.createDocumentFragment();
-        items.forEach(it => {
-          const clone = itemTmpl.content.cloneNode(true);
-          const link = clone.querySelector('.list-item');
-          link.querySelector('.title').textContent = it.title;
-          link.querySelector('.price').textContent = toIDR(it.price);
-          const text = `${WA_GREETING}\n› Katalog: ${it.catLabel}\n› Item: ${it.title}\n› Harga: ${toIDR(it.price)}`;
+        for (const item of filteredItems) {
+          const card = productCardTmpl.content.cloneNode(true);
+          const link = card.querySelector('.product-card');
+          const titleEl = card.querySelector('.product-card-title');
+          const priceEl = card.querySelector('.product-card-price');
+          
+          titleEl.textContent = item.title;
+          priceEl.textContent = toIDR(item.price);
+          const text = `*Pesan Item:*\n› Kategori: ${item.category}\n› Item: ${item.title}\n› Harga: ${toIDR(item.price)}`;
           link.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-          fragment.appendChild(clone);
-        });
-        listEl.appendChild(fragment);
-        countInfoEl.textContent = `${items.length} Item`;
-      }
-      
-      let debounceTimer;
-      searchEl.addEventListener('input', e => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => { query = e.target.value.trim().toLowerCase(); renderList(); }, 250);
-      });
-
-      async function loadCatalog() {
-        try {
-          errBox.style.display = 'none';
-          listEl.innerHTML = `<div class="empty">Memuat katalog...</div>`;
-          const res = await fetch(sheetUrlJSON('Sheet3'), { cache: 'no-store' });
-          if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
-          const txt = await res.text();
-          DATA = parseGVizPairs(txt);
-          if (DATA.length === 0) throw new Error('Data katalog kosong atau format tidak sesuai.');
-          buildCategoryTabs();
-          renderList();
-        } catch (err) {
-          console.error("Fetch Katalog failed:", err);
-          errBox.style.display = 'block';
-          errBox.textContent = `Gagal memuat data: ${err.message}`;
+          
+          fragment.appendChild(card);
         }
-      }
-      
-      // ========= PRE-ORDER VIEW =========
-      const poSearch = document.getElementById('poSearch');
-      const poStatus = document.getElementById('poStatus');
-      const poSheet = document.getElementById('poSheet');
-      const poList = document.getElementById('poList');
-      const poState = { initialized: false, allData: [] };
+        catalogGridEl.appendChild(fragment);
+      };
 
+      const loadKatalog = async () => {
+        try {
+          errorKatalogEl.style.display = 'none';
+          catalogGridEl.innerHTML = `<div class="empty">Memuat...</div>`;
+          const res = await fetch(sheetUrlJSON('Sheet3'));
+          if (!res.ok) throw new Error(`Network Error: ${res.statusText}`);
+          const text = await res.text();
+          katalogData = parseKatalogData(text);
+          if (katalogData.length === 0) throw new Error('Data tidak ditemukan atau format salah.');
+          populateCategorySelect();
+          renderKatalog();
+        } catch (e) {
+          errorKatalogEl.textContent = e.message;
+          errorKatalogEl.style.display = 'block';
+        }
+      };
+
+      // ========= PRE-ORDER LOGIC =========
       const normalizeStatus = (raw) => {
         const s = String(raw || '').trim().toLowerCase();
         if (['success', 'selesai', 'berhasil', 'done'].includes(s)) return 'success';
@@ -419,85 +360,87 @@
         return 'pending';
       };
 
-      const poRender = () => {
-        const q = poSearch.value.trim().toLowerCase();
-        const status = poStatus.value;
-        const filtered = poState.allData.filter(item => {
+      const renderPO = () => {
+        const query = poSearchEl.value.trim().toLowerCase();
+        const status = poStatusEl.value;
+        const filtered = poData.filter(item => {
           const searchIn = `${item['Nickname'] || ''} ${item['ID Server'] || ''} ${item['Produk / Item'] || ''}`.toLowerCase();
-          const match = searchIn.includes(q);
-          const s = normalizeStatus(item['Status']);
-          return match && (status === 'all' || s === status);
+          const matchQuery = searchIn.includes(query);
+          const matchStatus = status === 'all' || normalizeStatus(item['Status']) === status;
+          return matchQuery && matchStatus;
         });
 
-        poList.innerHTML = '';
+        poGridEl.innerHTML = '';
         if (filtered.length === 0) {
-          poList.innerHTML = `<div class="empty">Tidak ada pesanan ditemukan.</div>`;
+          poGridEl.innerHTML = `<div class="empty">Pesanan tidak ditemukan.</div>`;
           return;
         }
-        
-        const frag = document.createDocumentFragment();
-        filtered.forEach(item => {
-          const statusClass = normalizeStatus(item['Status']);
+
+        const fragment = document.createDocumentFragment();
+        for (const item of filtered) {
+          const card = document.createElement('div');
+          card.className = 'po-card';
           const name = item['Nickname'] || item['ID Server'] || 'N/A';
           const product = item['Produk / Item'] || item['Item'] || 'N/A';
-          const hiddenKeys = new Set(['Nickname', 'ID Server', 'Produk / Item', 'Item', 'Status', 'ID Gift']); // ID Gift disembunyikan
-          const detailsHtml = Object.entries(item).filter(([k, v]) => v && !hiddenKeys.has(k))
-            .map(([k, v]) => `<div><span class="detail-label">${k}</span>: <span class="detail-value">${v}</span></div>`).join('');
-
-          const card = document.createElement('article');
-          card.className = "card clickable";
+          
           card.innerHTML = `
-            <div class="card-header">
-              <div class="card-info">
-                <div class="card-name">${name}</div>
-                <div class="card-product">${product}</div>
+            <div class="po-card-header">
+              <div class="po-card-info">
+                <div class="po-card-name">${name}</div>
+                <div class="po-card-product">${product}</div>
               </div>
-              <div class="status-badge ${statusClass}">${item['Status'] || 'Pending'}</div>
+              <div class="status-badge ${normalizeStatus(item.Status)}">${item.Status || 'Pending'}</div>
             </div>
-            ${detailsHtml ? `<div class="card-details">${detailsHtml}</div>` : ''}
           `;
-          card.addEventListener('click', () => card.classList.toggle('expanded'));
-          frag.appendChild(card);
-        });
-        poList.appendChild(frag);
+          fragment.appendChild(card);
+        }
+        poGridEl.appendChild(fragment);
       };
 
-      async function poFetch(sheetIndex0) {
-        poList.innerHTML = `<div class="empty">Memuat pesanan...</div>`;
+      const loadPO = async (sheetId) => {
         try {
-          const res = await fetch(sheetUrlCSV(sheetIndex0));
-          if (!res.ok) throw new Error(`Network response: ${res.statusText}`);
+          poGridEl.innerHTML = `<div class="empty">Memuat...</div>`;
+          errorPOEl.style.display = 'none';
+          const sheetIndex = sheetId === '0' ? '1920703350' : '1657613615'; // GID Starlight & Umum
+          const res = await fetch(sheetUrlCSV(sheetIndex));
+          if (!res.ok) throw new Error(`Network Error: ${res.statusText}`);
           const text = await res.text();
           const rows = text.trim().split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
-          if (rows.length < 1) { poState.allData = []; return; }
-
-          if (sheetIndex0 === 0) {
-            const headers = rows.shift();
-            poState.allData = rows.map(row => Object.fromEntries(row.map((val, i) => [headers[i], val]))).filter(item => item[headers[0]]);
-          } else {
-            const bodyRows = rows[0]?.length === 3 && ['id server','item','status'].includes(rows[0][0].toLowerCase()) ? rows.slice(1) : rows;
-            poState.allData = bodyRows.map(r => ({ 'ID Server': r[0], 'Item': r[1], 'Status': r[2] })).filter(item => item['ID Server']);
-          }
-        } catch (e) {
-          poState.allData = [];
-          console.error("Fetch Pre-Order failed:", e);
-        } finally {
-          poRender();
+          
+          const headers = rows.shift();
+          poData = rows.map(row => Object.fromEntries(row.map((val, i) => [headers[i], val]))).filter(item => item[headers[0]]);
+          renderPO();
+        } catch(e) {
+          errorPOEl.textContent = e.message;
+          errorPOEl.style.display = 'block';
         }
-      }
+      };
 
-      function poInit() {
-        let poDebounce;
-        const debouncedRender = () => { clearTimeout(poDebounce); poDebounce = setTimeout(poRender, 250); };
-        poSearch.addEventListener('input', debouncedRender);
-        poStatus.addEventListener('change', poRender);
-        poSheet.addEventListener('change', (e) => poFetch(parseInt(e.target.value, 10)));
-        poFetch(0);
+      const poInit = () => {
+        let debounce;
+        poSearchEl.addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(renderPO, 300); });
+        poStatusEl.addEventListener('change', renderPO);
+        poSheetEl.addEventListener('change', e => loadPO(e.target.value));
+        loadPO(poSheetEl.value);
         poState.initialized = true;
-      }
+      };
 
-      // Initial Load
-      loadCatalog();
+      // ========= INITIALIZATION =========
+      let debounceSearch;
+      searchEl.addEventListener('input', () => {
+        clearTimeout(debounceSearch);
+        debounceSearch = setTimeout(() => {
+          searchQuery = searchEl.value.trim().toLowerCase();
+          renderKatalog();
+        }, 300);
+      });
+      gameSelectEl.addEventListener('change', () => {
+        activeCategory = gameSelectEl.value;
+        renderKatalog();
+      });
+
+      loadKatalog();
+
     })();
   </script>
 </body>
