@@ -16,8 +16,13 @@
       --fill-primary:#fff; --fill-secondary:#f2f2f4; --fill-tertiary:#ebebee;
       --separator:#e5e5ea;
       --maxw:1080px;
-      --rail-pad:20px;          /* Rel kiri/kanan global */
-      --control-h:52px;         /* Tinggi semua kontrol */
+
+      /* Presisi */
+      --rail-pad:20px;          /* rel kiri/kanan global */
+      --control-h:52px;         /* tinggi semua kontrol */
+      --head-pad-y:12px;        /* padding vertikal head-block */
+      --head-gap-bottom:16px;   /* jarak head-block ke konten */
+
       --radius-large:16px; --radius-medium:12px; --radius-small:10px;
       --transition-curve:cubic-bezier(.4,0,.2,1);
     }
@@ -41,7 +46,7 @@
 
     /* ================== RAIL SYSTEM (Presisi kiri/kanan) ================== */
     .wrap{ max-width:var(--maxw); margin:0 auto; padding:48px var(--rail-pad); }
-    /* Setiap baris yang harus nempel rel beri [data-rail] */
+    /* Semua baris yang harus nempel rel cukup beri [data-rail] */
     [data-rail]{ padding-left:0; padding-right:0; margin-left:0; margin-right:0; width:100%; }
 
     /* ================== HEADER ================== */
@@ -49,6 +54,25 @@
     .logo{height:44px;width:auto}
     header h1{margin:10px 0 0;font-size:clamp(26px,3.5vw,34px);font-weight:700;letter-spacing:-.02em}
     header p{margin:4px 0 0;color:var(--text-secondary);font-size:16px}
+
+    /* ================== HEAD-BLOCK SERAGAM ================== */
+    .head-block[data-rail]{
+      padding: var(--head-pad-y) 0;
+      margin: 0 0 var(--head-gap-bottom);
+      border-bottom: 1px solid var(--separator);
+    }
+    /* Pre‑Order sticky, visual sama */
+    .po-head.head-block{
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(245,245,247,.72);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    }
+    @media (prefers-color-scheme: dark){
+      .po-head.head-block{ background: rgba(0,0,0,.62); }
+    }
+    .cat-head.head-block{ background: transparent; }
+    /* Topbar di dalam head-block tak menambah margin lagi */
+    .head-block .topbar[data-rail]{ margin:0 !important; }
 
     /* ================== MENU FLYOUT ================== */
     .menu{
@@ -73,7 +97,7 @@
     }
 
     /* ================== TOPBAR (Katalog & Pre‑Order) ================== */
-    .topbar[data-rail]{ margin:20px 0 14px; position:relative; }
+    .topbar[data-rail]{ position:relative; }
     .topbar-grid{
       display:grid;
       grid-template-columns:minmax(320px,1fr) var(--control-h);
@@ -151,11 +175,6 @@
 
     /* ================== PRE-ORDER ================== */
     #viewPreorder{display:none}
-    .po-head{ position:sticky; top:0; z-index:10; background:rgba(245,245,247,.72);
-      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-      border-bottom:1px solid var(--separator); padding:12px 0; margin-bottom:16px; }
-    @media (prefers-color-scheme: dark){ .po-head{background:rgba(0,0,0,.62)} }
-
     .status-row[data-rail]{ margin-top:10px; }
     .status-select{
       width:100%; height:var(--control-h); padding:0 16px; font-size:16px;
@@ -218,27 +237,30 @@
 
     <!-- ============= KATALOG ============= -->
     <section id="viewCatalog" aria-label="Katalog">
-      <div class="topbar" data-rail>
-        <div class="topbar-grid">
-          <!-- dropdown katalog (custom) -->
-          <div class="custom-select-wrapper" id="custom-select-wrapper">
-            <button class="custom-select-btn" id="custom-select-btn" aria-haspopup="listbox" aria-expanded="false">
-              <span id="custom-select-value">Pilih Kategori</span>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
-            </button>
-            <div class="custom-select-options" id="custom-select-options" role="listbox"></div>
-          </div>
+      <!-- head-block: menjaga jarak & struktur identik dgn Pre‑Order -->
+      <div class="head-block cat-head" data-rail>
+        <div class="topbar" data-rail>
+          <div class="topbar-grid">
+            <!-- dropdown katalog (custom) -->
+            <div class="custom-select-wrapper" id="custom-select-wrapper">
+              <button class="custom-select-btn" id="custom-select-btn" aria-haspopup="listbox" aria-expanded="false">
+                <span id="custom-select-value">Pilih Kategori</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+              </button>
+              <div class="custom-select-options" id="custom-select-options" role="listbox"></div>
+            </div>
 
-          <!-- burger (katalog) -->
-          <button class="icon-btn burger" id="burgerCat" aria-label="Menu" aria-expanded="false" type="button">
-            <span></span><span></span><span></span>
-          </button>
-          <nav class="menu" id="menuCat" aria-label="Menu tampilan (Katalog)">
-            <button class="menu-btn" data-mode="katalog" type="button">Katalog</button>
-            <button class="menu-btn" data-mode="preorder" type="button">Lacak Pre‑Order</button>
-            <div class="menu-divider"></div>
-            <button class="menu-btn" id="closeMenuCat" type="button">Tutup</button>
-          </nav>
+            <!-- burger (katalog) -->
+            <button class="icon-btn burger" id="burgerCat" aria-label="Menu" aria-expanded="false" type="button">
+              <span></span><span></span><span></span>
+            </button>
+            <nav class="menu" id="menuCat" aria-label="Menu tampilan (Katalog)">
+              <button class="menu-btn" data-mode="katalog" type="button">Katalog</button>
+              <button class="menu-btn" data-mode="preorder" type="button">Lacak Pre‑Order</button>
+              <div class="menu-divider"></div>
+              <button class="menu-btn" id="closeMenuCat" type="button">Tutup</button>
+            </nav>
+          </div>
         </div>
 
         <!-- search (katalog) -->
@@ -264,8 +286,8 @@
 
     <!-- ============= PRE-ORDER ============= -->
     <section id="viewPreorder" aria-label="Pre-Order">
-      <div class="po-head">
-        <!-- topbar pre-order (struktur & ukuran sama) -->
+      <!-- head-block sticky dengan jarak identik seperti katalog -->
+      <div class="head-block po-head" data-rail>
         <div class="topbar" data-rail>
           <div class="topbar-grid">
             <select class="select-native" id="poSheet" aria-label="Pilih kategori pesanan">
@@ -283,12 +305,12 @@
               <button class="menu-btn" id="closeMenuPO" type="button">Tutup</button>
             </nav>
           </div>
+        </div>
 
-          <div class="search-row" data-rail>
-            <div class="search-wrap">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
-              <input type="search" class="search-input" id="poSearch" placeholder="Cari nama / ID Server / item..." />
-            </div>
+        <div class="search-row" data-rail>
+          <div class="search-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.901l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
+            <input type="search" class="search-input" id="poSearch" placeholder="Cari nama / ID Server / item..." />
           </div>
         </div>
 
@@ -325,7 +347,7 @@
 
       let DATA=[],CATS=[],activeCat='',query='';
 
-      // ========= ELEMENT =========
+      // ========= ELEMENTS =========
       const viewCatalog=document.getElementById('viewCatalog');
       const viewPreorder=document.getElementById('viewPreorder');
 
@@ -482,7 +504,7 @@
 
       const poState={initialized:false,allData:[],currentPage:1,perPage:15};
 
-      // Kosongkan kolom sensitif (ID Gift & Nomor Telepon/WA/HP)
+      // Kosongkan kolom sensitif (ID Gift & nomor telp/WA/HP)
       const PRIVACY_KEYS=['id gift','gift id','gift','nomor','no','telepon','no telepon','no. telepon','nomor telepon','phone','hp','whatsapp','wa','no wa','no. wa'];
       const isPrivacyKey=(k)=>{ const s=String(k||'').trim().toLowerCase(); return PRIVACY_KEYS.some(key=>s===key||s.includes(key)); };
       const scrubRecord=(rec)=>{ const out={...rec}; for(const k of Object.keys(out)) if(isPrivacyKey(k)) out[k]=''; return out; };
