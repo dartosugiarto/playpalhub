@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>PlayPal.ID</title>
+  <meta name="description" content="Destinasi Utama Para Pecinta Game, Film & Musik">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <noscript>
+    <div class="noscript-warning">
+      Website ini membutuhkan JavaScript untuk berfungsi sepenuhnya. Silakan aktifkan JavaScript di browser Anda.
+    </div>
+  </noscript>
+
+  <main class="wrap">
+    <header class="reveal-on-scroll" data-rail>
+      <img src="logo.png" alt="PlayPal.ID Logo" class="logo">
+      <h1>PlayPal.ID</h1>
+      <p>Destinasi Utama Para Pecinta Game, Film &amp; Musik</p>
+    </header>
+
+    <section id="viewCatalog" class="view-section active" aria-label="Katalog">
+      <div class="head-block cat-head" data-rail>
+        <div class="topbar" data-rail>
+          <div class="topbar-grid">
+            <div class="custom-select-wrapper" id="custom-select-wrapper">
+              <button class="custom-select-btn" id="custom-select-btn" aria-haspopup="listbox" aria-expanded="false">
+                <span id="custom-select-value">Pilih Kategori</span>
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+              </button>
+              <div class="custom-select-options" id="custom-select-options" role="listbox"></div>
+            </div>
+
+            <div class="topbar-actions">
+              <button class="icon-btn" id="theme-toggle-btn" aria-label="Ganti tema">
+                <svg class="icon icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+                <svg class="icon icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
+              </button>
+              <button class="icon-btn burger" id="burgerCat" aria-label="Menu" aria-expanded="false" type="button">
+                <span></span><span></span><span></span>
+              </button>
+            </div>
+            <nav class="menu" id="menuCat" aria-label="Menu tampilan (Katalog)"></nav>
+          </div>
+        </div>
+        
+        <div class="search-row" data-rail>
+          <div class="search-wrap">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+            <input id="search" class="search-input" type="search" placeholder="Cari item..." aria-label="Cari">
+          </div>
+        </div>
+      </div>
+      <div id="countInfo" data-rail></div>
+      <section id="list-container" class="list-container" aria-live="polite" data-rail></section>
+      <section id="error" class="err" style="display:none" data-rail></section>
+    </section>
+
+    <section id="viewPreorder" class="view-section" aria-label="Pre-Order">
+      <div class="head-block po-head" data-rail>
+        <div class="topbar" data-rail>
+          <div class="topbar-grid">
+            <select class="select-native" id="poSheet" aria-label="Pilih kategori pesanan">
+              <option value="0">Starlight Member</option>
+              <option value="1">Pesanan Umum</option>
+            </select>
+            
+            <div class="topbar-actions">
+                <button class="icon-btn" id="theme-toggle-btn-po" aria-label="Ganti tema">
+                  <svg class="icon icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+                  <svg class="icon icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
+                </button>
+                <button class="icon-btn burger" id="burgerPO" aria-label="Menu" aria-expanded="false" type="button">
+                  <span></span><span></span><span></span>
+                </button>
+            </div>
+            <nav class="menu" id="menuPO" aria-label="Menu tampilan (Pre‑Order)"></nav>
+          </div>
+        </div>
+
+        <div class="search-row" data-rail>
+            <div class="search-wrap">
+              <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+              <input type="search" class="search-input" id="poSearch" placeholder="Cari nama / ID Server..." />
+            </div>
+        </div>
+          <div class="status-row" data-rail>
+            <select class="status-select" id="poStatus" aria-label="Filter status">
+              <option value="all">Semua Status</option>
+              <option value="success">Success</option>
+              <option value="progress">Progress</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Gagal</option>
+            </select>
+          </div>
+          <div class="meta" id="poTotal" data-rail></div>
+      </div>
+      <div class="container">
+        <main class="card-grid" id="poList" aria-live="polite" data-rail></main>
+        <nav class="pagination" aria-label="Pagination" data-rail>
+          <button class="pagination-btn" id="poPrev" disabled>Sebelumnya</button>
+          <button class="pagination-btn" id="poNext" disabled>Selanjutnya</button>
+        </nav>
+      </div>
+    </section>
+  </main>
+  
+  <template id="itemTmpl"><a class="list-item"><span class="title"></span><span class="price"></span></a></template>
+  <template id="skeletonItemTmpl"><div class="list-item skeleton"><span class="skeleton-text" style="width: 60%;"></span><span class="skeleton-text" style="width: 25%;"></span></div></template>
+  <template id="skeletonCardTmpl"><div class="card skeleton"><div class="card-header"><div><div class="skeleton-text" style="width: 50%; height: 18px; margin-bottom: 8px;"></div><div class="skeleton-text" style="width: 75%; height: 14px;"></div></div><div class="skeleton-badge"></div></div><div class="skeleton-text" style="width: 65%; height: 12px; margin-top: 10px;"></div></div></template>
+  
+  <div id="paymentModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Pilih Pembayaran</h2>
+        <button id="closeModalBtn" class="close-btn" aria-label="Tutup">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="item-recap">
+          <p><strong>Item:</strong> <span id="modalItemName"></span></p>
+          <p><strong>Harga:</strong> <span id="modalItemPrice"></span></p>
+        </div>
+        <div id="paymentOptions" class="payment-options">
+          </div>
+        <div class="price-details">
+          <p>Fee: <span id="modalFee"></span></p>
+          <p><strong>Total: <span id="modalTotal"></span></strong></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a id="continueToWaBtn" class="wa-button" href="#" target="_blank" rel="noopener">Lanjutkan ke WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
