@@ -1,7 +1,7 @@
 /**
  * @file script.js
  * @description Main script for the PlayPal.ID single-page application.
- * @version 8.0.0 (Final - Implemented Accordion Card for Accounts)
+ * @version 9.0.0 (Final - Full Client-Side Routing Implemented)
  */
 
 (function () {
@@ -186,6 +186,29 @@
     
     initTheme();
     loadCatalog();
+    
+    // Handle back/forward browser buttons
+    window.addEventListener('popstate', (event) => {
+        const path = window.location.pathname;
+        const mode = path.substring(1).toLowerCase() || 'home';
+        if (event.state || mode) {
+            setMode(mode, true); // true indicates this is from a popstate event
+        }
+    });
+
+    // Handle initial page load based on URL
+    const handleInitialLoad = () => {
+        const path = window.location.pathname;
+        const potentialMode = path.substring(1).toLowerCase() || 'home';
+        const validModes = ['home', 'preorder', 'accounts', 'perpustakaan', 'film'];
+
+        if (validModes.includes(potentialMode)) {
+            setMode(potentialMode, true); // Set initial view without pushing to history
+        } else {
+            setMode('home', true); // Default to home for invalid paths
+        }
+    };
+    handleInitialLoad();
   }
   
   function setupKeyboardNavForSelect(wrapper) {
@@ -240,11 +263,12 @@
   function toggleTheme() { const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark'; localStorage.setItem('theme', newTheme); applyTheme(newTheme); }
   function toggleSidebar(forceOpen) { const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !document.body.classList.contains('sidebar-open'); document.body.classList.toggle('sidebar-open', isOpen); elements.sidebar.burger.classList.toggle('active', isOpen); }
   
-  let setMode = function(nextMode) {
+  let setMode = function(nextMode, fromPopState = false) {
     if (nextMode === 'donasi') {
       window.open('https://saweria.co/playpal', '_blank', 'noopener');
       return;
     }
+
     const viewMap = {
       home: elements.viewHome,
       preorder: elements.viewPreorder,
@@ -254,22 +278,95 @@
     };
     const nextView = viewMap[nextMode];
     if (!nextView) return;
+
+    // Update URL and History if it's a direct navigation
+    if (!fromPopState) {
+        // Preserve existing search params when changing path
+        const search = window.location.search;
+        const path = nextMode === 'home' ? `/${search}` : `/${nextMode}${search}`;
+        const title = `PlayPal.ID - ${nextMode.charAt(0).toUpperCase() + nextMode.slice(1)}`;
+        history.pushState({ mode: nextMode }, title, path);
+    }
+
+    const title = `PlayPal.ID - ${nextMode.charAt(0).toUpperCase() + nextMode.slice(1)}`;
+    document.title = title;
+    
     document.querySelector('.view-section.active')?.classList.remove('active');
     nextView.classList.add('active');
     elements.sidebar.links.forEach(link => {
       link.classList.toggle('active', link.dataset.mode === nextMode);
     });
+
     if (window.innerWidth < 769) {
       toggleSidebar(false);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (fromPopState) { // Avoid smooth scroll on back/forward
+        window.scrollTo(0, 0);
+    } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     if (nextMode === 'preorder' && !state.preorder.initialized) initializePreorder();
     if (nextMode === 'accounts' && !state.accounts.initialized) initializeAccounts();
   }
 
   function parseGvizPairs(jsonText) { const match = jsonText.match(/\{.*\}/s); if (!match) throw new Error('Invalid GViz response.'); const obj = JSON.parse(match[0]); const { rows = [], cols = [] } = obj.table || {}; const pairs = Array.from({ length: Math.floor(cols.length / 2) }, (_, i) => ({ iTitle: i * 2, iPrice: i * 2 + 1, label: cols[i * 2]?.label || '', })).filter(p => p.label && cols[p.iPrice]); const out = []; for (const r of rows) { const c = r.c || []; for (const p of pairs) { const title = String(c[p.iTitle]?.v || '').trim(); const priceRaw = c[p.iPrice]?.v; const price = priceRaw != null && priceRaw !== '' ? Number(priceRaw) : NaN; if (title && !isNaN(price)) { out.push({ catKey: p.label, catLabel: String(p.label || '').trim().replace(/\s+/g, ' '), title, price, }); } } } return out; }
   function toggleCustomSelect(wrapper, forceOpen) { const btn = wrapper.querySelector('.custom-select-btn'); const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !wrapper.classList.contains('open'); wrapper.classList.toggle('open', isOpen); btn.setAttribute('aria-expanded', isOpen); }
-  function buildHomeCategorySelect(catalogData) { const { options, value } = elements.home.customSelect; const categoryMap = new Map(); catalogData.forEach(item => { if (!categoryMap.has(item.catKey)) { categoryMap.set(item.catKey, item.catLabel); } }); const categories = [...categoryMap].map(([key, label]) => ({ key, label })); options.innerHTML = ''; categories.forEach((cat, index) => { const el = document.createElement('div'); el.className = 'custom-select-option'; el.textContent = cat.label; el.dataset.value = cat.key; el.setAttribute('role', 'option'); el.setAttribute('tabindex', '-1'); if (index === 0) el.classList.add('selected'); el.addEventListener('click', () => { state.home.activeCategory = cat.key; value.textContent = cat.label; document.querySelector('#homeCustomSelectOptions .custom-select-option.selected')?.classList.remove('selected'); el.classList.add('selected'); toggleCustomSelect(elements.home.customSelect.wrapper, false); renderHomeList(); }); options.appendChild(el); }); if (categories.length > 0) { state.home.activeCategory = categories[0].key; value.textContent = categories[0].label; } else { value.textContent = 'Data tidak tersedia'; } }
+  
+  function buildHomeCategorySelect(catalogData) {
+    const { options, value } = elements.home.customSelect;
+    const categoryMap = new Map();
+    catalogData.forEach(item => {
+      if (!categoryMap.has(item.catKey)) {
+        categoryMap.set(item.catKey, item.catLabel);
+      }
+    });
+    const categories = [...categoryMap].map(([key, label]) => ({ key, label }));
+    options.innerHTML = '';
+    
+    // Determine active category (could be set by URL handler)
+    const activeCategoryKey = state.home.activeCategory || (categories.length > 0 ? categories[0].key : '');
+    const activeCategory = categories.find(c => c.key === activeCategoryKey);
+    
+    if (activeCategory) {
+        state.home.activeCategory = activeCategory.key;
+        value.textContent = activeCategory.label;
+    } else if (categories.length > 0) {
+        state.home.activeCategory = categories[0].key;
+        value.textContent = categories[0].label;
+    } else {
+        value.textContent = 'Data tidak tersedia';
+    }
+
+    categories.forEach(cat => {
+      const el = document.createElement('div');
+      el.className = 'custom-select-option';
+      el.textContent = cat.label;
+      el.dataset.value = cat.key;
+      el.setAttribute('role', 'option');
+      el.setAttribute('tabindex', '-1');
+      if (cat.key === state.home.activeCategory) el.classList.add('selected');
+
+      el.addEventListener('click', () => {
+        state.home.activeCategory = cat.key;
+        value.textContent = cat.label;
+        document.querySelector('#homeCustomSelectOptions .custom-select-option.selected')?.classList.remove('selected');
+        el.classList.add('selected');
+        toggleCustomSelect(elements.home.customSelect.wrapper, false);
+        
+        const url = new URL(window.location);
+        const urlFriendlyCategory = cat.label.toLowerCase().replace(/ /g, '-').replace(/[+&]/g, '');
+        
+        url.searchParams.set('kategori', urlFriendlyCategory);
+        history.pushState({ activeCategory: cat.key }, '', url);
+
+        renderHomeList();
+      });
+      options.appendChild(el);
+    });
+  }
+
   function renderList(container, countInfoEl, items, emptyText) { container.innerHTML = ''; if (items.length === 0) { container.innerHTML = `<div class="empty"><div class="empty-content"><svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg><p>${emptyText}</p></div></div>`; countInfoEl.textContent = ''; return; } const fragment = document.createDocumentFragment(); for (const item of items) { const clone = elements.itemTemplate.content.cloneNode(true); const buttonEl = clone.querySelector('.list-item'); buttonEl.querySelector('.title').textContent = item.title; buttonEl.querySelector('.price').textContent = formatToIdr(item.price); buttonEl.addEventListener('click', () => openPaymentModal(item)); fragment.appendChild(clone); } container.appendChild(fragment); countInfoEl.textContent = `${items.length} item ditemukan`; }
   function renderHomeList() { const { activeCategory, searchQuery } = state.home; const query = searchQuery.toLowerCase(); const items = allCatalogData.filter(x => x.catKey === activeCategory && (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))); renderList(elements.home.listContainer, elements.home.countInfo, items, 'Tidak ada item ditemukan.'); }
   
@@ -287,6 +384,24 @@
       const text = await res.text(); 
       allCatalogData = parseGvizPairs(text); 
       if (allCatalogData.length === 0) throw new Error('Data is empty or format is incorrect.'); 
+      
+      const params = new URLSearchParams(window.location.search);
+      const categoryFromUrl = params.get('kategori');
+
+      if (categoryFromUrl && (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html'))) {
+          const urlToCatKeyMap = new Map();
+          allCatalogData.forEach(item => {
+              const urlFriendlyLabel = item.catLabel.toLowerCase().replace(/ /g, '-').replace(/[+&]/g, '');
+              if (!urlToCatKeyMap.has(urlFriendlyLabel)) {
+                  urlToCatKeyMap.set(urlFriendlyLabel, item.catKey);
+              }
+          });
+
+          const foundKey = urlToCatKeyMap.get(categoryFromUrl);
+          if (foundKey) {
+              state.home.activeCategory = foundKey;
+          }
+      }
       
       buildHomeCategorySelect(allCatalogData); 
       renderHomeList(); 
@@ -498,6 +613,17 @@
         el.classList.add('selected');
         toggleCustomSelect(customSelect.wrapper, false);
         state.accounts.activeCategory = cat;
+
+        const url = new URL(window.location);
+        const urlFriendlyCategory = cat.toLowerCase().replace(/ /g, '-');
+
+        if (cat === 'Semua Kategori') {
+          url.searchParams.delete('kategori');
+        } else {
+          url.searchParams.set('kategori', urlFriendlyCategory);
+        }
+        history.pushState({ activeCategory: cat }, '', url);
+
         renderAccountCards();
       });
       options.appendChild(el);
@@ -526,7 +652,6 @@
       const cardClone = cardTemplate.content.cloneNode(true);
       const cardElement = cardClone.querySelector('.account-card');
       
-      // Mengisi Carousel
       const carouselWrapper = cardElement.querySelector('.account-card-carousel-wrapper');
       if (account.images && account.images.length > 0) {
         const carouselContainer = document.createElement('div');
@@ -549,41 +674,33 @@
         carouselWrapper.appendChild(carouselContainer);
       }
 
-      // Mengisi Info Utama (Harga & Status)
       cardElement.querySelector('h3').textContent = formatToIdr(account.price);
       const statusBadge = cardElement.querySelector('.account-status-badge');
       statusBadge.textContent = account.status;
       statusBadge.className = `account-status-badge ${account.status.toLowerCase() === 'tersedia' ? 'available' : 'sold'}`;
 
-      // Mengisi Spesifikasi
       const specsContainer = cardElement.querySelector('.account-card-specs');
       const specsList = document.createElement('ul');
       specsList.className = 'specs-list';
-      // Memecah deskripsi dari Google Sheet menggunakan baris baru ('\n')
       const specs = account.description.split('\n');
       specs.forEach(spec => {
         const trimmedSpec = spec.trim();
         if (trimmedSpec === '') {
-          // Jika item kosong (hasil dari baris baru ganda), buat sebagai pemisah
           specsList.innerHTML += `<li class="spec-divider"></li>`;
         } else {
-          // Cek apakah item adalah judul 
           const isTitle = ['Spesifikasi Akun', 'Pengaturan Akun', 'Kontak Penjual'].some(title => trimmedSpec.startsWith(title));
           specsList.innerHTML += `<li class="${isTitle ? 'spec-title' : 'spec-item'}">${trimmedSpec}</li>`;
         }
       });
       specsContainer.appendChild(specsList);
 
-      // Menambahkan event listener untuk tombol
       cardElement.querySelector('.action-btn.buy').addEventListener('click', () => openPaymentModal({ title: account.title, price: account.price, catLabel: 'Akun Game' }));
       cardElement.querySelector('.action-btn.offer').addEventListener('click', () => window.open(`https://wa.me/${config.waNumber}?text=${encodeURIComponent(`Halo, saya tertarik untuk menawar Akun Game: ${account.category} (${formatToIdr(account.price)})`)}`, '_blank', 'noopener'));
 
-      // Tambahkan event listener untuk toggle dropdown
       const trigger = cardElement.querySelector('.account-card-main-info');
       trigger.addEventListener('click', () => {
         cardElement.classList.toggle('expanded');
       });
-      // Tambahkan event listener untuk keyboard (aksesibilitas)
       trigger.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -596,11 +713,9 @@
 
     cardGrid.appendChild(fragment);
 
-    // Inisialisasi semua carousel setelah ditambahkan ke DOM
     cardGrid.querySelectorAll('.carousel-container').forEach(carouselContainer => {
       const imageCount = carouselContainer.querySelectorAll('.carousel-slide').length;
       if (imageCount > 1) {
-        // Logika inisialisasi carousel
         const track = carouselContainer.querySelector('.carousel-track');
         const prevBtn = carouselContainer.querySelector('.prev');
         const nextBtn = carouselContainer.querySelector('.next');
@@ -624,14 +739,30 @@
   }
   
   async function initializeAccounts() { 
-    if (state.accounts.initialized) return; 
+    const params = new URLSearchParams(window.location.search);
+    const categoryFromUrl = params.get('kategori');
+    if (categoryFromUrl) {
+      const categoriesMap = {'mobile-legends': 'Mobile Legends', 'free-fire': 'Free Fire', 'pubg-mobile': 'PUBG Mobile', 'clash-of-clans': 'Clash Of Clans'};
+      const foundCategory = categoriesMap[categoryFromUrl] || categoryFromUrl.charAt(0).toUpperCase() + categoryFromUrl.slice(1);
+      
+      const validCategories = ['Mobile Legends', 'Free Fire', 'Roblox', 'PUBG Mobile', 'Clash Of Clans', 'Lainnya'];
+      if(validCategories.includes(foundCategory)) {
+        state.accounts.activeCategory = foundCategory;
+      }
+    }
+
+    if (state.accounts.initialized) {
+        populateAccountCategorySelect();
+        renderAccountCards();
+        return;
+    }
     if (accountsFetchController) accountsFetchController.abort();
     accountsFetchController = new AbortController();
 
     const { cardGrid, error, empty } = elements.accounts; 
     error.style.display = 'none'; 
     empty.style.display = 'none';
-    cardGrid.innerHTML = ''; // Clear previous content
+    cardGrid.innerHTML = '';
     
     try { 
       const res = await fetch(getSheetUrl(config.sheets.accounts.name, 'csv'), { signal: accountsFetchController.signal }); 
@@ -697,8 +828,8 @@
   // --- END: Library Functions ---
 
   const originalSetMode = setMode;
-  setMode = function(nextMode) {
-    originalSetMode(nextMode); 
+  setMode = function(nextMode, fromPopState = false) {
+    originalSetMode(nextMode, fromPopState); 
     if (nextMode === 'perpustakaan') {
       initializeLibrary();
     }
@@ -824,8 +955,8 @@ async function loadTestimonials() {
 }
 
   const originalSetMode2 = setMode;
-  setMode = function(nextMode) {
-    originalSetMode2(nextMode);
+  setMode = function(nextMode, fromPopState = false) {
+    originalSetMode2(nextMode, fromPopState);
     elements.sidebar.links.forEach(link => {
       const active = link.dataset.mode === nextMode;
       if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
