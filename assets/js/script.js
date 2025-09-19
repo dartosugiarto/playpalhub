@@ -1,7 +1,7 @@
 /**
  * @file script.js
  * @description Main script for the PlayPal.ID single-page application.
- * @version 10.2.0 (Logo navigation enabled)
+ * @version 11.0.0 (Chatbot Integration with Secure API Proxy)
  */
 
 (function () {
@@ -65,6 +65,13 @@
     viewPreorder: getElement('viewPreorder'),
     viewAccounts: getElement('viewAccounts'),
     viewPerpustakaan: getElement('viewPerpustakaan'),
+    viewPlayChat: getElement('viewPlayChat'),
+    chat: {
+      messagesContainer: getElement('chatMessages'),
+      inputForm: getElement('chatInputForm'),
+      input: getElement('chatInput'),
+      sendBtn: getElement('chatSendBtn'),
+    },
     home: {
       listContainer: getElement('homeListContainer'),
       countInfo: getElement('homeCountInfo'),
@@ -132,7 +139,7 @@
   /**
    * Main application entry point.
    */
-  function initializeApp() {
+  let initializeApp = function() {
     elements.sidebar.burger?.addEventListener('click', () => toggleSidebar());
     elements.sidebar.overlay?.addEventListener('click', () => toggleSidebar(false));
     
@@ -216,7 +223,7 @@
     const handleInitialLoad = () => {
         const path = window.location.pathname;
         const potentialMode = path.substring(1).toLowerCase() || 'home';
-        const validModes = ['home', 'preorder', 'accounts', 'perpustakaan'];
+        const validModes = ['home', 'preorder', 'accounts', 'perpustakaan', 'playchat'];
 
         if (validModes.includes(potentialMode)) {
             setMode(potentialMode, true);
@@ -294,6 +301,7 @@
       preorder: elements.viewPreorder,
       accounts: elements.viewAccounts,
       perpustakaan: elements.viewPerpustakaan,
+      playchat: elements.viewPlayChat,
     };
     const nextView = viewMap[nextMode];
     if (!nextView) return;
@@ -800,131 +808,220 @@
   
   document.addEventListener('DOMContentLoaded', initializeApp);
 
-function pp_csvParse(text) {
-  const rows = []; let row = []; let cur = ''; let inQuotes = false;
-  for (let i=0; i<text.length; i++) {
-    const ch = text[i], next = text[i+1];
-    if (inQuotes) {
-      if (ch === '"' && next === '"') { cur += '"'; i++; }
-      else if (ch === '"') { inQuotes = false; }
-      else { cur += ch; }
-    } else {
-      if (ch === '"') { inQuotes = true; }
-      else if (ch === ',') { row.push(cur); cur = ''; }
-      else if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
-      else if (ch === '\r') { /* ignore */ }
-      else { cur += ch; }
-    }
-  }
-  if (cur.length || row.length) { row.push(cur); rows.push(row); }
-  return rows;
-}
-
-function pp_getCsvUrl(sheetName) {
-  const sheetId = '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw';
-  return 'https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(sheetName);
-}
-
-function pp_makeNodes(list) {
-  const frag = document.createDocumentFragment();
-  list.forEach(({ name, url }) => {
-    const li = document.createElement('li');
-    li.className = 'testi-item';
-    li.innerHTML = `<figure class="testi-fig"><img src="${url}" alt="Testimoni ${name.replace(/"/g,'&quot;')}" decoding="async" loading="lazy" referrerpolicy="no-referrer"></figure><figcaption class="testi-caption">— ${name.replace(/</g,'&lt;')}</figcaption>`;
-    frag.appendChild(li);
-  });
-  return frag;
-}
-
-async function loadTestimonials() {
-  const track = document.getElementById('testiTrack');
-  const section = document.getElementById('testimonialSection');
-  if (!track || !section) return;
-  try {
-    const res = await fetch(pp_getCsvUrl('Sheet7'));
-    if (!res.ok) throw new Error('Network: ' + res.status);
-    const csv = await res.text();
-    const rows = pp_csvParse(csv);
-    if (!rows.length) { section.style.display = 'none'; return; }
-    const header = rows[0].map(x => (x||'').toLowerCase().trim());
-    let data = rows;
-    if (header[0].includes('nama') || header[1].includes('media')) data = rows.slice(1);
-    const items = data.filter(r => r && r[0] && r[1])
-                      .map(r => ({ name: String(r[0]).trim(), url: String(r[1]).trim() }));
-    if (!items.length) { section.style.display = 'none'; return; }
-    track.innerHTML = '';
-    track.appendChild(pp_makeNodes(items));
-    track.appendChild(pp_makeNodes(items));
-    let pos = 0;
-    let speed = 85;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const marquee = section.querySelector('.testi-marquee');
-    let halfWidth = 0;
-    let dragging = false;
-    let startX = 0, startPos = 0;
-    let pausedByHover = false;
-    let rafId = null, lastTs = 0;
-    function measure() { halfWidth = Math.max(1, Math.round(track.scrollWidth / 2)); }
-    measure();
-    Array.from(track.querySelectorAll('img')).forEach(img => {
-      img.addEventListener('load', measure, { once: true });
-      img.addEventListener('error', measure, { once: true });
-    });
-    function applyTransform() {
-      while (pos <= -halfWidth) pos += halfWidth;
-      while (pos > 0) pos -= halfWidth;
-      track.style.transform = `translateX(${pos}px)`;
-    }
-    function step(ts) {
-      if (!lastTs) lastTs = ts;
-      const dt = (ts - lastTs) / 1000;
-      lastTs = ts;
-      if (!dragging && !pausedByHover && !reduceMotion) {
-        pos -= speed * dt;
-        applyTransform();
+  function pp_csvParse(text) {
+    const rows = []; let row = []; let cur = ''; let inQuotes = false;
+    for (let i=0; i<text.length; i++) {
+      const ch = text[i], next = text[i+1];
+      if (inQuotes) {
+        if (ch === '"' && next === '"') { cur += '"'; i++; }
+        else if (ch === '"') { inQuotes = false; }
+        else { cur += ch; }
+      } else {
+        if (ch === '"') { inQuotes = true; }
+        else if (ch === ',') { row.push(cur); cur = ''; }
+        else if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+        else if (ch === '\r') { /* ignore */ }
+        else { cur += ch; }
       }
-      rafId = requestAnimationFrame(step);
     }
-    cancelAnimationFrame(rafId); rafId = requestAnimationFrame(step);
-    marquee.addEventListener('mouseenter', () => { pausedByHover = true; });
-    marquee.addEventListener('mouseleave', () => { pausedByHover = false; });
-    const onPointerDown = (e) => { dragging = true; track.classList.add('dragging'); startX = (e.touches ? e.touches[0].clientX : e.clientX); startPos = pos; marquee.setPointerCapture && marquee.setPointerCapture(e.pointerId || 1); e.preventDefault(); };
-    const onPointerMove = (e) => { if (!dragging) return; const x = (e.touches ? e.touches[0].clientX : e.clientX); pos = startPos + (x - startX); applyTransform(); };
-    const onPointerUp = (e) => { dragging = false; track.classList.remove('dragging'); marquee.releasePointerCapture && marquee.releasePointerCapture(e.pointerId || 1); };
-    marquee.addEventListener('pointerdown', onPointerDown, { passive: false });
-    window.addEventListener('pointermove', onPointerMove, { passive: false });
-    window.addEventListener('pointerup', onPointerUp, { passive: true });
-    marquee.addEventListener('touchstart', onPointerDown, { passive: false });
-    window.addEventListener('touchmove', onPointerMove, { passive: false });
-    window.addEventListener('touchend', onPointerUp, { passive: true });
-  } catch (err) {
-    console.error('Testimonials error:', err);
-    if (section) section.style.display = 'none';
+    if (cur.length || row.length) { row.push(cur); rows.push(row); }
+    return rows;
   }
-}
 
-const originalSetMode2 = setMode;
-setMode = function(nextMode, fromPopState = false) {
-  originalSetMode2(nextMode, fromPopState);
-  elements.navLinks.forEach(link => {
-    const active = link.dataset.mode === nextMode;
-    link.classList.toggle('active', active);
-    if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
-  });
-};
+  function pp_getCsvUrl(sheetName) {
+    const sheetId = '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw';
+    return 'https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(sheetName);
+  }
 
-function __ppEscHandler(e) {
-  if (e.key === 'Escape') {
-    if (elements.paymentModal.modal && elements.paymentModal.modal.classList.contains('visible')) {
-      closePaymentModal();
-      elements.paymentModal.closeBtn && elements.paymentModal.closeBtn.focus();
-    } else if (document.body.classList.contains('sidebar-open')) {
-      toggleSidebar(false);
-      elements.sidebar.burger && elements.sidebar.burger.focus();
+  function pp_makeNodes(list) {
+    const frag = document.createDocumentFragment();
+    list.forEach(({ name, url }) => {
+      const li = document.createElement('li');
+      li.className = 'testi-item';
+      li.innerHTML = `<figure class="testi-fig"><img src="${url}" alt="Testimoni ${name.replace(/"/g,'&quot;')}" decoding="async" loading="lazy" referrerpolicy="no-referrer"></figure><figcaption class="testi-caption">— ${name.replace(/</g,'&lt;')}</figcaption>`;
+      frag.appendChild(li);
+    });
+    return frag;
+  }
+
+  async function loadTestimonials() {
+    const track = document.getElementById('testiTrack');
+    const section = document.getElementById('testimonialSection');
+    if (!track || !section) return;
+    try {
+      const res = await fetch(pp_getCsvUrl('Sheet7'));
+      if (!res.ok) throw new Error('Network: ' + res.status);
+      const csv = await res.text();
+      const rows = pp_csvParse(csv);
+      if (!rows.length) { section.style.display = 'none'; return; }
+      const header = rows[0].map(x => (x||'').toLowerCase().trim());
+      let data = rows;
+      if (header[0].includes('nama') || header[1].includes('media')) data = rows.slice(1);
+      const items = data.filter(r => r && r[0] && r[1])
+                        .map(r => ({ name: String(r[0]).trim(), url: String(r[1]).trim() }));
+      if (!items.length) { section.style.display = 'none'; return; }
+      track.innerHTML = '';
+      track.appendChild(pp_makeNodes(items));
+      track.appendChild(pp_makeNodes(items));
+      let pos = 0;
+      let speed = 85;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const marquee = section.querySelector('.testi-marquee');
+      let halfWidth = 0;
+      let dragging = false;
+      let startX = 0, startPos = 0;
+      let pausedByHover = false;
+      let rafId = null, lastTs = 0;
+      function measure() { halfWidth = Math.max(1, Math.round(track.scrollWidth / 2)); }
+      measure();
+      Array.from(track.querySelectorAll('img')).forEach(img => {
+        img.addEventListener('load', measure, { once: true });
+        img.addEventListener('error', measure, { once: true });
+      });
+      function applyTransform() {
+        while (pos <= -halfWidth) pos += halfWidth;
+        while (pos > 0) pos -= halfWidth;
+        track.style.transform = `translateX(${pos}px)`;
+      }
+      function step(ts) {
+        if (!lastTs) lastTs = ts;
+        const dt = (ts - lastTs) / 1000;
+        lastTs = ts;
+        if (!dragging && !pausedByHover && !reduceMotion) {
+          pos -= speed * dt;
+          applyTransform();
+        }
+        rafId = requestAnimationFrame(step);
+      }
+      cancelAnimationFrame(rafId); rafId = requestAnimationFrame(step);
+      marquee.addEventListener('mouseenter', () => { pausedByHover = true; });
+      marquee.addEventListener('mouseleave', () => { pausedByHover = false; });
+      const onPointerDown = (e) => { dragging = true; track.classList.add('dragging'); startX = (e.touches ? e.touches[0].clientX : e.clientX); startPos = pos; marquee.setPointerCapture && marquee.setPointerCapture(e.pointerId || 1); e.preventDefault(); };
+      const onPointerMove = (e) => { if (!dragging) return; const x = (e.touches ? e.touches[0].clientX : e.clientX); pos = startPos + (x - startX); applyTransform(); };
+      const onPointerUp = (e) => { dragging = false; track.classList.remove('dragging'); marquee.releasePointerCapture && marquee.releasePointerCapture(e.pointerId || 1); };
+      marquee.addEventListener('pointerdown', onPointerDown, { passive: false });
+      window.addEventListener('pointermove', onPointerMove, { passive: false });
+      window.addEventListener('pointerup', onPointerUp, { passive: true });
+      marquee.addEventListener('touchstart', onPointerDown, { passive: false });
+      window.addEventListener('touchmove', onPointerMove, { passive: false });
+      window.addEventListener('touchend', onPointerUp, { passive: true });
+    } catch (err) {
+      console.error('Testimonials error:', err);
+      if (section) section.style.display = 'none';
     }
   }
-}
-document.addEventListener('keydown', __ppEscHandler);
-document.addEventListener('DOMContentLoaded', loadTestimonials);
+
+  const originalSetMode2 = setMode;
+  setMode = function(nextMode, fromPopState = false) {
+    originalSetMode2(nextMode, fromPopState);
+    elements.navLinks.forEach(link => {
+      const active = link.dataset.mode === nextMode;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+    });
+  };
+
+  function __ppEscHandler(e) {
+    if (e.key === 'Escape') {
+      if (elements.paymentModal.modal && elements.paymentModal.modal.classList.contains('visible')) {
+        closePaymentModal();
+        elements.paymentModal.closeBtn && elements.paymentModal.closeBtn.focus();
+      } else if (document.body.classList.contains('sidebar-open')) {
+        toggleSidebar(false);
+        elements.sidebar.burger && elements.sidebar.burger.focus();
+      }
+    }
+  }
+  document.addEventListener('keydown', __ppEscHandler);
+  document.addEventListener('DOMContentLoaded', loadTestimonials);
+
+  // --- CHATBOT LOGIC ---
+  let chatHistory = [{ role: 'system', content: 'You are a helpful assistant named PlayChat. Keep your responses concise and friendly.' }];
+
+  function addMessageToUI(role, text) {
+    const messageEl = document.createElement('div');
+    messageEl.className = `chat-bubble ${role}-message`;
+
+    if (text === 'TYPING...') {
+      messageEl.id = 'typing-indicator';
+      messageEl.classList.add('typing-indicator');
+      messageEl.innerHTML = '<div class="dot-pulse"></div>';
+    } else {
+      messageEl.innerHTML = text.replace(/\n/g, '<br>');
+    }
+
+    elements.chat.messagesContainer.appendChild(messageEl);
+    scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    elements.chat.messagesContainer.scrollTop = elements.chat.messagesContainer.scrollHeight;
+  }
+
+  async function handleChatSubmit(e) {
+    e.preventDefault();
+    const userInput = elements.chat.input.value.trim();
+    if (!userInput) return;
+    
+    addMessageToUI('user', userInput);
+    chatHistory.push({ role: 'user', content: userInput });
+
+    elements.chat.input.value = '';
+    elements.chat.input.style.height = 'auto';
+    elements.chat.sendBtn.disabled = true;
+
+    addMessageToUI('ai', 'TYPING...');
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ "chatHistory": chatHistory })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.reply;
+
+      document.getElementById('typing-indicator')?.remove();
+      
+      addMessageToUI('ai', aiResponse);
+      chatHistory.push({ role: 'assistant', content: aiResponse });
+
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
+      document.getElementById('typing-indicator')?.remove();
+      addMessageToUI('ai', 'Maaf, terjadi kesalahan. Silakan coba lagi.');
+    } finally {
+      elements.chat.sendBtn.disabled = false;
+    }
+  }
+
+  function initializeChat() {
+      if (!elements.chat.inputForm) return;
+      elements.chat.inputForm.addEventListener('submit', handleChatSubmit);
+      const input = elements.chat.input;
+      if (input) {
+          input.addEventListener('input', () => {
+              input.style.height = 'auto';
+              input.style.height = (input.scrollHeight) + 'px';
+          });
+          input.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  elements.chat.inputForm.requestSubmit();
+              }
+          });
+      }
+  }
+
+  const originalInitializeApp = initializeApp;
+  initializeApp = function() {
+    originalInitializeApp();
+    initializeChat();
+  };
 
 })();
