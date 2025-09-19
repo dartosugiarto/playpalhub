@@ -61,6 +61,10 @@
         <div class="nav-icon" style="--icon-url: url('/assets/images/library.svg')"></div>
         <span>Perpustakaan</span>
       </a>
+      <a href="#" class="nav-item" data-mode="playchat">
+        <div class="nav-icon" style="--icon-url: url('/assets/images/chat.svg')"></div>
+        <span>PlayChat</span>
+      </a>
       
       <div class="nav-divider"></div>
 
@@ -197,9 +201,28 @@
       
         <div id="libraryGridContainer" class="library-grid"></div>
         <div id="libraryError" class="err" style="display:none"></div>
-      
       </section>
       
+      <section id="viewPlayChat" class="view-section" aria-label="PlayChat AI">
+        <header class="page-title-header">
+          <h1>PlayChat</h1>
+          <p class="page-subtitle">Tanyakan apa saja pada AI asisten kami.</p>
+        </header>
+        <div class="chat-container">
+          <div id="chatMessages" class="chat-messages">
+            <div class="chat-bubble ai-message">
+              Halo! Ada yang bisa saya bantu?
+            </div>
+          </div>
+          <form id="chatInputForm" class="chat-input-form">
+            <textarea id="chatInput" placeholder="Ketik pesan Anda..." rows="1"></textarea>
+            <button id="chatSendBtn" type="submit" class="icon-btn send-btn" aria-label="Kirim">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" ><path d="M3.105 3.105a.75.75 0 011.06 0L10 8.94l5.835-5.836a.75.75 0 111.06 1.06L11.06 10l5.835 5.835a.75.75 0 11-1.06 1.06L10 11.06l-5.835 5.835a.75.75 0 01-1.06-1.06L8.94 10 3.105 4.165a.75.75 0 010-1.06z" /></svg>
+            </button>
+          </form>
+        </div>
+      </section>
+
     </main>
   </div>
   
@@ -291,19 +314,13 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const header = document.querySelector('.main-header');
-
-      // Fungsi untuk mengukur tinggi header dan mengupdate variabel CSS
       function updateHeaderHeight() {
         if (header) {
           const headerHeight = header.offsetHeight;
           document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
         }
       }
-
-      // Jalankan fungsi saat halaman pertama kali dimuat
       updateHeaderHeight();
-
-      // Jalankan kembali fungsi jika ukuran jendela berubah (untuk responsivitas)
       window.addEventListener('resize', updateHeaderHeight);
     });
   </script>
