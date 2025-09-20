@@ -1,7 +1,7 @@
 /**
  * @file script.js
  * @description Main script for the PlayPal.ID single-page application.
- * @version 10.2.0 (Logo navigation enabled)
+ * @version 10.3.0 (Testimonial visibility logic added)
  */
 
 (function () {
@@ -284,6 +284,19 @@
   }
   
   let setMode = function(nextMode, fromPopState = false) {
+    // ================================================================
+    // KODE BARU: Menampilkan/menyembunyikan testimoni
+    // ================================================================
+    const testimonialSection = document.getElementById('testimonialSection');
+    if (testimonialSection) {
+      if (nextMode === 'home') {
+        testimonialSection.style.display = 'block'; // Tampilkan di home
+      } else {
+        testimonialSection.style.display = 'none';  // Sembunyikan di halaman lain
+      }
+    }
+    // ================================================================
+
     if (nextMode === 'donasi') {
       window.open('https://saweria.co/playpal', '_blank', 'noopener');
       return;
