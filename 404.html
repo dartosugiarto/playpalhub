@@ -26,12 +26,7 @@
           <span class="header-title">PlayPal.ID</span>
         </a>
         <div class="header-actions">
-          <div id="headerSearchContainer" class="header-search-container">
-            <input id="headerSearchInput" class="header-search-input" type="search" placeholder="Cari item..." aria-label="Cari">
-            <button id="headerSearchBtn" class="icon-btn header-search-btn" type="button" aria-label="Cari">
-              <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
-            </button>
-          </div>
+          <div id="headerStatusIndicator"></div>
           <button class="icon-btn burger" id="burgerBtn" type="button" aria-label="Menu" aria-expanded="false">
               <span></span><span></span><span></span>
           </button>
@@ -88,6 +83,12 @@
                 </button>
                 <div class="custom-select-options" id="homeCustomSelectOptions" role="listbox"></div>
               </div>
+            </div>
+          </div>
+          <div class="search-row">
+            <div class="search-wrap">
+              <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+              <input id="homeSearchInput" type="search" class="search-input" placeholder="Cari item..." />
             </div>
           </div>
           <div id="homeCountInfo" aria-live="polite"></div>
@@ -195,8 +196,8 @@
         <div class="head-block">
           <div class="search-row">
             <div class="search-wrap">
-              <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
-              <input id="carousellSearchInput" type="search" class="search-input" placeholder="Cari berdasarkan nomor produk...">
+              <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+              <input id="carousellSearchInput" type="search" class="search-input" placeholder="Cari berdasarkan nomor produk..." />
             </div>
           </div>
           <div id="carousellTotal" class="meta"></div>
