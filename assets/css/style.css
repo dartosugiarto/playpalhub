@@ -246,8 +246,3 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 .noscript-warning { padding: var(--sp-fib-4); background: var(--warning); color: var(--dark-base); text-align: center; font-weight: 700; }
 :focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--radius-fib-small); }
-
-/* Penyesuaian ukuran font status di header */
-.main-header .status-badge {
-  font-size: 10px;
-}
