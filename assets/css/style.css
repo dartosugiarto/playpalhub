@@ -74,7 +74,7 @@ body.sidebar-open .page-container { filter: blur(5px); transform: scale(0.99); }
 .header-logo { height: 36px; width: 36px; object-fit: contain; }
 .header-title { font-weight: 800; font-size: 20px; display: none; }
 @media (min-width: 769px) { .header-title { display: block; } }
-.header-actions { display: flex; align-items: center; gap: var(--sp-fib-2); }
+.header-actions { display: flex; align-items: center; gap: var(--sp-fib-3); }
 .icon-btn { position: relative; display: grid; place-content: center; width: 44px; height: 44px; background: transparent; border: 1px solid transparent; border-radius: var(--radius-fib-small); color: var(--text-secondary); cursor: pointer; transition: background-color var(--duration-fast), color var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast); }
 .icon-btn:hover { background: var(--surface-secondary); color: var(--brand-blue); }
 .icon-btn:active { transform: scale(0.95); }
@@ -247,20 +247,7 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 .noscript-warning { padding: var(--sp-fib-4); background: var(--warning); color: var(--dark-base); text-align: center; font-weight: 700; }
 :focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--radius-fib-small); }
 
-.header-status {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--sp-fib-3) var(--sp-fib-4);
-  border-radius: var(--radius-fib-small);
-  font-size: 14px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-.header-status.open {
-  color: #155e67;
-  background-color: #e0f5f7;
-}
-.header-status.closed {
-  color: #6d243a;
-  background-color: #f8e4e8;
+/* Penyesuaian ukuran font status di header */
+.main-header .status-badge {
+  font-size: 10px;
 }
