@@ -211,10 +211,10 @@
     const indicator = elements.headerStatusIndicator;
     if (hour >= 8) {
       indicator.textContent = 'BUKA';
-      indicator.className = 'header-status open';
+      indicator.className = 'status-badge success';
     } else {
       indicator.textContent = 'TUTUP';
-      indicator.className = 'header-status closed';
+      indicator.className = 'status-badge failed';
     }
   }
   function initializeApp() {
@@ -750,11 +750,7 @@
       let startPos = 0;
       let animationFrameId;
 
-      // --- Sesuaikan kecepatan di sini ---
-      // Angka lebih besar = lebih cepat. 0.5 adalah kecepatan sedang.
       const speed = 0.5;
-      // ---------------------------------
-
       const firstHalfWidth = track.scrollWidth / 2;
   
       function animate() {
@@ -792,7 +788,6 @@
       function onDragEnd() {
         isDragging = false;
         marquee.classList.remove('is-grabbing');
-        // Wrap position
         const trackWidth = track.scrollWidth / 2;
         pos = pos % trackWidth;
 
@@ -816,6 +811,6 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
-    initializeTestimonialMarquee(); // Menggantikan loadTestimonials()
+    initializeTestimonialMarquee();
   });
 })();
