@@ -246,3 +246,21 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 .noscript-warning { padding: var(--sp-fib-4); background: var(--warning); color: var(--dark-base); text-align: center; font-weight: 700; }
 :focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--radius-fib-small); }
+
+.header-status {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--sp-fib-3) var(--sp-fib-4);
+  border-radius: var(--radius-fib-small);
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.header-status.open {
+  color: #155e67;
+  background-color: #e0f5f7;
+}
+.header-status.closed {
+  color: #6d243a;
+  background-color: #f8e4e8;
+}
