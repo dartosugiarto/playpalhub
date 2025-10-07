@@ -135,6 +135,10 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 .status-badge.pending::before { background: var(--warning); }
 .status-badge.failed { color: #6d243a; background-color: #f8e4e8; }
 .status-badge.failed::before { background: var(--error); }
+.status-badge.open { color: #155e67; background-color: #e0f5f7; }
+.status-badge.open::before { background: var(--success); }
+.status-badge.closed { color: #6d243a; background-color: #f8e4e8; }
+.status-badge.closed::before { background: var(--error); }
 .account-status-badge { flex-shrink: 0; display: inline-block; padding: var(--sp-fib-2) var(--sp-fib-4); border: 1px solid transparent; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; }
 .account-status-badge.available { background-color: #DCFCE7; border-color: #86EFAC; color: #166534; }
 .account-status-badge.sold { background-color: var(--surface-secondary); border-color: var(--separator); color: var(--text-secondary); }
