@@ -64,6 +64,7 @@
       listContainer: getElement('homeListContainer'),
       countInfo: getElement('homeCountInfo'),
       errorContainer: getElement('homeErrorContainer'),
+      searchInput: getElement('homeSearchInput'),
       customSelect: {
         wrapper: getElement('homeCustomSelectWrapper'),
         btn: getElement('homeCustomSelectBtn'),
@@ -71,11 +72,7 @@
         options: getElement('homeCustomSelectOptions'),
       },
     },
-    headerSearch: {
-      container: getElement('headerSearchContainer'),
-      btn: getElement('headerSearchBtn'),
-      input: getElement('headerSearchInput')
-    },
+    headerStatusIndicator: getElement('headerStatusIndicator'),
     itemTemplate: getElement('itemTemplate'),
     skeletonItemTemplate: getElement('skeletonItemTemplate'),
     skeletonCardTemplate: getElement('skeletonCardTemplate'),
@@ -207,6 +204,19 @@
         }
     }).join('');
   }
+  function updateHeaderStatus() {
+    const now = new Date();
+    const options = { timeZone: 'Asia/Jakarta', hour: '2-digit', hour12: false };
+    const hour = parseInt(new Intl.DateTimeFormat('en-US', options).format(now), 10);
+    const indicator = elements.headerStatusIndicator;
+    if (hour >= 8) {
+      indicator.textContent = 'BUKA';
+      indicator.className = 'header-status open';
+    } else {
+      indicator.textContent = 'TUTUP';
+      indicator.className = 'header-status closed';
+    }
+  }
   function initializeApp() {
     elements.sidebar.burger?.addEventListener('click', () => toggleSidebar());
     elements.sidebar.overlay?.addEventListener('click', () => toggleSidebar(false));
@@ -225,15 +235,9 @@
         toggleCustomSelect(select.wrapper);
       }));
     let homeDebounce;
-    elements.headerSearch.input.addEventListener('input', e => {
+    elements.home.searchInput.addEventListener('input', e => {
       clearTimeout(homeDebounce);
       homeDebounce = setTimeout(() => { state.home.searchQuery = e.target.value.trim(); renderHomeList(); }, 200);
-    });
-    elements.headerSearch.btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (document.body.classList.contains('sidebar-open')) toggleSidebar(false);
-      elements.headerSearch.container.classList.toggle('active');
-      if (elements.headerSearch.container.classList.contains('active')) elements.headerSearch.input.focus();
     });
     elements.paymentModal.closeBtn.addEventListener('click', closePaymentModal);
     elements.paymentModal.modal.addEventListener('click', e => { if (e.target === elements.paymentModal.modal) closePaymentModal(); });
@@ -241,9 +245,6 @@
       [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper]
         .filter(wrapper => wrapper)
         .forEach(wrapper => toggleCustomSelect(wrapper, false));
-      if (!elements.headerSearch.container.contains(e.target)) {
-        elements.headerSearch.container.classList.remove('active');
-      }
     });
     loadCatalog();
     window.addEventListener('popstate', (event) => {
@@ -253,6 +254,9 @@
     const validModes = ['home', 'preorder', 'accounts', 'perpustakaan', 'carousell'];
     const initialMode = window.location.pathname.substring(1).toLowerCase() || 'home';
     setMode(validModes.includes(initialMode) ? initialMode : 'home', true);
+    elements.headerStatusIndicator.style.display = 'inline-flex';
+    updateHeaderStatus();
+    setInterval(updateHeaderStatus, 60000);
   }
   function toggleSidebar(forceOpen) {
     const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !document.body.classList.contains('sidebar-open');
@@ -269,8 +273,6 @@
     const viewMap = { home: elements.viewHome, preorder: elements.viewPreorder, accounts: elements.viewAccounts, perpustakaan: elements.viewPerpustakaan, carousell: elements.viewCarousell };
     const nextView = viewMap[nextMode];
     if (!nextView) return;
-    elements.headerSearch.container.classList.toggle('hidden', nextMode !== 'home');
-    if(nextMode !== 'home') elements.headerSearch.container.classList.remove('active');
     const testimonialSection = document.getElementById('testimonialSection');
     if (testimonialSection) {
       testimonialSection.style.display = nextMode === 'home' ? 'block' : 'none';
@@ -683,7 +685,7 @@
           } else {
             imagesHTML = `<div class="affiliate-card-img-container"></div>`;
           }
-          const platformHTML = product.platform ? `<p class="affiliate-card-platform">${product.platform}</p>` : '';
+          const platformHTML = product.platform ? `<p class="affiliate-card-platform">${product.platform}</p>` : ''
           const formattedProductNumber = product.productNumber ? String(product.productNumber).padStart(3, '0') : '';
           const productNumberHTML = formattedProductNumber ? `<span class="affiliate-card-number">#${formattedProductNumber}</span>` : '';
           card.innerHTML = `
@@ -692,7 +694,7 @@
             <div class="affiliate-card-body" role="button" tabindex="0">
                 <div class="affiliate-card-main-info">
                   <h3 class="affiliate-card-title">${product.name}</h3>
-                  <svg class="expand-indicator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"></path></svg>
+                  <svg class="expand-indicator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
                 </div>
                 ${platformHTML}
                 <p class="affiliate-card-price">${formatToIdr(product.price)}</p>
@@ -718,63 +720,102 @@
     });
     return frag;
   }
-  async function loadTestimonials() {
-    const track = document.getElementById('testiTrack');
+  async function initializeTestimonialMarquee() {
     const section = document.getElementById('testimonialSection');
-    if (!track || !section) return;
+    const marquee = section.querySelector('.testi-marquee');
+    const track = section.querySelector('#testiTrack');
+    if (!marquee || !track) return;
+  
     try {
       const res = await fetch(getSheetUrl('Sheet7', 'csv'));
       if (!res.ok) throw new Error('Network: ' + res.status);
-      const csv = await res.text(); const rows = robustCsvParser(csv); if (!rows.length) { section.style.display = 'none'; return; }
+      const csv = await res.text();
+      const rows = robustCsvParser(csv);
+      if (rows.length <= 1) {
+        section.style.display = 'none';
+        return;
+      }
       const items = rows.slice(1).filter(r => r && r[0] && r[1]).map(r => ({ name: String(r[0]).trim(), url: String(r[1]).trim() }));
-      if (!items.length) { section.style.display = 'none'; return; }
-      track.innerHTML = ''; track.appendChild(pp_makeNodes(items)); track.appendChild(pp_makeNodes(items));
+      if (!items.length) {
+        section.style.display = 'none';
+        return;
+      }
+      track.innerHTML = '';
+      track.appendChild(pp_makeNodes(items));
+      track.appendChild(pp_makeNodes(items));
+  
       let pos = 0;
-      let speed = 85;
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const marquee = section.querySelector('.testi-marquee');
-      let halfWidth = 0;
-      let dragging = false;
-      let startX = 0, startPos = 0;
-      let pausedByHover = false;
-      let rafId = null, lastTs = 0;
-      function measure() { halfWidth = Math.max(1, Math.round(track.scrollWidth / 2)); }
-      measure();
-      Array.from(track.querySelectorAll('img')).forEach(img => {
-        img.addEventListener('load', measure, { once: true });
-        img.addEventListener('error', measure, { once: true });
-      });
-      function applyTransform() {
-        while (pos <= -halfWidth) pos += halfWidth;
-        while (pos > 0) pos -= halfWidth;
+      let isDragging = false;
+      let startX = 0;
+      let startPos = 0;
+      let animationFrameId;
+
+      // --- Sesuaikan kecepatan di sini ---
+      // Angka lebih besar = lebih cepat. 0.5 adalah kecepatan sedang.
+      const speed = 0.5;
+      // ---------------------------------
+
+      const firstHalfWidth = track.scrollWidth / 2;
+  
+      function animate() {
+        if (!isDragging) {
+          pos -= speed;
+        }
+        if (pos <= -firstHalfWidth) {
+          pos += firstHalfWidth;
+        }
+        track.style.transform = `translateX(${pos}px)`;
+        animationFrameId = requestAnimationFrame(animate);
+      }
+  
+      function onDragStart(e) {
+        isDragging = true;
+        marquee.classList.add('is-grabbing');
+        startX = e.pageX || e.touches[0].pageX;
+        startPos = pos;
+        cancelAnimationFrame(animationFrameId);
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('touchmove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('touchend', onDragEnd);
+      }
+  
+      function onDragMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const currentX = e.pageX || e.touches[0].pageX;
+        const diff = currentX - startX;
+        pos = startPos + diff;
         track.style.transform = `translateX(${pos}px)`;
       }
-      function step(ts) {
-        if (!lastTs) lastTs = ts;
-        const dt = (ts - lastTs) / 1000;
-        lastTs = ts;
-        if (!dragging && !pausedByHover && !reduceMotion) {
-          pos -= speed * dt;
-          applyTransform();
-        }
-        rafId = requestAnimationFrame(step);
+  
+      function onDragEnd() {
+        isDragging = false;
+        marquee.classList.remove('is-grabbing');
+        // Wrap position
+        const trackWidth = track.scrollWidth / 2;
+        pos = pos % trackWidth;
+
+        animate();
+        window.removeEventListener('mousemove', onDragMove);
+        window.removeEventListener('touchmove', onDragMove);
+        window.removeEventListener('mouseup', onDragEnd);
+        window.removeEventListener('touchend', onDragEnd);
       }
-      cancelAnimationFrame(rafId); rafId = requestAnimationFrame(step);
-      marquee.addEventListener('mouseenter', () => { pausedByHover = true; });
-      marquee.addEventListener('mouseleave', () => { pausedByHover = false; });
-      const onPointerDown = (e) => { dragging = true; track.classList.add('dragging'); startX = (e.touches ? e.touches[0].clientX : e.clientX); startPos = pos; if (marquee.setPointerCapture) marquee.setPointerCapture(e.pointerId || 1); e.preventDefault(); };
-      const onPointerMove = (e) => { if (!dragging) return; const x = (e.touches ? e.touches[0].clientX : e.clientX); pos = startPos + (x - startX); applyTransform(); };
-      const onPointerUp = (e) => { dragging = false; track.classList.remove('dragging'); if (marquee.releasePointerCapture) marquee.releasePointerCapture(e.pointerId || 1); };
-      marquee.addEventListener('pointerdown', onPointerDown, { passive: false });
-      window.addEventListener('pointermove', onPointerMove, { passive: false });
-      window.addEventListener('pointerup', onPointerUp, { passive: true });
-      marquee.addEventListener('touchstart', onPointerDown, { passive: false });
-      window.addEventListener('touchmove', onPointerMove, { passive: false });
-      window.addEventListener('touchend', onPointerUp, { passive: true });
-    } catch (err) { console.error('Testimonials error:', err); if (section) section.style.display = 'none'; }
+  
+      marquee.addEventListener('mousedown', onDragStart);
+      marquee.addEventListener('touchstart', onDragStart, { passive: true });
+  
+      animate();
+  
+    } catch (err) {
+      console.error('Testimonials error:', err);
+      if (section) section.style.display = 'none';
+    }
   }
+
   document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
-    loadTestimonials();
+    initializeTestimonialMarquee(); // Menggantikan loadTestimonials()
   });
 })();
