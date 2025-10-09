@@ -211,10 +211,10 @@
     const indicator = elements.headerStatusIndicator;
     if (hour >= 8) {
       indicator.textContent = 'BUKA';
-      indicator.className = 'header-status open';
+      indicator.className = 'status-badge success';
     } else {
       indicator.textContent = 'TUTUP';
-      indicator.className = 'header-status closed';
+      indicator.className = 'status-badge failed';
     }
   }
   function initializeApp() {
