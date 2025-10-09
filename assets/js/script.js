@@ -193,7 +193,7 @@
             return '<br>';
         } else if (trimmedLine.endsWith(':')) {
             return `<p class="spec-title">${trimmedLine.slice(0, -1)}</p>`;
-        } else if (trimmedLine.startsWith('►')) {
+        } else if (trimmedLine.startsWith('›')) {
             return `<p class="spec-item spec-item-arrow">${trimmedLine.substring(1).trim()}</p>`;
         } else if (trimmedLine.startsWith('-')) {
             return `<p class="spec-item spec-item-dash">${trimmedLine.substring(1).trim()}</p>`;
@@ -211,10 +211,10 @@
     const indicator = elements.headerStatusIndicator;
     if (hour >= 8) {
       indicator.textContent = 'BUKA';
-      indicator.className = 'status-badge open';
+      indicator.className = 'header-status open';
     } else {
       indicator.textContent = 'TUTUP';
-      indicator.className = 'status-badge closed';
+      indicator.className = 'header-status closed';
     }
   }
   function initializeApp() {
@@ -367,7 +367,7 @@
   }
   function calculateFee(price, option) { if (option.feeType === 'fixed') return option.value; if (option.feeType === 'percentage') return Math.ceil(price * option.value); return 0; }
   function updatePriceDetails() { const selectedOptionId = document.querySelector('input[name="payment"]:checked')?.value; if (!selectedOptionId) return; const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId); if (!currentSelectedItem || !selectedOption) return; const price = currentSelectedItem.price; const fee = calculateFee(price, selectedOption); const total = price + fee; elements.paymentModal.fee.textContent = formatToIdr(fee); elements.paymentModal.total.textContent = formatToIdr(total); updateWaLink(selectedOption, fee, total); }
-  function updateWaLink(option, fee, total) { const { catLabel = "Produk", title, price } = currentSelectedItem; const text = [ config.waGreeting, `► Tipe: ${catLabel}`, `► Item: ${title}`, `► Pembayaran: ${option.name}`, `► Harga: ${formatToIdr(price)}`, `► Fee: ${formatToIdr(fee)}`, `► Total: ${formatToIdr(total)}`, ].join('\n'); elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`; }
+  function updateWaLink(option, fee, total) { const { catLabel = "Produk", title, price } = currentSelectedItem; const text = [ config.waGreeting, `› Tipe: ${catLabel}`, `› Item: ${title}`, `› Pembayaran: ${option.name}`, `› Harga: ${formatToIdr(price)}`, `› Fee: ${formatToIdr(fee)}`, `› Total: ${formatToIdr(total)}`, ].join('\n'); elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`; }
   function openPaymentModal(item) {
     document.documentElement.style.overflow = "hidden"; document.body.style.overflow = "hidden";
     elementToFocusOnModalClose = document.activeElement;
@@ -616,40 +616,6 @@
       errorEl.style.display = 'block';
     }
   }
-  
-  function renderCarousellGrid(products) {
-    const { gridContainer, total } = elements.carousell;
-    const query = state.carousell.searchQuery.toLowerCase();
-    const filtered = products.filter(p => 
-      query === '' || 
-      p.name.toLowerCase().includes(query) || 
-      (p.price && String(p.price).includes(query))
-    );
-    total.textContent = `${filtered.length} produk ditemukan`;
-    gridContainer.innerHTML = '';
-    if (filtered.length === 0) {
-      gridContainer.innerHTML = `<div class="empty"><div class="empty-content"><svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg><p>Tidak ada produk ditemukan.</p></div></div>`;
-      return;
-    }
-    const fragment = document.createDocumentFragment();
-    filtered.forEach(product => {
-      const card = document.createElement('div');
-      card.className = 'product-card';
-      card.innerHTML = `
-        <div class="product-image">
-          <img src="${product.imageUrl || 'https://via.placeholder.com/300x300?text=No+Image'}" alt="${product.name}" loading="lazy">
-        </div>
-        <div class="product-info">
-          <h3 class="product-name">${product.name}</h3>
-          <p class="product-price">${product.price ? formatToIdr(product.price) : 'Hubungi Penjual'}</p>
-          <a href="${product.affiliateUrl}" target="_blank" rel="noopener nofollow" class="product-link">Lihat Produk</a>
-        </div>
-      `;
-      fragment.appendChild(card);
-    });
-    gridContainer.appendChild(fragment);
-  }
-  
   async function initializeCarousell() {
     if (state.carousell.initialized) return;
     const { gridContainer, error } = elements.carousell;
@@ -672,23 +638,184 @@
         rows.shift();
         const products = rows.filter(r => r && r[0] && r[3]).map(r => ({
             name: r[0],
-            price: r[1] ? Number(r[1]) : null,
-            imageUrl: r[2],
-            affiliateUrl: r[3]
+            price: Number(r[1]) || 0,
+            images: (r[2] || '').split(',').map(url => url.trim()).filter(Boolean),
+            linkUrl: r[3],
+            description: r[4] || 'Klik untuk melihat detail produk.',
+            platform: r[5] || '',
+            productNumber: r[6] || ''
         }));
         state.carousell.allData = products;
         renderCarousellGrid(products);
-        state.carousell.initialized = true;
     } catch (err) {
         console.error('Failed to load Carousell products:', err);
-        error.textContent = 'Gagal memuat produk afiliasi. Coba lagi nanti.';
+        error.textContent = 'Gagal memuat produk Carousell. Coba lagi nanti.';
         error.style.display = 'block';
+    } finally {
+        state.carousell.initialized = true;
     }
   }
-  
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
-  } else {
-    initializeApp();
+  function renderCarousellGrid(products) {
+      const container = elements.carousell.gridContainer;
+      const totalEl = elements.carousell.total;
+      const query = state.carousell.searchQuery || '';
+      const filteredProducts = query 
+          ? products.filter(p => p.productNumber.includes(query))
+          : products;
+      if (products.length > 0) {
+        totalEl.textContent = `${products.length} total produk${query ? `, ${filteredProducts.length} ditemukan` : ''}`;
+        totalEl.style.display = 'block';
+      } else {
+        totalEl.style.display = 'none';
+      }
+      if (!filteredProducts || filteredProducts.length === 0) { 
+          container.innerHTML = '<div class="empty">Belum ada produk di Carousell.</div>'; 
+          return; 
+      }
+      container.innerHTML = '';
+      const fragment = document.createDocumentFragment();
+      filteredProducts.forEach(product => {
+          const card = document.createElement('div');
+          card.className = 'affiliate-card';
+          let imagesHTML = '';
+          if (product.images.length > 0) {
+            const slides = product.images.map(src => `<div class="carousel-slide"><img src="${src}" alt="Gambar produk ${product.name}" loading="lazy"></div>`).join('');
+            const indicators = product.images.map((_, i) => `<button class="indicator-dot" data-index="${i}"></button>`).join('');
+            imagesHTML = `<div class="carousel-container"><div class="carousel-track">${slides}</div>${product.images.length > 1 ? `<button class="carousel-btn prev" type="button" aria-label="Gambar sebelumnya" disabled><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg></button><button class="carousel-btn next" type="button" aria-label="Gambar selanjutnya"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></button><div class="carousel-indicators">${indicators}</div>` : ''}</div>`;
+          } else {
+            imagesHTML = `<div class="affiliate-card-img-container"></div>`;
+          }
+          const platformHTML = product.platform ? `<p class="affiliate-card-platform">${product.platform}</p>` : ''
+          const formattedProductNumber = product.productNumber ? String(product.productNumber).padStart(3, '0') : '';
+          const productNumberHTML = formattedProductNumber ? `<span class="affiliate-card-number">#${formattedProductNumber}</span>` : '';
+          card.innerHTML = `
+            ${productNumberHTML}
+            ${imagesHTML}
+            <div class="affiliate-card-body" role="button" tabindex="0">
+                <div class="affiliate-card-main-info">
+                  <h3 class="affiliate-card-title">${product.name}</h3>
+                  <svg class="expand-indicator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+                </div>
+                ${platformHTML}
+                <p class="affiliate-card-price">${formatToIdr(product.price)}</p>
+                <div class="affiliate-card-details-wrapper">
+                  <div class="affiliate-card-desc">${formatDescriptionToHTML(product.description)}</div>
+                </div>
+                <a href="${product.linkUrl}" target="_blank" rel="noopener" class="affiliate-card-button">Beli Sekarang</a>
+            </div>
+          `;
+          setupExpandableCard(card, '.affiliate-card-body');
+          fragment.appendChild(card);
+      });
+      container.appendChild(fragment);
+      initializeCarousels(container);
   }
+  function pp_makeNodes(list) {
+    const frag = document.createDocumentFragment();
+    list.forEach(({ name, url }) => {
+      const li = document.createElement('li');
+      li.className = 'testi-item';
+      li.innerHTML = `<figure class="testi-fig"><img src="${url}" alt="Testimoni ${name.replace(/"/g,'&quot;')}" decoding="async" loading="lazy"></figure><figcaption class="testi-caption">— ${name.replace(/</g,'&lt;')}</figcaption>`;
+      frag.appendChild(li);
+    });
+    return frag;
+  }
+  async function initializeTestimonialMarquee() {
+    const section = document.getElementById('testimonialSection');
+    const marquee = section.querySelector('.testi-marquee');
+    const track = section.querySelector('#testiTrack');
+    if (!marquee || !track) return;
+  
+    try {
+      const res = await fetch(getSheetUrl('Sheet7', 'csv'));
+      if (!res.ok) throw new Error('Network: ' + res.status);
+      const csv = await res.text();
+      const rows = robustCsvParser(csv);
+      if (rows.length <= 1) {
+        section.style.display = 'none';
+        return;
+      }
+      const items = rows.slice(1).filter(r => r && r[0] && r[1]).map(r => ({ name: String(r[0]).trim(), url: String(r[1]).trim() }));
+      if (!items.length) {
+        section.style.display = 'none';
+        return;
+      }
+      track.innerHTML = '';
+      track.appendChild(pp_makeNodes(items));
+      track.appendChild(pp_makeNodes(items));
+  
+      let pos = 0;
+      let isDragging = false;
+      let startX = 0;
+      let startPos = 0;
+      let animationFrameId;
+
+      // --- Sesuaikan kecepatan di sini ---
+      // Angka lebih besar = lebih cepat. 0.5 adalah kecepatan sedang.
+      const speed = 0.5;
+      // ---------------------------------
+
+      const firstHalfWidth = track.scrollWidth / 2;
+  
+      function animate() {
+        if (!isDragging) {
+          pos -= speed;
+        }
+        if (pos <= -firstHalfWidth) {
+          pos += firstHalfWidth;
+        }
+        track.style.transform = `translateX(${pos}px)`;
+        animationFrameId = requestAnimationFrame(animate);
+      }
+  
+      function onDragStart(e) {
+        isDragging = true;
+        marquee.classList.add('is-grabbing');
+        startX = e.pageX || e.touches[0].pageX;
+        startPos = pos;
+        cancelAnimationFrame(animationFrameId);
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('touchmove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('touchend', onDragEnd);
+      }
+  
+      function onDragMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const currentX = e.pageX || e.touches[0].pageX;
+        const diff = currentX - startX;
+        pos = startPos + diff;
+        track.style.transform = `translateX(${pos}px)`;
+      }
+  
+      function onDragEnd() {
+        isDragging = false;
+        marquee.classList.remove('is-grabbing');
+        // Wrap position
+        const trackWidth = track.scrollWidth / 2;
+        pos = pos % trackWidth;
+
+        animate();
+        window.removeEventListener('mousemove', onDragMove);
+        window.removeEventListener('touchmove', onDragMove);
+        window.removeEventListener('mouseup', onDragEnd);
+        window.removeEventListener('touchend', onDragEnd);
+      }
+  
+      marquee.addEventListener('mousedown', onDragStart);
+      marquee.addEventListener('touchstart', onDragStart, { passive: true });
+  
+      animate();
+  
+    } catch (err) {
+      console.error('Testimonials error:', err);
+      if (section) section.style.display = 'none';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+    initializeTestimonialMarquee(); // Menggantikan loadTestimonials()
+  });
 })();
