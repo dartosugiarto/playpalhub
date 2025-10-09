@@ -185,6 +185,7 @@
       });
     }
   }
+  function cleanCsvText(str){return (str||'').replace(/^\uFEFF/,'').replace(/\u00A0/g,' ').trim();}
   function formatDescriptionToHTML(text) {
     if (!text) return '';
     return text.split('||').map(line => {
@@ -729,13 +730,13 @@
     try {
       const res = await fetch(getSheetUrl('Sheet7', 'csv'));
       if (!res.ok) throw new Error('Network: ' + res.status);
-      const csv = await res.text();
+      const csv = new TextDecoder('utf-8').decode(await res.arrayBuffer());
       const rows = robustCsvParser(csv);
       if (rows.length <= 1) {
         section.style.display = 'none';
         return;
       }
-      const items = rows.slice(1).filter(r => r && r[0] && r[1]).map(r => ({ name: String(r[0]).trim(), url: String(r[1]).trim() }));
+      const items = rows.slice(1).filter(r => r && r[0] && r[1]).map(r => ({ name: cleanCsvText(String(r[0])), url: cleanCsvText(String(r[1])) }));
       if (!items.length) {
         section.style.display = 'none';
         return;
