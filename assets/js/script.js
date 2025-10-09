@@ -48,7 +48,24 @@
   function getElement(id) {
     return document.getElementById(id);
   }
-  const elements = {
+  
+  // --- UTF-8 safe fetch for CSV/text ---
+  async function fetchUtf8Text(url, opts = {}) {
+    const res = await fetch(url, opts);
+    if (!res.ok) throw new Error(`Network error: ${res.status} ${res.statusText}`);
+    const buf = await res.arrayBuffer();
+    return new TextDecoder('utf-8').decode(buf);
+  }
+
+  // Normalize and sanitize text from CSV (remove BOM, non-breaking spaces)
+  function normalizeUnicode(str) {
+    return (str || '').normalize('NFC')
+      .replace(/^\uFEFF/, '')     // Strip BOM if present
+      .replace(/\u00A0/g, ' ')    // NBSP -> space
+      .trim();
+  }
+
+const elements = {
     sidebar: {
       nav: getElement('sidebarNav'),
       overlay: getElement('sidebarOverlay'),
@@ -211,10 +228,10 @@
     const indicator = elements.headerStatusIndicator;
     if (hour >= 8) {
       indicator.textContent = 'BUKA';
-      indicator.className = 'status-badge open';
+      indicator.className = 'header-status open';
     } else {
       indicator.textContent = 'TUTUP';
-      indicator.className = 'status-badge closed';
+      indicator.className = 'header-status closed';
     }
   }
   function initializeApp() {
@@ -340,7 +357,7 @@
       showSkeleton(elements.home.listContainer, elements.skeletonItemTemplate, 6); 
       const res = await fetch(getSheetUrl(config.sheets.katalog.name), { signal: catalogFetchController.signal }); 
       if (!res.ok) throw new Error(`Network error: ${res.statusText}`); 
-      const text = await res.text(); 
+      const text = await fetchUtf8Text(getSheetUrl(config.sheets.katalog.name)); 
       allCatalogData = parseGvizPairs(text); 
       if (allCatalogData.length === 0) throw new Error('Data is empty or format is incorrect.'); 
       const params = new URLSearchParams(window.location.search);
@@ -448,7 +465,7 @@
     try { 
       const res = await fetch(getSheetUrl(sheetName, 'csv'), { signal: preorderFetchController.signal }); 
       if (!res.ok) throw new Error(`Network error: ${res.statusText}`); 
-      const text = await res.text(); 
+      const text = await fetchUtf8Text(getSheetUrl(sheetName, 'csv')); 
       let rows = robustCsvParser(text);
       rows.shift();
       const statusOrder = { progress: 1, pending: 2, success: 3, failed: 4 };
@@ -578,7 +595,7 @@
     try { 
       const res = await fetch(getSheetUrl(config.sheets.accounts.name, 'csv')); 
       if (!res.ok) throw new Error(`Network error: ${res.statusText}`); 
-      state.accounts.allData = await parseAccountsSheet(await res.text()); 
+      state.accounts.allData = await parseAccountsSheet(await fetchUtf8Text(getSheetUrl(config.sheets.accounts.name, 'csv'))); 
       populateAccountCategorySelect();
       renderAccountCards();
     } catch (err) { 
@@ -595,7 +612,7 @@
     try {
       const res = await fetch(getSheetUrl('Sheet6', 'csv'));
       if (!res.ok) throw new Error(`Network error: ${res.statusText}`);
-      const rows = robustCsvParser(await res.text());
+      const rows = robustCsvParser(await fetchUtf8Text(getSheetUrl('Sheet6', 'csv')));
       rows.shift(); 
       const books = rows.filter(r => r && r[0]).map(r => ({ title: r[0], coverUrl: r[1], bookUrl: r[2] }));
       if (!books || books.length === 0) { container.innerHTML = '<div class="empty">Belum ada buku yang ditambahkan.</div>'; return; }
@@ -634,16 +651,16 @@
     try {
         const res = await fetch(getSheetUrl(config.sheets.affiliate.name, 'csv'));
         if (!res.ok) throw new Error(`Network error: ${res.statusText}`);
-        const rows = robustCsvParser(await res.text());
+        const rows = robustCsvParser(await fetchUtf8Text(getSheetUrl(config.sheets.affiliate.name, 'csv')));
         rows.shift();
         const products = rows.filter(r => r && r[0] && r[3]).map(r => ({
-            name: r[0],
+            name: normalizeUnicode(r[0]),
             price: Number(r[1]) || 0,
             images: (r[2] || '').split(',').map(url => url.trim()).filter(Boolean),
             linkUrl: r[3],
-            description: r[4] || 'Klik untuk melihat detail produk.',
-            platform: r[5] || '',
-            productNumber: r[6] || ''
+            description: normalizeUnicode(r[4]) || 'Klik untuk melihat detail produk.',
+            platform: normalizeUnicode(r[5]) || '',
+            productNumber: normalizeUnicode(r[6]) || ''
         }));
         state.carousell.allData = products;
         renderCarousellGrid(products);
@@ -729,7 +746,7 @@
     try {
       const res = await fetch(getSheetUrl('Sheet7', 'csv'));
       if (!res.ok) throw new Error('Network: ' + res.status);
-      const csv = await res.text();
+      const csv = await fetchUtf8Text(getSheetUrl('Sheet7', 'csv'));
       const rows = robustCsvParser(csv);
       if (rows.length <= 1) {
         section.style.display = 'none';
@@ -815,7 +832,4 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
-    initializeTestimonialMarquee(); // Menggantikan loadTestimonials()
-  });
-})();
+    initiali
