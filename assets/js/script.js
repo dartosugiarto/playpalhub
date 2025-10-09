@@ -211,10 +211,12 @@
     const indicator = elements.headerStatusIndicator;
     if (hour >= 8) {
       indicator.textContent = 'BUKA';
-      indicator.className = 'header-status open';
+      // Mengubah className agar sesuai dengan style badge
+      indicator.className = 'status-badge open';
     } else {
       indicator.textContent = 'TUTUP';
-      indicator.className = 'header-status closed';
+      // Mengubah className agar sesuai dengan style badge
+      indicator.className = 'status-badge closed';
     }
   }
   function initializeApp() {
