@@ -146,24 +146,24 @@
           nextBtn.disabled = currentIndex >= imageCount - 1;
           indicators.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
         };
-        nextBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (currentIndex < imageCount - 1) {
-            currentIndex++;
-            update();
-          }
+        nextBtn.addEventListener('click', (e) => { 
+          e.stopPropagation(); 
+          if (currentIndex < imageCount - 1) { 
+            currentIndex++; 
+            update(); 
+          } 
         });
-        prevBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (currentIndex > 0) {
-            currentIndex--;
-            update();
-          }
+        prevBtn.addEventListener('click', (e) => { 
+          e.stopPropagation(); 
+          if (currentIndex > 0) { 
+            currentIndex--; 
+            update(); 
+          } 
         });
-        indicators.forEach(dot => dot.addEventListener('click', (e) => {
-          e.stopPropagation();
-          currentIndex = parseInt(e.target.dataset.index, 10);
-          update();
+        indicators.forEach(dot => dot.addEventListener('click', (e) => { 
+          e.stopPropagation(); 
+          currentIndex = parseInt(e.target.dataset.index, 10); 
+          update(); 
         }));
         update();
       }
@@ -193,7 +193,7 @@
             return '<br>';
         } else if (trimmedLine.endsWith(':')) {
             return `<p class="spec-title">${trimmedLine.slice(0, -1)}</p>`;
-        } else if (trimmedLine.startsWith('›')) {
+        } else if (trimmedLine.startsWith('âº')) {
             return `<p class="spec-item spec-item-arrow">${trimmedLine.substring(1).trim()}</p>`;
         } else if (trimmedLine.startsWith('-')) {
             return `<p class="spec-item spec-item-dash">${trimmedLine.substring(1).trim()}</p>`;
@@ -211,10 +211,10 @@
     const indicator = elements.headerStatusIndicator;
     if (hour >= 8) {
       indicator.textContent = 'BUKA';
-      indicator.className = 'status-badge open';
+      indicator.className = 'header-status open';
     } else {
       indicator.textContent = 'TUTUP';
-      indicator.className = 'status-badge closed';
+      indicator.className = 'header-status closed';
     }
   }
   function initializeApp() {
@@ -367,7 +367,7 @@
   }
   function calculateFee(price, option) { if (option.feeType === 'fixed') return option.value; if (option.feeType === 'percentage') return Math.ceil(price * option.value); return 0; }
   function updatePriceDetails() { const selectedOptionId = document.querySelector('input[name="payment"]:checked')?.value; if (!selectedOptionId) return; const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId); if (!currentSelectedItem || !selectedOption) return; const price = currentSelectedItem.price; const fee = calculateFee(price, selectedOption); const total = price + fee; elements.paymentModal.fee.textContent = formatToIdr(fee); elements.paymentModal.total.textContent = formatToIdr(total); updateWaLink(selectedOption, fee, total); }
-  function updateWaLink(option, fee, total) { const { catLabel = "Produk", title, price } = currentSelectedItem; const text = [ config.waGreeting, `› Tipe: ${catLabel}`, `› Item: ${title}`, `› Pembayaran: ${option.name}`, `› Harga: ${formatToIdr(price)}`, `› Fee: ${formatToIdr(fee)}`, `› Total: ${formatToIdr(total)}`, ].join('\n'); elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`; }
+  function updateWaLink(option, fee, total) { const { catLabel = "Produk", title, price } = currentSelectedItem; const text = [ config.waGreeting, `âº Tipe: ${catLabel}`, `âº Item: ${title}`, `âº Pembayaran: ${option.name}`, `âº Harga: ${formatToIdr(price)}`, `âº Fee: ${formatToIdr(fee)}`, `âº Total: ${formatToIdr(total)}`, ].join('\n'); elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`; }
   function openPaymentModal(item) {
     document.documentElement.style.overflow = "hidden"; document.body.style.overflow = "hidden";
     elementToFocusOnModalClose = document.activeElement;
@@ -715,9 +715,7 @@
     list.forEach(({ name, url }) => {
       const li = document.createElement('li');
       li.className = 'testi-item';
-      // --- FIX DI SINI ---
-      // Mengganti 'â€”' dengan '—'
-      li.innerHTML = `<figure class="testi-fig"><img src="${url}" alt="Testimoni ${name.replace(/"/g,'&quot;')}" decoding="async" loading="lazy"></figure><figcaption class="testi-caption">— ${name.replace(/</g,'&lt;')}</figcaption>`;
+      li.innerHTML = `<figure class="testi-fig"><img src="${url}" alt="Testimoni ${name.replace(/"/g,'&quot;')}" decoding="async" loading="lazy"></figure><figcaption class="testi-caption">â ${name.replace(/</g,'&lt;')}</figcaption>`;
       frag.appendChild(li);
     });
     return frag;
@@ -727,7 +725,7 @@
     const marquee = section.querySelector('.testi-marquee');
     const track = section.querySelector('#testiTrack');
     if (!marquee || !track) return;
- 
+  
     try {
       const res = await fetch(getSheetUrl('Sheet7', 'csv'));
       if (!res.ok) throw new Error('Network: ' + res.status);
@@ -745,7 +743,7 @@
       track.innerHTML = '';
       track.appendChild(pp_makeNodes(items));
       track.appendChild(pp_makeNodes(items));
- 
+  
       let pos = 0;
       let isDragging = false;
       let startX = 0;
@@ -758,7 +756,7 @@
       // ---------------------------------
 
       const firstHalfWidth = track.scrollWidth / 2;
- 
+  
       function animate() {
         if (!isDragging) {
           pos -= speed;
@@ -769,7 +767,7 @@
         track.style.transform = `translateX(${pos}px)`;
         animationFrameId = requestAnimationFrame(animate);
       }
- 
+  
       function onDragStart(e) {
         isDragging = true;
         marquee.classList.add('is-grabbing');
@@ -781,7 +779,7 @@
         window.addEventListener('mouseup', onDragEnd);
         window.addEventListener('touchend', onDragEnd);
       }
- 
+  
       function onDragMove(e) {
         if (!isDragging) return;
         e.preventDefault();
@@ -790,7 +788,7 @@
         pos = startPos + diff;
         track.style.transform = `translateX(${pos}px)`;
       }
- 
+  
       function onDragEnd() {
         isDragging = false;
         marquee.classList.remove('is-grabbing');
@@ -804,12 +802,12 @@
         window.removeEventListener('mouseup', onDragEnd);
         window.removeEventListener('touchend', onDragEnd);
       }
- 
+  
       marquee.addEventListener('mousedown', onDragStart);
       marquee.addEventListener('touchstart', onDragStart, { passive: true });
- 
+  
       animate();
- 
+  
     } catch (err) {
       console.error('Testimonials error:', err);
       if (section) section.style.display = 'none';
