@@ -45,6 +45,7 @@
   let accountsFetchController;
   let modalFocusTrap = { listener: null, focusableEls: [], firstEl: null, lastEl: null };
   let elementToFocusOnModalClose = null;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function getElement(id) {
     return document.getElementById(id);
   }
@@ -126,8 +127,55 @@
   };
   function formatToIdr(value) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value); }
   function getSheetUrl(sheetName, format = 'json') { const baseUrl = `https://docs.google.com/spreadsheets/d/${config.sheetId}/gviz/tq`; const encodedSheetName = encodeURIComponent(sheetName); return format === 'csv' ? `${baseUrl}?tqx=out:csv&sheet=${encodedSheetName}` : `${baseUrl}?sheet=${encodedSheetName}&tqx=out:json`; }
+
+async function fetchSheetCached(sheetName, format = 'json'){
+  const url = getSheetUrl(sheetName, format === 'csv' ? 'csv' : 'json');
+  const key = `pp_cache_${sheetName}_${format}`;
+  const cached = sessionStorage.getItem(key);
+  if (cached) {
+    // kick off background revalidate
+    try { fetch(url).then(r => r.text()).then(t => sessionStorage.setItem(key, t)); } catch(e) {}
+    return cached;
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Network error: ${res.statusText}`);
+  const text = await res.text();
+  sessionStorage.setItem(key, text);
+  return text;
+}
+
   function showSkeleton(container, template, count = 6) { container.innerHTML = ''; const fragment = document.createDocumentFragment(); for (let i = 0; i < count; i++) { fragment.appendChild(template.content.cloneNode(true)); } container.appendChild(fragment); }
   function toggleCustomSelect(wrapper, forceOpen) { const btn = wrapper.querySelector('.custom-select-btn'); const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !wrapper.classList.contains('open'); wrapper.classList.toggle('open', isOpen); btn.setAttribute('aria-expanded', isOpen); }
+
+function enhanceCustomSelectKeyboard(wrapper){
+  if (!wrapper) return;
+  const options = wrapper.querySelector('.custom-select-options');
+  const btn = wrapper.querySelector('.custom-select-btn');
+  if (!options || !btn) return;
+  options.setAttribute('role','listbox');
+  options.addEventListener('keydown', (e)=>{
+    const items = Array.from(options.querySelectorAll('.custom-select-option'));
+    if (!items.length) return;
+    let i = items.findIndex(o => o.classList.contains('highlight'));
+
+    const move = (delta)=>{
+      i = (i === -1 ? items.findIndex(o=>o.classList.contains('selected')) : i);
+      if (i === -1) i = 0;
+      i = (i + delta + items.length) % items.length;
+      items.forEach(o=>o.classList.remove('highlight'));
+      items[i].classList.add('highlight');
+      items[i].scrollIntoView({ block: 'nearest' });
+    };
+
+    if (e.key === 'ArrowDown'){ e.preventDefault(); move(1); }
+    if (e.key === 'ArrowUp'){ e.preventDefault(); move(-1); }
+    if (e.key === 'Home'){ e.preventDefault(); move(-9999); }
+    if (e.key === 'End'){ e.preventDefault(); move(9999); }
+    if (e.key === 'Enter'){ e.preventDefault(); if (i>-1) items[i].click(); }
+    if (e.key === 'Escape'){ e.preventDefault(); toggleCustomSelect(wrapper, false); btn.focus(); }
+  });
+}
+
   function robustCsvParser(text) { const normalizedText = text.trim().replace(/\r\n/g, '\n'); const rows = []; let currentRow = []; let currentField = ''; let inQuotedField = false; for (let i = 0; i < normalizedText.length; i++) { const char = normalizedText[i]; if (inQuotedField) { if (char === '"') { if (i + 1 < normalizedText.length && normalizedText[i + 1] === '"') { currentField += '"'; i++; } else { inQuotedField = false; } } else { currentField += char; } } else { if (char === '"') { inQuotedField = true; } else if (char === ',') { currentRow.push(currentField); currentField = ''; } else if (char === '\n') { currentRow.push(currentField); rows.push(currentRow); currentRow = []; currentField = ''; } else { currentField += char; } } } currentRow.push(currentField); rows.push(currentRow); return rows; }
   function initializeCarousels(container) {
     container.querySelectorAll('.carousel-container').forEach(carouselContainer => {
@@ -193,7 +241,7 @@
             return '<br>';
         } else if (trimmedLine.endsWith(':')) {
             return `<p class="spec-title">${trimmedLine.slice(0, -1)}</p>`;
-        } else if (trimmedLine.startsWith('›')) {
+        } else if (trimmedLine.startsWith('âº')) {
             return `<p class="spec-item spec-item-arrow">${trimmedLine.substring(1).trim()}</p>`;
         } else if (trimmedLine.startsWith('-')) {
             return `<p class="spec-item spec-item-dash">${trimmedLine.substring(1).trim()}</p>`;
@@ -214,7 +262,7 @@
       indicator.className = 'status-badge success';
     } else {
       indicator.textContent = 'TUTUP';
-      indicator.className = 'status-badge failed';
+      indicator.className = 'status-badge closed';
     }
   }
   function initializeApp() {
@@ -230,10 +278,10 @@
     });
     [elements.home.customSelect, elements.preorder.customSelect, elements.preorder.customStatusSelect, elements.accounts.customSelect]
       .filter(select => select && select.btn)
-      .forEach(select => select.btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleCustomSelect(select.wrapper);
-      }));
+      .forEach(select => { 
+        select.btn.addEventListener('click', (e) => { e.stopPropagation(); toggleCustomSelect(select.wrapper); });
+        enhanceCustomSelectKeyboard(select.wrapper);
+      });
     let homeDebounce;
     elements.home.searchInput.addEventListener('input', e => {
       clearTimeout(homeDebounce);
@@ -241,6 +289,7 @@
     });
     elements.paymentModal.closeBtn.addEventListener('click', closePaymentModal);
     elements.paymentModal.modal.addEventListener('click', e => { if (e.target === elements.paymentModal.modal) closePaymentModal(); });
+    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape'){ [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper].filter(Boolean).forEach(w=>toggleCustomSelect(w,false)); } });
     document.addEventListener('click', (e) => {
       [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper]
         .filter(wrapper => wrapper)
@@ -257,14 +306,33 @@
     elements.headerStatusIndicator.style.display = 'inline-flex';
     updateHeaderStatus();
     setInterval(updateHeaderStatus, 60000);
+    const heroImg = document.querySelector('.home-banner-img');
+    if (heroImg){ heroImg.setAttribute('decoding','async'); try{ heroImg.setAttribute('fetchpriority','high'); }catch(e){} }
   }
   function toggleSidebar(forceOpen) {
-    const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !document.body.classList.contains('sidebar-open');
-    document.body.classList.toggle('sidebar-open', isOpen);
-    elements.sidebar.burger.classList.toggle('active', isOpen);
-    document.documentElement.style.overflow = isOpen ? "hidden" : "";
-    document.body.style.overflow = isOpen ? "hidden" : "";
+  const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !document.body.classList.contains('sidebar-open');
+  document.body.classList.toggle('sidebar-open', isOpen);
+  elements.sidebar.burger.classList.toggle('active', isOpen);
+
+  const body = document.body;
+  if (isOpen) {
+    // Lock scroll without causing layout shift
+    const y = window.scrollY || window.pageYOffset || 0;
+    body.dataset.ppLockY = String(y);
+    body.style.position = 'fixed';
+    body.style.top = `-${y}px`;  /* keep visual position */
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+  } else {
+    // Restore scroll exactly where the user was
+    const y = parseInt(body.dataset.ppLockY || '0', 10);
+    body.style.position = '';
+    body.style.top = '';
+    body.style.width = '';
+    body.style.overflow = '';
+    window.scrollTo(0, y);
   }
+}
   let setMode = function(nextMode, fromPopState = false) {
     if (nextMode === 'donasi') {
       window.open('https://saweria.co/playpal', '_blank', 'noopener');
@@ -292,7 +360,7 @@
         isActive ? link.setAttribute('aria-current', 'page') : link.removeAttribute('aria-current');
     });
     if (window.innerWidth < 769) toggleSidebar(false);
-    window.scrollTo({ top: 0, behavior: fromPopState ? 'auto' : 'smooth' });
+    window.scrollTo({ top: 0, behavior: (prefersReducedMotion || fromPopState) ? 'auto' : 'smooth' });
     if (nextMode === 'preorder' && !state.preorder.initialized) initializePreorder();
     if (nextMode === 'accounts' && !state.accounts.initialized) initializeAccounts();
     if (nextMode === 'perpustakaan' && !getElement('libraryGridContainer').innerHTML.trim()) initializeLibrary();
@@ -338,9 +406,7 @@
     try { 
       elements.home.errorContainer.style.display = 'none'; 
       showSkeleton(elements.home.listContainer, elements.skeletonItemTemplate, 6); 
-      const res = await fetch(getSheetUrl(config.sheets.katalog.name), { signal: catalogFetchController.signal }); 
-      if (!res.ok) throw new Error(`Network error: ${res.statusText}`); 
-      const text = await res.text(); 
+      const text = await fetchSheetCached(config.sheets.katalog.name, 'json'); 
       allCatalogData = parseGvizPairs(text); 
       if (allCatalogData.length === 0) throw new Error('Data is empty or format is incorrect.'); 
       const params = new URLSearchParams(window.location.search);
@@ -367,8 +433,14 @@
   }
   function calculateFee(price, option) { if (option.feeType === 'fixed') return option.value; if (option.feeType === 'percentage') return Math.ceil(price * option.value); return 0; }
   function updatePriceDetails() { const selectedOptionId = document.querySelector('input[name="payment"]:checked')?.value; if (!selectedOptionId) return; const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId); if (!currentSelectedItem || !selectedOption) return; const price = currentSelectedItem.price; const fee = calculateFee(price, selectedOption); const total = price + fee; elements.paymentModal.fee.textContent = formatToIdr(fee); elements.paymentModal.total.textContent = formatToIdr(total); updateWaLink(selectedOption, fee, total); }
-  function updateWaLink(option, fee, total) { const { catLabel = "Produk", title, price } = currentSelectedItem; const text = [ config.waGreeting, `› Tipe: ${catLabel}`, `› Item: ${title}`, `› Pembayaran: ${option.name}`, `› Harga: ${formatToIdr(price)}`, `› Fee: ${formatToIdr(fee)}`, `› Total: ${formatToIdr(total)}`, ].join('\n'); elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`; }
+  function updateWaLink(option, fee, total) { const { catLabel = "Produk", title, price } = currentSelectedItem; const text = [ config.waGreeting, `âº Tipe: ${catLabel}`, `âº Item: ${title}`, `âº Pembayaran: ${option.name}`, `âº Harga: ${formatToIdr(price)}`, `âº Fee: ${formatToIdr(fee)}`, `âº Total: ${formatToIdr(total)}`, ].join('\n'); elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`; }
   function openPaymentModal(item) {
+    const pageContainer = document.getElementById('pageContainer');
+    const modalContentEl = document.querySelector('#paymentModal .modal-content');
+    if (modalContentEl){ modalContentEl.setAttribute('role','dialog'); modalContentEl.setAttribute('aria-modal','true'); modalContentEl.setAttribute('aria-labelledby','paymentModalTitle'); }
+    const modalTitle = document.querySelector('#paymentModal .modal-header h2');
+    if (modalTitle){ modalTitle.id = 'paymentModalTitle'; }
+    if (pageContainer){ pageContainer.setAttribute('inert',''); }
     document.documentElement.style.overflow = "hidden"; document.body.style.overflow = "hidden";
     elementToFocusOnModalClose = document.activeElement;
     currentSelectedItem = item;
@@ -378,7 +450,7 @@
     optionsContainer.innerHTML = '';
     config.paymentOptions.forEach((option, index) => {
       const fee = calculateFee(item.price, option);
-      optionsContainer.insertAdjacentHTML('beforeend', ` <div class="payment-option"> <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}> <label for="${option.id}"> ${option.name} <span style="float: right;">+ ${formatToIdr(fee)}</span> </label> </div>`);
+      optionsContainer.insertAdjacentHTML('beforeend', ` <div class="payment-option"> <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}> <label for="${option.id}" tabindex="0"> ${option.name} <span style="float: right;">+ ${formatToIdr(fee)}</span> </label> </div>`);
     });
     optionsContainer.querySelectorAll('input[name="payment"]').forEach(input => input.addEventListener('change', updatePriceDetails));
     updatePriceDetails();
@@ -393,6 +465,8 @@
     setTimeout(() => modalFocusTrap.firstEl?.focus(), 100);
   }
   function closePaymentModal() {
+    const pageContainer = document.getElementById('pageContainer');
+    if (pageContainer){ pageContainer.removeAttribute('inert'); }
     document.documentElement.style.overflow = ""; document.body.style.overflow = "";
     const { modal } = elements.paymentModal;
     modal.classList.remove('visible');
@@ -446,9 +520,7 @@
     showSkeleton(elements.preorder.listContainer, elements.skeletonCardTemplate, 5); 
     state.preorder.displayMode = sheetName === config.sheets.preorder.name1 ? 'detailed' : 'simple'; 
     try { 
-      const res = await fetch(getSheetUrl(sheetName, 'csv'), { signal: preorderFetchController.signal }); 
-      if (!res.ok) throw new Error(`Network error: ${res.statusText}`); 
-      const text = await res.text(); 
+      const text = await fetchSheetCached(sheetName, 'csv'); 
       let rows = robustCsvParser(text);
       rows.shift();
       const statusOrder = { progress: 1, pending: 2, success: 3, failed: 4 };
@@ -488,8 +560,8 @@
         rebound();
       });
     });
-    prevBtn.addEventListener('click', () => { if (state.preorder.currentPage > 1) { state.preorder.currentPage--; renderPreorderCards(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
-    nextBtn.addEventListener('click', () => { state.preorder.currentPage++; renderPreorderCards(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    prevBtn.addEventListener('click', () => { if (state.preorder.currentPage > 1) { state.preorder.currentPage--; renderPreorderCards(); window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' }); } });
+    nextBtn.addEventListener('click', () => { state.preorder.currentPage++; renderPreorderCards(); window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' }); });
     fetchPreorderData(config.sheets.preorder.name1);
     state.preorder.initialized = true;
   }
@@ -576,9 +648,8 @@
     error.style.display = 'none'; empty.style.display = 'none';
     cardGrid.innerHTML = '';
     try { 
-      const res = await fetch(getSheetUrl(config.sheets.accounts.name, 'csv')); 
-      if (!res.ok) throw new Error(`Network error: ${res.statusText}`); 
-      state.accounts.allData = await parseAccountsSheet(await res.text()); 
+      const accText = await fetchSheetCached(config.sheets.accounts.name, 'csv');
+      state.accounts.allData = await parseAccountsSheet(accText); 
       populateAccountCategorySelect();
       renderAccountCards();
     } catch (err) { 
@@ -593,9 +664,8 @@
     const errorEl = getElement('libraryError');
     container.innerHTML = ''; errorEl.style.display = 'none';
     try {
-      const res = await fetch(getSheetUrl('Sheet6', 'csv'));
-      if (!res.ok) throw new Error(`Network error: ${res.statusText}`);
-      const rows = robustCsvParser(await res.text());
+      const libText = await fetchSheetCached('Sheet6', 'csv');
+      const rows = robustCsvParser(libText);
       rows.shift(); 
       const books = rows.filter(r => r && r[0]).map(r => ({ title: r[0], coverUrl: r[1], bookUrl: r[2] }));
       if (!books || books.length === 0) { container.innerHTML = '<div class="empty">Belum ada buku yang ditambahkan.</div>'; return; }
@@ -632,9 +702,8 @@
         }, 200);
     });
     try {
-        const res = await fetch(getSheetUrl(config.sheets.affiliate.name, 'csv'));
-        if (!res.ok) throw new Error(`Network error: ${res.statusText}`);
-        const rows = robustCsvParser(await res.text());
+        const carText = await fetchSheetCached(config.sheets.affiliate.name, 'csv');
+        const rows = robustCsvParser(carText);
         rows.shift();
         const products = rows.filter(r => r && r[0] && r[3]).map(r => ({
             name: r[0],
@@ -727,9 +796,7 @@
     if (!marquee || !track) return;
   
     try {
-      const res = await fetch(getSheetUrl('Sheet7', 'csv'));
-      if (!res.ok) throw new Error('Network: ' + res.status);
-      const csv = await res.text();
+      const csv = await fetchSheetCached('Sheet7', 'csv');
       const rows = robustCsvParser(csv);
       if (rows.length <= 1) {
         section.style.display = 'none';
@@ -758,6 +825,7 @@
       const firstHalfWidth = track.scrollWidth / 2;
   
       function animate() {
+        if (prefersReducedMotion || document.hidden) { return; }
         if (!isDragging) {
           pos -= speed;
         }
@@ -804,6 +872,7 @@
       }
   
       marquee.addEventListener('mousedown', onDragStart);
+      document.addEventListener('visibilitychange', ()=>{ if (document.hidden) { cancelAnimationFrame(animationFrameId); } else { animate(); } });
       marquee.addEventListener('touchstart', onDragStart, { passive: true });
   
       animate();
