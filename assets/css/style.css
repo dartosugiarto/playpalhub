@@ -24,7 +24,7 @@
   --sp-fib-6: 34px;
   --sp-fib-7: 55px;
   --sp-fib-8: 89px;
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, "Inter", sans-serif;
   --font-size-h1: 28px;
   --font-size-body: 16px;
   --control-h: 48px;
@@ -36,7 +36,7 @@
   --duration-fast: 0.21s;
   --duration-natural: 0.34s;
   --ease-natural: cubic-bezier(0.4, 0, 0.2, 1);
-  --sidebar-width: 300px;
+  --sidebar-width: 264px;
   --header-height: 60px;
 }
 * { box-sizing: border-box; }
@@ -60,7 +60,7 @@ p { font-size: var(--font-size-body); line-height: 1.5; color: var(--text-second
 .view-section { display: none; animation: fadeIn var(--duration-natural) var(--ease-natural); }
 .view-section.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(var(--sp-fib-4)); } to { opacity: 1; transform: translateY(0); } }
-.page-container { transition: transform var(--duration-natural), filter var(--duration-natural); }
+.page-container { transition: transform var(--duration-natural), filter var(--duration-natural); transform-origin: top center; }
 body.sidebar-open .page-container { filter: blur(5px); transform: scale(0.99); }
 .page-title-header { margin-top: var(--sp-fib-6); margin-bottom: var(--sp-fib-5); }
 .page-title-header h1 { margin: 0; line-height: 1.2; }
@@ -219,11 +219,37 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 .payment-option input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
 .payment-option label { display: block; padding: var(--sp-fib-4); border: 1px solid var(--separator); border-radius: var(--radius-fib-small); font-size: 15px; cursor: pointer; }
 .payment-option input:checked + label { border-color: var(--brand-blue); background-color: rgba(var(--brand-blue-rgb), 0.1); font-weight: 700; box-shadow: 0 0 0 2px var(--brand-blue); }
+
+/* === Polishing: Button states & feedback === */
+.action-btn:active,
+.affiliate-card-button:active,
+.wa-button:active { transform: scale(0.98); }
+
+.action-btn:disabled,
+.affiliate-card-button[aria-disabled="true"],
+.wa-button[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+/* Focus ring for payment-option label (keyboard nav) */
+.payment-option label:focus-visible {
+  box-shadow: var(--shadow-focus);
+  outline: none;
+}
+/* Custom-select keyboard highlight */
+.custom-select-option.highlight { background: var(--surface-secondary); color: var(--text-primary); }
+
 .price-details { margin-top: var(--sp-fib-4); padding-top: var(--sp-fib-4); border-top: 1px solid var(--separator); font-size: 14px; text-align: right; }
 .price-details p { margin: var(--sp-fib-2) 0; }
 .price-details strong { font-size: 18px; }
-.wa-button { display: block; width: 100%; margin-top: var(--sp-fib-5); padding: var(--sp-fib-4); background-color: var(--brand-blue); color: #fff; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; border-radius: var(--radius-fib-small); }
-.library-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-fib-4); }
+.wa-button { display: block; width: 100%; margin-top: var(--sp-fib-5); padding: var(--sp-fib-4); padding-bottom: max(var(--sp-fib-4), env(safe-area-inset-bottom)); background-color: var(--brand-blue); color: #fff; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; border-radius: var(--radius-fib-small); }
+.library-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+  gap: var(--sp-fib-4); 
+}
+@media (min-width: 768px) { .library-grid { grid-template-columns: repeat(4, 1fr); } }
 .book-card { position: relative; border: none; padding: 0; cursor: pointer; border-radius: var(--radius-fib-medium); overflow: hidden; aspect-ratio: 3 / 4; transition: transform var(--duration-fast); }
 .book-card:hover { transform: scale(1.05); }
 .book-card .cover { width: 100%; height: 100%; object-fit: cover; }
@@ -238,7 +264,7 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 .testi-fig { margin: 0; background: var(--surface-secondary); border: 1px solid var(--separator); border-radius: 12px; overflow: hidden; }
 .testi-fig img { width: 100%; height: auto; display: block; }
 .testi-caption { font-size: 12px; color: var(--text-secondary); text-align: center; }
-.empty { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; padding: var(--sp-fib-7); border: 1px dashed var(--separator); border-radius: var(--radius-fib-large); text-align: center; margin-top: var(--sp-fib-5); }
+.empty { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; padding: var(--sp-fib-7); border: 1px dashed var(--separator); border-radius: var(--radius-fib-large); text-align: center; margin-top: var(--sp-fib-6); }
 .empty-content { display: flex; flex-direction: column; align-items: center; gap: var(--sp-fib-4); max-width: 300px; }
 .empty-icon { width: 55px; height: 55px; color: var(--text-tertiary); }
 .empty p { margin: 0; }
@@ -250,3 +276,29 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 .noscript-warning { padding: var(--sp-fib-4); background: var(--warning); color: var(--dark-base); text-align: center; font-weight: 700; }
 :focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--radius-fib-small); }
+
+
+/* === Polishing: Sidebar mobile ergonomics === */
+@media (max-width: 430px){ :root { --sidebar-width: clamp(232px, 68vw, 272px); } }
+.sidebar{
+  max-height: calc(100% - var(--header-height));
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+
+/* === Polishing: Neutral CLOSED status === */
+.status-badge.closed { color: var(--text-secondary); background-color: var(--surface-secondary); }
+.status-badge.closed::before { background: var(--surface-tertiary); }
+
+
+/* === Polishing: Perceived performance on long lists === */
+.card, .list-item { content-visibility: auto; contain-intrinsic-size: 200px; }
+
+
+/* Menu text ellipsis */
+.sidebar .nav-item span{
+  flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
