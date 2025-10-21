@@ -194,24 +194,24 @@ function enhanceCustomSelectKeyboard(wrapper){
           nextBtn.disabled = currentIndex >= imageCount - 1;
           indicators.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
         };
-        nextBtn.addEventListener('click', (e) => { 
-          e.stopPropagation(); 
-          if (currentIndex < imageCount - 1) { 
-            currentIndex++; 
-            update(); 
-          } 
+        nextBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (currentIndex < imageCount - 1) {
+            currentIndex++;
+            update();
+          }
         });
-        prevBtn.addEventListener('click', (e) => { 
-          e.stopPropagation(); 
-          if (currentIndex > 0) { 
-            currentIndex--; 
-            update(); 
-          } 
+        prevBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (currentIndex > 0) {
+            currentIndex--;
+            update();
+          }
         });
-        indicators.forEach(dot => dot.addEventListener('click', (e) => { 
-          e.stopPropagation(); 
-          currentIndex = parseInt(e.target.dataset.index, 10); 
-          update(); 
+        indicators.forEach(dot => dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentIndex = parseInt(e.target.dataset.index, 10);
+          update();
         }));
         update();
       }
@@ -241,7 +241,7 @@ function enhanceCustomSelectKeyboard(wrapper){
             return '<br>';
         } else if (trimmedLine.endsWith(':')) {
             return `<p class="spec-title">${trimmedLine.slice(0, -1)}</p>`;
-        } else if (trimmedLine.startsWith('â€º')) {
+        } else if (trimmedLine.startsWith('›')) { // Menggunakan ›
             return `<p class="spec-item spec-item-arrow">${trimmedLine.substring(1).trim()}</p>`;
         } else if (trimmedLine.startsWith('-')) {
             return `<p class="spec-item spec-item-dash">${trimmedLine.substring(1).trim()}</p>`;
@@ -278,7 +278,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     });
     [elements.home.customSelect, elements.preorder.customSelect, elements.preorder.customStatusSelect, elements.accounts.customSelect]
       .filter(select => select && select.btn)
-      .forEach(select => { 
+      .forEach(select => {
         select.btn.addEventListener('click', (e) => { e.stopPropagation(); toggleCustomSelect(select.wrapper); });
         enhanceCustomSelectKeyboard(select.wrapper);
       });
@@ -375,7 +375,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     options.innerHTML = '';
     const activeCategoryKey = state.home.activeCategory || (categories[0]?.key || '');
     const activeCategory = categories.find(c => c.key === activeCategoryKey) || categories[0];
-    if (activeCategory) { state.home.activeCategory = activeCategory.key; value.textContent = activeCategory.label; } 
+    if (activeCategory) { state.home.activeCategory = activeCategory.key; value.textContent = activeCategory.label; }
     else { value.textContent = 'Data tidak tersedia'; }
     categories.forEach(cat => {
       const el = document.createElement('div');
@@ -400,15 +400,15 @@ function enhanceCustomSelectKeyboard(wrapper){
   }
   function renderList(container, countInfoEl, items, emptyText) { container.innerHTML = ''; if (items.length === 0) { container.innerHTML = `<div class="empty"><div class="empty-content"><svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg><p>${emptyText}</p></div></div>`; countInfoEl.textContent = ''; return; } const fragment = document.createDocumentFragment(); for (const item of items) { const clone = elements.itemTemplate.content.cloneNode(true); const buttonEl = clone.querySelector('.list-item'); buttonEl.querySelector('.title').textContent = item.title; buttonEl.querySelector('.price').textContent = formatToIdr(item.price); buttonEl.addEventListener('click', () => openPaymentModal(item)); fragment.appendChild(clone); } container.appendChild(fragment); countInfoEl.textContent = `${items.length} item ditemukan`; }
   function renderHomeList() { const { activeCategory, searchQuery } = state.home; const query = searchQuery.toLowerCase(); const items = allCatalogData.filter(x => x.catKey === activeCategory && (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))); renderList(elements.home.listContainer, elements.home.countInfo, items, 'Tidak ada item ditemukan.'); }
-  async function loadCatalog() { 
+  async function loadCatalog() {
     if (catalogFetchController) catalogFetchController.abort();
     catalogFetchController = new AbortController();
-    try { 
-      elements.home.errorContainer.style.display = 'none'; 
-      showSkeleton(elements.home.listContainer, elements.skeletonItemTemplate, 6); 
-      const text = await fetchSheetCached(config.sheets.katalog.name, 'json'); 
-      allCatalogData = parseGvizPairs(text); 
-      if (allCatalogData.length === 0) throw new Error('Data is empty or format is incorrect.'); 
+    try {
+      elements.home.errorContainer.style.display = 'none';
+      showSkeleton(elements.home.listContainer, elements.skeletonItemTemplate, 6);
+      const text = await fetchSheetCached(config.sheets.katalog.name, 'json');
+      allCatalogData = parseGvizPairs(text);
+      if (allCatalogData.length === 0) throw new Error('Data is empty or format is incorrect.');
       const params = new URLSearchParams(window.location.search);
       const categoryFromUrl = params.get('kategori');
       if (categoryFromUrl && (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html'))) {
@@ -420,20 +420,35 @@ function enhanceCustomSelectKeyboard(wrapper){
           const foundKey = urlToCatKeyMap.get(categoryFromUrl);
           if (foundKey) state.home.activeCategory = foundKey;
       }
-      buildHomeCategorySelect(allCatalogData); 
-      renderHomeList(); 
-    } catch (err) { 
+      buildHomeCategorySelect(allCatalogData);
+      renderHomeList();
+    } catch (err) {
       if (err.name === 'AbortError') return;
-      console.error('Failed to load catalog:', err); 
+      console.error('Failed to load catalog:', err);
       const view = elements.home;
-      view.listContainer.innerHTML = ''; 
-      view.errorContainer.style.display = 'block'; 
+      view.listContainer.innerHTML = '';
+      view.errorContainer.style.display = 'block';
       view.errorContainer.textContent = 'Oops, terjadi kesalahan. Silakan coba lagi nanti.';
-    } 
+    }
   }
   function calculateFee(price, option) { if (option.feeType === 'fixed') return option.value; if (option.feeType === 'percentage') return Math.ceil(price * option.value); return 0; }
   function updatePriceDetails() { const selectedOptionId = document.querySelector('input[name="payment"]:checked')?.value; if (!selectedOptionId) return; const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId); if (!currentSelectedItem || !selectedOption) return; const price = currentSelectedItem.price; const fee = calculateFee(price, selectedOption); const total = price + fee; elements.paymentModal.fee.textContent = formatToIdr(fee); elements.paymentModal.total.textContent = formatToIdr(total); updateWaLink(selectedOption, fee, total); }
-  function updateWaLink(option, fee, total) { const { catLabel = "Produk", title, price } = currentSelectedItem; const text = [ config.waGreeting, `â€º Tipe: ${catLabel}`, `â€º Item: ${title}`, `â€º Pembayaran: ${option.name}`, `â€º Harga: ${formatToIdr(price)}`, `â€º Fee: ${formatToIdr(fee)}`, `â€º Total: ${formatToIdr(total)}`, ].join('\n'); elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`; }
+
+  // Fungsi updateWaLink menggunakan karakter › sesuai permintaan
+  function updateWaLink(option, fee, total) {
+    const { catLabel = "Produk", title, price } = currentSelectedItem;
+    const text = [
+      config.waGreeting,
+      `› Tipe: ${catLabel}`,
+      `› Item: ${title}`,
+      `› Pembayaran: ${option.name}`,
+      `› Harga: ${formatToIdr(price)}`,
+      `› Fee: ${formatToIdr(fee)}`,
+      `› Total: ${formatToIdr(total)}`,
+    ].join('\n');
+    elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`;
+  }
+
   function openPaymentModal(item) {
     const pageContainer = document.getElementById('pageContainer');
     const modalContentEl = document.querySelector('#paymentModal .modal-content');
@@ -513,28 +528,28 @@ function enhanceCustomSelectKeyboard(wrapper){
     listContainer.appendChild(fragment);
     updatePreorderPagination(state.preorder.currentPage, totalPages);
   }
-  async function fetchPreorderData(sheetName) { 
+  async function fetchPreorderData(sheetName) {
     if (preorderFetchController) preorderFetchController.abort();
     preorderFetchController = new AbortController();
-    elements.preorder.total.textContent = 'Memuat data...'; 
-    showSkeleton(elements.preorder.listContainer, elements.skeletonCardTemplate, 5); 
-    state.preorder.displayMode = sheetName === config.sheets.preorder.name1 ? 'detailed' : 'simple'; 
-    try { 
-      const text = await fetchSheetCached(sheetName, 'csv'); 
+    elements.preorder.total.textContent = 'Memuat data...';
+    showSkeleton(elements.preorder.listContainer, elements.skeletonCardTemplate, 5);
+    state.preorder.displayMode = sheetName === config.sheets.preorder.name1 ? 'detailed' : 'simple';
+    try {
+      const text = await fetchSheetCached(sheetName, 'csv');
       let rows = robustCsvParser(text);
       rows.shift();
       const statusOrder = { progress: 1, pending: 2, success: 3, failed: 4 };
       const statusIndex = state.preorder.displayMode === 'detailed' ? 6 : 2;
       state.preorder.allData = rows.filter(row => row && (row[0] || '').trim()).sort((a, b) => statusOrder[normalizeStatus(a[statusIndex])] - statusOrder[normalizeStatus(b[statusIndex])]);
-    } catch (e) { 
+    } catch (e) {
       if (e.name === 'AbortError') return;
-      state.preorder.allData = []; 
-      elements.preorder.total.textContent = 'Gagal memuat data.'; 
-      console.error('Fetch Pre-Order failed:', e); 
-    } finally { 
-      state.preorder.currentPage = 1; 
-      renderPreorderCards(); 
-    } 
+      state.preorder.allData = [];
+      elements.preorder.total.textContent = 'Gagal memuat data.';
+      console.error('Fetch Pre-Order failed:', e);
+    } finally {
+      state.preorder.currentPage = 1;
+      renderPreorderCards();
+    }
   }
   function initializePreorder() {
     if (state.preorder.initialized) return;
@@ -641,23 +656,23 @@ function enhanceCustomSelectKeyboard(wrapper){
     cardGrid.appendChild(fragment);
     initializeCarousels(cardGrid);
   }
-  async function initializeAccounts() { 
+  async function initializeAccounts() {
     if (state.accounts.initialized) return;
     state.accounts.initialized = true;
-    const { cardGrid, error, empty } = elements.accounts; 
+    const { cardGrid, error, empty } = elements.accounts;
     error.style.display = 'none'; empty.style.display = 'none';
     cardGrid.innerHTML = '';
-    try { 
+    try {
       const accText = await fetchSheetCached(config.sheets.accounts.name, 'csv');
-      state.accounts.allData = await parseAccountsSheet(accText); 
+      state.accounts.allData = await parseAccountsSheet(accText);
       populateAccountCategorySelect();
       renderAccountCards();
-    } catch (err) { 
+    } catch (err) {
       if (err.name === 'AbortError') return;
-      console.error('Fetch Accounts failed:', err); 
-      error.textContent = 'Gagal memuat data akun. Coba lagi nanti.'; 
-      error.style.display = 'block'; 
-    } 
+      console.error('Fetch Accounts failed:', err);
+      error.textContent = 'Gagal memuat data akun. Coba lagi nanti.';
+      error.style.display = 'block';
+    }
   }
   async function initializeLibrary() {
     const container = getElement('libraryGridContainer');
@@ -666,7 +681,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     try {
       const libText = await fetchSheetCached('Sheet6', 'csv');
       const rows = robustCsvParser(libText);
-      rows.shift(); 
+      rows.shift();
       const books = rows.filter(r => r && r[0]).map(r => ({ title: r[0], coverUrl: r[1], bookUrl: r[2] }));
       if (!books || books.length === 0) { container.innerHTML = '<div class="empty">Belum ada buku yang ditambahkan.</div>'; return; }
       const fragment = document.createDocumentFragment();
@@ -689,7 +704,7 @@ function enhanceCustomSelectKeyboard(wrapper){
   async function initializeCarousell() {
     if (state.carousell.initialized) return;
     const { gridContainer, error } = elements.carousell;
-    gridContainer.innerHTML = ''; 
+    gridContainer.innerHTML = '';
     error.style.display = 'none';
     elements.carousell.searchInput = getElement('carousellSearchInput');
     elements.carousell.total = getElement('carousellTotal');
@@ -728,7 +743,7 @@ function enhanceCustomSelectKeyboard(wrapper){
       const container = elements.carousell.gridContainer;
       const totalEl = elements.carousell.total;
       const query = state.carousell.searchQuery || '';
-      const filteredProducts = query 
+      const filteredProducts = query
           ? products.filter(p => p.productNumber.includes(query))
           : products;
       if (products.length > 0) {
@@ -737,9 +752,9 @@ function enhanceCustomSelectKeyboard(wrapper){
       } else {
         totalEl.style.display = 'none';
       }
-      if (!filteredProducts || filteredProducts.length === 0) { 
-          container.innerHTML = '<div class="empty">Belum ada produk di Carousell.</div>'; 
-          return; 
+      if (!filteredProducts || filteredProducts.length === 0) {
+          container.innerHTML = '<div class="empty">Belum ada produk di Carousell.</div>';
+          return;
       }
       container.innerHTML = '';
       const fragment = document.createDocumentFragment();
@@ -794,7 +809,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     const marquee = section.querySelector('.testi-marquee');
     const track = section.querySelector('#testiTrack');
     if (!marquee || !track) return;
-  
+
     try {
       const csv = await fetchSheetCached('Sheet7', 'csv');
       const rows = robustCsvParser(csv);
@@ -810,7 +825,7 @@ function enhanceCustomSelectKeyboard(wrapper){
       track.innerHTML = '';
       track.appendChild(pp_makeNodes(items));
       track.appendChild(pp_makeNodes(items));
-  
+
       let pos = 0;
       let isDragging = false;
       let startX = 0;
@@ -823,7 +838,7 @@ function enhanceCustomSelectKeyboard(wrapper){
       // ---------------------------------
 
       const firstHalfWidth = track.scrollWidth / 2;
-  
+
       function animate() {
         if (prefersReducedMotion || document.hidden) { return; }
         if (!isDragging) {
@@ -835,7 +850,7 @@ function enhanceCustomSelectKeyboard(wrapper){
         track.style.transform = `translateX(${pos}px)`;
         animationFrameId = requestAnimationFrame(animate);
       }
-  
+
       function onDragStart(e) {
         isDragging = true;
         marquee.classList.add('is-grabbing');
@@ -847,7 +862,7 @@ function enhanceCustomSelectKeyboard(wrapper){
         window.addEventListener('mouseup', onDragEnd);
         window.addEventListener('touchend', onDragEnd);
       }
-  
+
       function onDragMove(e) {
         if (!isDragging) return;
         e.preventDefault();
@@ -856,7 +871,7 @@ function enhanceCustomSelectKeyboard(wrapper){
         pos = startPos + diff;
         track.style.transform = `translateX(${pos}px)`;
       }
-  
+
       function onDragEnd() {
         isDragging = false;
         marquee.classList.remove('is-grabbing');
@@ -870,13 +885,13 @@ function enhanceCustomSelectKeyboard(wrapper){
         window.removeEventListener('mouseup', onDragEnd);
         window.removeEventListener('touchend', onDragEnd);
       }
-  
+
       marquee.addEventListener('mousedown', onDragStart);
       document.addEventListener('visibilitychange', ()=>{ if (document.hidden) { cancelAnimationFrame(animationFrameId); } else { animate(); } });
       marquee.addEventListener('touchstart', onDragStart, { passive: true });
-  
+
       animate();
-  
+
     } catch (err) {
       console.error('Testimonials error:', err);
       if (section) section.style.display = 'none';
