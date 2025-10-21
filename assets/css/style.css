@@ -73,7 +73,15 @@ body.sidebar-open .page-container { filter: blur(5px); transform: scale(0.99); }
 .header-logo-link { display: flex; align-items: center; gap: var(--sp-fib-4); text-decoration: none; color: var(--text-primary); }
 .header-logo { height: 36px; width: 36px; object-fit: contain; }
 .header-title { font-weight: 800; font-size: 20px; display: none; }
-@media (min-width: 769px) { .header-title { display: block; } }
+@media (min-width: 769px) { 
+  .header-title { display: block; } 
+  .account-card-grid { 
+    grid-template-columns: repeat(2, 1fr); /* Aturan desktop: 2 kolom */
+  } 
+  .affiliate-grid {
+    grid-template-columns: repeat(3, 1fr); /* Aturan desktop: 3 kolom */
+  }
+}
 .header-actions { display: flex; align-items: center; gap: var(--sp-fib-3); }
 .icon-btn { position: relative; display: grid; place-content: center; width: 44px; height: 44px; background: transparent; border: 1px solid transparent; border-radius: var(--radius-fib-small); color: var(--text-secondary); cursor: pointer; transition: background-color var(--duration-fast), color var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast); }
 .icon-btn:hover { background: var(--surface-secondary); color: var(--brand-blue); }
@@ -154,9 +162,9 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 #viewPreorder .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--sp-fib-5); }
 #viewPreorder .detail-label { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-tertiary); }
 #viewPreorder .detail-value { font-size: 14px; font-weight: 700; }
-.account-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-fib-5); margin-top: var(--sp-fib-5); }
-.affiliate-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-fib-5); margin-top: var(--sp-fib-5); }
-/* Aturan @media(min-width: 769px) untuk grid ini dihapus karena sudah diatur di atas (mobile-first) */
+.account-card-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-fib-5); margin-top: var(--sp-fib-5); } /* Aturan mobile: 1 kolom */
+.affiliate-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-fib-5); margin-top: var(--sp-fib-5); } /* Aturan mobile: 1 kolom */
+
 .account-card, .affiliate-card { background: var(--surface-primary); border: 1px solid var(--separator); border-radius: var(--radius-fib-medium); box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column; transition: box-shadow var(--duration-natural); }
 .account-card:hover, .affiliate-card:hover { box-shadow: 0 13px 21px rgba(48, 57, 82, 0.1); }
 .account-card { padding: var(--sp-fib-4); gap: var(--sp-fib-4); }
@@ -247,10 +255,9 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 .wa-button { display: block; width: 100%; margin-top: var(--sp-fib-5); padding: var(--sp-fib-4); padding-bottom: max(var(--sp-fib-4), env(safe-area-inset-bottom)); background-color: var(--brand-blue); color: #fff; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; border-radius: var(--radius-fib-small); }
 .library-grid { 
   display: grid; 
-  grid-template-columns: repeat(3, 1fr); /* Sesuai permintaan: 3 card per baris (mobile & desktop) */
+  grid-template-columns: repeat(3, 1fr); /* Aturan 3 kolom untuk semua ukuran layar */
   gap: var(--sp-fib-4); 
 }
-/* Aturan @media (min-width: 768px) dihapus karena 3 kolom sekarang menjadi default */
 .book-card { position: relative; border: none; padding: 0; cursor: pointer; border-radius: var(--radius-fib-medium); overflow: hidden; aspect-ratio: 3 / 4; transition: transform var(--duration-fast); }
 .book-card:hover { transform: scale(1.05); }
 .book-card .cover { width: 100%; height: 100%; object-fit: cover; }
