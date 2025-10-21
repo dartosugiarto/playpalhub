@@ -241,7 +241,7 @@ function enhanceCustomSelectKeyboard(wrapper){
             return '<br>';
         } else if (trimmedLine.endsWith(':')) {
             return `<p class="spec-title">${trimmedLine.slice(0, -1)}</p>`;
-        } else if (trimmedLine.startsWith('›')) { // Menggunakan ›
+        } else if (trimmedLine.startsWith('\u203A')) { // Menggunakan Unicode Escape
             return `<p class="spec-item spec-item-arrow">${trimmedLine.substring(1).trim()}</p>`;
         } else if (trimmedLine.startsWith('-')) {
             return `<p class="spec-item spec-item-dash">${trimmedLine.substring(1).trim()}</p>`;
@@ -434,17 +434,17 @@ function enhanceCustomSelectKeyboard(wrapper){
   function calculateFee(price, option) { if (option.feeType === 'fixed') return option.value; if (option.feeType === 'percentage') return Math.ceil(price * option.value); return 0; }
   function updatePriceDetails() { const selectedOptionId = document.querySelector('input[name="payment"]:checked')?.value; if (!selectedOptionId) return; const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId); if (!currentSelectedItem || !selectedOption) return; const price = currentSelectedItem.price; const fee = calculateFee(price, selectedOption); const total = price + fee; elements.paymentModal.fee.textContent = formatToIdr(fee); elements.paymentModal.total.textContent = formatToIdr(total); updateWaLink(selectedOption, fee, total); }
 
-  // Fungsi updateWaLink menggunakan karakter › sesuai permintaan
+  // Fungsi updateWaLink menggunakan Unicode Escape \u203A
   function updateWaLink(option, fee, total) {
     const { catLabel = "Produk", title, price } = currentSelectedItem;
     const text = [
       config.waGreeting,
-      `› Tipe: ${catLabel}`,
-      `› Item: ${title}`,
-      `› Pembayaran: ${option.name}`,
-      `› Harga: ${formatToIdr(price)}`,
-      `› Fee: ${formatToIdr(fee)}`,
-      `› Total: ${formatToIdr(total)}`,
+      `\u203A Tipe: ${catLabel}`,         // Menggunakan Unicode Escape
+      `\u203A Item: ${title}`,           // Menggunakan Unicode Escape
+      `\u203A Pembayaran: ${option.name}`, // Menggunakan Unicode Escape
+      `\u203A Harga: ${formatToIdr(price)}`, // Menggunakan Unicode Escape
+      `\u203A Fee: ${formatToIdr(fee)}`,     // Menggunakan Unicode Escape
+      `\u203A Total: ${formatToIdr(total)}`, // Menggunakan Unicode Escape
     ].join('\n');
     elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`;
   }
