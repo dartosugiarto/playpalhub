@@ -155,7 +155,14 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 #viewPreorder .detail-label { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-tertiary); }
 #viewPreorder .detail-value { font-size: 14px; font-weight: 700; }
 .account-card-grid, .affiliate-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-fib-5); margin-top: var(--sp-fib-5); }
-@media(min-width: 769px) { .account-card-grid, .affiliate-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
+@media(min-width: 769px) { 
+  .account-card-grid { 
+    grid-template-columns: repeat(2, 1fr); /* Sesuai permintaan: 2 card per baris */
+  } 
+  .affiliate-grid {
+    grid-template-columns: repeat(3, 1fr); /* Sesuai permintaan: 3 card per baris */
+  }
+}
 .account-card, .affiliate-card { background: var(--surface-primary); border: 1px solid var(--separator); border-radius: var(--radius-fib-medium); box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column; transition: box-shadow var(--duration-natural); }
 .account-card:hover, .affiliate-card:hover { box-shadow: 0 13px 21px rgba(48, 57, 82, 0.1); }
 .account-card { padding: var(--sp-fib-4); gap: var(--sp-fib-4); }
@@ -249,7 +256,7 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
   gap: var(--sp-fib-4); 
 }
-@media (min-width: 768px) { .library-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 768px) { .library-grid { grid-template-columns: repeat(3, 1fr); /* Sesuai permintaan: 3 card per baris */ } }
 .book-card { position: relative; border: none; padding: 0; cursor: pointer; border-radius: var(--radius-fib-medium); overflow: hidden; aspect-ratio: 3 / 4; transition: transform var(--duration-fast); }
 .book-card:hover { transform: scale(1.05); }
 .book-card .cover { width: 100%; height: 100%; object-fit: cover; }
