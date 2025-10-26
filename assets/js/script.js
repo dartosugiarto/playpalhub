@@ -12,6 +12,7 @@
     waGreeting: '*Detail pesanan:*',
     paymentOptions: [
       { id: 'seabank', name: 'Seabank', feeType: 'fixed', value: 0 },
+      { id: 'shopeepay', name: 'ShopeePay', feeType: 'fixed', value: 0 },
       { id: 'gopay', name: 'Gopay', feeType: 'fixed', value: 0 },
       { id: 'dana', name: 'Dana', feeType: 'fixed', value: 125 },
       { id: 'bank_to_dana', name: 'Bank ke Dana', feeType: 'fixed', value: 500 },
@@ -268,25 +269,33 @@ function enhanceCustomSelectKeyboard(wrapper){
   function initializeApp() {
     elements.sidebar.burger?.addEventListener('click', () => toggleSidebar());
     elements.sidebar.overlay?.addEventListener('click', () => toggleSidebar(false));
+
+    // Logika navigasi 'donasi' (link eksternal) masih diperlukan
     elements.navLinks.forEach(link => {
       link.addEventListener('click', e => {
-        if (link.dataset.mode) {
+        if (link.dataset.mode === 'donasi') {
           e.preventDefault();
-          setMode(link.dataset.mode);
+          window.open('https://saweria.co/playpal', '_blank', 'noopener');
         }
       });
     });
+
     [elements.home.customSelect, elements.preorder.customSelect, elements.preorder.customStatusSelect, elements.accounts.customSelect]
       .filter(select => select && select.btn)
       .forEach(select => {
         select.btn.addEventListener('click', (e) => { e.stopPropagation(); toggleCustomSelect(select.wrapper); });
         enhanceCustomSelectKeyboard(select.wrapper);
       });
-    let homeDebounce;
-    elements.home.searchInput.addEventListener('input', e => {
-      clearTimeout(homeDebounce);
-      homeDebounce = setTimeout(() => { state.home.searchQuery = e.target.value.trim(); renderHomeList(); }, 200);
-    });
+    
+    // Pastikan elemen ini ada sebelum menambahkan listener
+    if (elements.home.searchInput) {
+      let homeDebounce;
+      elements.home.searchInput.addEventListener('input', e => {
+        clearTimeout(homeDebounce);
+        homeDebounce = setTimeout(() => { state.home.searchQuery = e.target.value.trim(); renderHomeList(); }, 200);
+      });
+    }
+
     elements.paymentModal.closeBtn.addEventListener('click', closePaymentModal);
     elements.paymentModal.modal.addEventListener('click', e => { if (e.target === elements.paymentModal.modal) closePaymentModal(); });
     document.addEventListener('keydown', (e)=>{ if (e.key==='Escape'){ [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper].filter(Boolean).forEach(w=>toggleCustomSelect(w,false)); } });
@@ -295,14 +304,28 @@ function enhanceCustomSelectKeyboard(wrapper){
         .filter(wrapper => wrapper)
         .forEach(wrapper => toggleCustomSelect(wrapper, false));
     });
-    loadCatalog();
-    window.addEventListener('popstate', (event) => {
-        const mode = (window.location.pathname.substring(1).toLowerCase() || 'home');
-        if (event.state || mode) setMode(mode, true);
-    });
-    const validModes = ['home', 'preorder', 'accounts', 'perpustakaan', 'carousell'];
-    const initialMode = window.location.pathname.substring(1).toLowerCase() || 'home';
-    setMode(validModes.includes(initialMode) ? initialMode : 'home', true);
+
+    // Inisialisasi berdasarkan halaman saat ini
+    if (elements.viewHome) {
+      loadCatalog();
+    }
+    if (elements.viewPreorder) {
+      initializePreorder();
+    }
+    if (elements.viewAccounts) {
+      initializeAccounts();
+    }
+    if (elements.viewPerpustakaan) {
+      if (getElement('libraryGridContainer') && !getElement('libraryGridContainer').innerHTML.trim()) {
+        initializeLibrary();
+      }
+    }
+    if (elements.viewCarousell) {
+      initializeCarousell();
+    }
+    
+    // HAPUS LOGIKA testimonialSection DARI SINI
+
     elements.headerStatusIndicator.style.display = 'inline-flex';
     updateHeaderStatus();
     setInterval(updateHeaderStatus, 60000);
@@ -333,39 +356,8 @@ function enhanceCustomSelectKeyboard(wrapper){
     window.scrollTo(0, y);
   }
 }
-  let setMode = function(nextMode, fromPopState = false) {
-    if (nextMode === 'donasi') {
-      window.open('https://saweria.co/playpal', '_blank', 'noopener');
-      return;
-    }
-    const viewMap = { home: elements.viewHome, preorder: elements.viewPreorder, accounts: elements.viewAccounts, perpustakaan: elements.viewPerpustakaan, carousell: elements.viewCarousell };
-    const nextView = viewMap[nextMode];
-    if (!nextView) return;
-    const testimonialSection = document.getElementById('testimonialSection');
-    if (testimonialSection) {
-      testimonialSection.style.display = nextMode === 'home' ? 'block' : 'none';
-    }
-    const pageName = nextMode.charAt(0).toUpperCase() + nextMode.slice(1);
-    if (!fromPopState) {
-        const search = window.location.search;
-        const path = nextMode === 'home' ? `/${search}` : `/${nextMode}${search}`;
-        history.pushState({ mode: nextMode }, `PlayPal.ID - ${pageName}`, path);
-    }
-    document.title = `PlayPal.ID - ${pageName}`;
-    document.querySelector('.view-section.active')?.classList.remove('active');
-    nextView.classList.add('active');
-    elements.navLinks.forEach(link => {
-        const isActive = link.dataset.mode === nextMode;
-        link.classList.toggle('active', isActive);
-        isActive ? link.setAttribute('aria-current', 'page') : link.removeAttribute('aria-current');
-    });
-    if (window.innerWidth < 769) toggleSidebar(false);
-    window.scrollTo({ top: 0, behavior: (prefersReducedMotion || fromPopState) ? 'auto' : 'smooth' });
-    if (nextMode === 'preorder' && !state.preorder.initialized) initializePreorder();
-    if (nextMode === 'accounts' && !state.accounts.initialized) initializeAccounts();
-    if (nextMode === 'perpustakaan' && !getElement('libraryGridContainer').innerHTML.trim()) initializeLibrary();
-    if (nextMode === 'carousell' && !state.carousell.initialized) initializeCarousell();
-  }
+  // FUNGSI setMode() SUDAH DIHAPUS
+
   function parseGvizPairs(jsonText) { const match = jsonText.match(/\{.*\}/s); if (!match) throw new Error('Invalid GViz response.'); const obj = JSON.parse(match[0]); const { rows = [], cols = [] } = obj.table || {}; const pairs = Array.from({ length: Math.floor(cols.length / 2) }, (_, i) => ({ iTitle: i * 2, iPrice: i * 2 + 1, label: cols[i * 2]?.label || '', })).filter(p => p.label && cols[p.iPrice]); const out = []; for (const r of rows) { const c = r.c || []; for (const p of pairs) { const title = String(c[p.iTitle]?.v || '').trim(); const priceRaw = c[p.iPrice]?.v; const price = priceRaw != null && priceRaw !== '' ? Number(priceRaw) : NaN; if (title && !isNaN(price)) { out.push({ catKey: p.label, catLabel: String(p.label || '').trim().replace(/\s+/g, ' '), title, price, }); } } } return out; }
   function buildHomeCategorySelect(catalogData) {
     const { options, value } = elements.home.customSelect;
@@ -465,7 +457,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     optionsContainer.innerHTML = '';
     config.paymentOptions.forEach((option, index) => {
       const fee = calculateFee(item.price, option);
-      optionsContainer.insertAdjacentHTML('beforeend', ` <div class="payment-option"> <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}> <label for="${option.id}" tabindex="0"> ${option.name} <span style="float: right;">+ ${formatToIdr(fee)}</span> </label> </div>`);
+      optionsContainer.insertAdjacentHTML('beforeend', ` <div class="payment-option"> <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}> <label for="${option.id}" tabindex="0"> ${option.name} <span style="float: right;">+ ${formatToIdr(fee)}</span> </label> D</div>`);
     });
     optionsContainer.querySelectorAll('input[name="payment"]').forEach(input => input.addEventListener('change', updatePriceDetails));
     updatePriceDetails();
@@ -900,6 +892,11 @@ function enhanceCustomSelectKeyboard(wrapper){
 
   document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
-    initializeTestimonialMarquee(); // Menggantikan loadTestimonials()
+    
+    // --- PERUBAHAN DI SINI ---
+    // Hanya jalankan skrip testimoni jika elemennya ada di halaman (yaitu, hanya di index.html)
+    if (document.getElementById('testimonialSection')) {
+      initializeTestimonialMarquee();
+    }
   });
 })();
