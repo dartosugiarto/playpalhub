@@ -457,7 +457,8 @@ function enhanceCustomSelectKeyboard(wrapper){
     optionsContainer.innerHTML = '';
     config.paymentOptions.forEach((option, index) => {
       const fee = calculateFee(item.price, option);
-      optionsContainer.insertAdjacentHTML('beforeend', ` <div class="payment-option"> <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}> <label for="${option.id}" tabindex="0"> ${option.name} <span style="float: right;">+ ${formatToIdr(fee)}</span> </label> D</div>`);
+      // --- PERUBAHAN DI SINI: Huruf 'D' di akhir div telah dihapus ---
+      optionsContainer.insertAdjacentHTML('beforeend', ` <div class="payment-option"> <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}> <label for="${option.id}" tabindex="0"> ${option.name} <span style="float: right;">+ ${formatToIdr(fee)}</span> </label> </div>`);
     });
     optionsContainer.querySelectorAll('input[name="payment"]').forEach(input => input.addEventListener('change', updatePriceDetails));
     updatePriceDetails();
