@@ -1,3 +1,17 @@
+/*
+  =============================
+  PlayPal.ID Final Script
+  Versi: 2.0.0
+  
+  Pembaruan:
+  - Mengaktifkan halaman Pre Order (Sheet1, Sheet2)
+  - Mengaktifkan halaman Akun Game (Sheet5)
+  - Mengaktifkan halaman Carousell (Sheet8)
+  - Mengaktifkan halaman Perpustakaan (Sheet_Perpus - *Perlu Konfigurasi*)
+  - Menambahkan parser CSV modular, error handling, dan state management
+    untuk semua halaman.
+  =============================
+*/
 (function () {
   'use strict';
 
@@ -8,9 +22,11 @@
     sheetId: '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw',
     sheets: {
       katalog: { name: 'Sheet3' },
-      preorder: { name1: 'Sheet1', name2: 'Sheet2' },   // disiapkan, tidak diinit di versi ini
-      accounts: { name: 'Sheet5' },                      // disiapkan, tidak diinit di versi ini
-      affiliate: { name: 'Sheet8' }                      // disiapkan, tidak diinit di versi ini
+      preorder: { name1: 'Sheet1', name2: 'Sheet2' },
+      accounts: { name: 'Sheet5' },
+      affiliate: { name: 'Sheet8' },
+      // TODO: Harap ganti 'Sheet_Perpus' dengan nama sheet Anda yang sebenarnya untuk data perpustakaan
+      perpustakaan: { name: 'Sheet_Perpus' } 
     },
     waNumber: '6285877001999',
     waGreeting: '*Detail pesanan:*',
@@ -26,17 +42,39 @@
 
   const state = {
     home: { activeCategory: '', searchQuery: '' },
-    preorder: { initialized: false, allData: [], currentPage: 1, perPage: 15, displayMode: 'detailed' },
-    accounts: { initialized: false, allData: [], activeCategory: 'Semua Kategori' },
-    carousell: { initialized: false, allData: [], searchQuery: '' }
+    preorder: { 
+      initialized: false, 
+      allData: [], 
+      currentPage: 1, 
+      perPage: 15, 
+      activeSheet: '0', // '0' untuk name1, '1' untuk name2
+      searchQuery: '',
+      statusFilter: 'all'
+    },
+    accounts: { 
+      initialized: false, 
+      allData: [], 
+      activeCategory: 'Semua Kategori' 
+    },
+    carousell: { 
+      initialized: false, 
+      allData: [], 
+      searchQuery: '' 
+    },
+    perpustakaan: {
+      initialized: false,
+      allData: []
+    }
   };
 
   let allCatalogData = [];
   let currentSelectedItem = null;
 
   let catalogFetchController;
-  let preorderFetchController;   // reserved
-  let accountsFetchController;   // reserved
+  let preorderFetchController;
+  let accountsFetchController;
+  let carousellFetchController;
+  let perpustakaanFetchController;
 
   let modalFocusTrap = { listener: null, focusableEls: [], firstEl: null, lastEl: null };
   let elementToFocusOnModalClose = null;
@@ -83,6 +121,7 @@
     itemTemplate: getElement('itemTemplate'),
     skeletonItemTemplate: getElement('skeletonItemTemplate'),
     skeletonCardTemplate: getElement('skeletonCardTemplate'),
+    accountCardTemplate: getElement('accountCardTemplate'), // Diperlukan untuk Akun Game
 
     // Payment modal
     paymentModal: {
@@ -96,10 +135,10 @@
       waBtn: getElement('continueToWaBtn'),
     },
 
-    // Preorder (reserved)
+    // Preorder
     preorder: {
       searchInput: getElement('preorderSearchInput'),
-      statusSelect: getElement('preorderStatusSelect'),
+      statusSelect: getElement('preorderStatusSelect'), // Fallback, tidak digunakan jika custom select ada
       listContainer: getElement('preorderListContainer'),
       prevBtn: getElement('preorderPrevBtn'),
       nextBtn: getElement('preorderNextBtn'),
@@ -119,10 +158,9 @@
       }
     },
 
-    // Accounts (reserved)
+    // Accounts
     accounts: {
       cardGrid: getElement('accountCardGrid'),
-      cardTemplate: getElement('accountCardTemplate'),
       empty: getElement('accountEmpty'),
       error: getElement('accountError'),
       customSelect: {
@@ -133,12 +171,18 @@
       },
     },
 
-    // Carousell (reserved)
+    // Carousell
     carousell: {
       gridContainer: getElement('carousellGridContainer'),
       error: getElement('carousellError'),
       searchInput: getElement('carousellSearchInput'),
       total: getElement('carousellTotal'),
+    },
+    
+    // Perpustakaan
+    perpustakaan: {
+      gridContainer: getElement('libraryGridContainer'),
+      error: getElement('libraryError'),
     }
   };
 
@@ -156,6 +200,14 @@
     div.textContent = String(str ?? '');
     return div.innerHTML;
   }
+  
+  function debounce(func, delay = 300) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+  }
 
   function getSheetUrl(sheetName, format = 'json') {
     const baseUrl = `https://docs.google.com/spreadsheets/d/${config.sheetId}/gviz/tq`;
@@ -165,22 +217,38 @@
       : `${baseUrl}?sheet=${encodedSheetName}&tqx=out:json`;
   }
 
-  async function fetchSheetCached(sheetName, format = 'json') {
-    const url = getSheetUrl(sheetName, format === 'csv' ? 'csv' : 'json');
+  async function fetchSheetCached(sheetName, format = 'json', signal) {
+    const url = getSheetUrl(sheetName, format);
     const key = `pp_cache_${sheetName}_${format}`;
     const cached = sessionStorage.getItem(key);
-
+    
+    const fetchOptions = { signal };
     if (cached) {
       // background revalidate
-      try { fetch(url).then(r => r.text()).then(t => sessionStorage.setItem(key, t)); } catch (e) {}
+      try { 
+        fetch(url, fetchOptions)
+          .then(r => r.text())
+          .then(t => { if (t) sessionStorage.setItem(key, t); })
+          .catch(err => { if (err.name !== 'AbortError') console.warn('Cache revalidation failed', err); });
+      } catch (e) {}
       return cached;
     }
 
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Network error: ${res.statusText}`);
-    const text = await res.text();
-    sessionStorage.setItem(key, text);
-    return text;
+    try {
+      const res = await fetch(url, fetchOptions);
+      if (!res.ok) throw new Error(`Network error: ${res.statusText}`);
+      const text = await res.text();
+      if (text) {
+        sessionStorage.setItem(key, text);
+      }
+      return text;
+    } catch (err) {
+       if (err.name === 'AbortError') {
+        console.log('Fetch aborted');
+        return null; // Return null or empty string if aborted
+      }
+      throw err; // Re-throw other errors
+    }
   }
 
   function showSkeleton(container, template, count = 6) {
@@ -249,18 +317,35 @@
         }
       } else {
         if (char === '"') { inQuotedField = true; }
-        else if (char === ',') { currentRow.push(currentField); currentField = ''; }
-        else if (char === '\n') { currentRow.push(currentField); rows.push(currentRow); currentRow = []; currentField = ''; }
+        else if (char === ',') { currentRow.push(currentField.trim()); currentField = ''; }
+        else if (char === '\n') { currentRow.push(currentField.trim()); rows.push(currentRow); currentRow = []; currentField = ''; }
         else { currentField += char; }
       }
     }
-    currentRow.push(currentField);
+    currentRow.push(currentField.trim());
     rows.push(currentRow);
     return rows;
   }
+  
+  /**
+   * Mengubah data CSV (array dari array) menjadi array objek, menggunakan baris pertama sebagai header.
+   */
+  function csvToObjects(csvData) {
+    if (!csvData || csvData.length < 2) return [];
+    const headers = csvData[0].map(h => h.toLowerCase().trim());
+    const dataRows = csvData.slice(1);
+    
+    return dataRows.map(row => {
+      const obj = {};
+      headers.forEach((header, index) => {
+        obj[header] = row[index] || '';
+      });
+      return obj;
+    });
+  }
 
   // =========================
-  // KATALOG PIPELINE
+  // KATALOG PIPELINE (HOME)
   // =========================
   function parseGvizPairs(jsonText) {
     const match = jsonText.match(/\{.*\}/s);
@@ -306,21 +391,16 @@
 
     const frag = document.createDocumentFragment();
     for (const item of items) {
-      // Pakai template kalau ada; kalau tidak, fallback
       if (elements.itemTemplate?.content) {
         const clone = elements.itemTemplate.content.cloneNode(true);
         const buttonEl = clone.querySelector('.list-item');
         buttonEl.querySelector('.title').textContent = item.title;
         buttonEl.querySelector('.price').textContent = formatToIdr(item.price);
-        buttonEl.addEventListener('click', () => openPaymentModal(item));
+        buttonEl.addEventListener('click', () => {
+          elementToFocusOnModalClose = buttonEl; // Simpan fokus
+          openPaymentModal(item);
+        });
         frag.appendChild(clone);
-      } else {
-        const btn = document.createElement('button');
-        btn.className = 'list-item';
-        btn.innerHTML = `<span class="title">${sanitizeHTML(item.title)}</span>
-                         <span class="price">${formatToIdr(item.price)}</span>`;
-        btn.addEventListener('click', () => openPaymentModal(item));
-        frag.appendChild(btn);
       }
     }
     container.appendChild(frag);
@@ -372,7 +452,7 @@
   }
 
   async function loadCatalog() {
-    if (!elements.home?.listContainer) return; // kalau view home tidak ada, skip
+    if (!elements.home?.listContainer) return;
     if (catalogFetchController) catalogFetchController.abort();
     catalogFetchController = new AbortController();
 
@@ -380,11 +460,12 @@
       elements.home.errorContainer && (elements.home.errorContainer.style.display = 'none');
       if (elements.skeletonItemTemplate) showSkeleton(elements.home.listContainer, elements.skeletonItemTemplate, 6);
 
-      const text = await fetchSheetCached(config.sheets.katalog.name, 'json');
+      const text = await fetchSheetCached(config.sheets.katalog.name, 'json', catalogFetchController.signal);
+      if (text === null) return; // Fetch dibatalkan
+      
       allCatalogData = parseGvizPairs(text);
       if (!allCatalogData.length) throw new Error('Katalog kosong / format tidak sesuai.');
 
-      // Set kategori default
       if (!state.home.activeCategory && allCatalogData[0]) {
         state.home.activeCategory = allCatalogData[0].catKey;
       }
@@ -392,6 +473,7 @@
       buildHomeCategorySelect(allCatalogData);
       renderHomeList();
     } catch (err) {
+      if (err.name === 'AbortError') return;
       console.error('Failed to load catalog:', err);
       if (elements.home.errorContainer) {
         elements.home.listContainer.innerHTML = '';
@@ -400,9 +482,636 @@
       }
     }
   }
+  
+  // =========================
+  // PREORDER PIPELINE
+  // =========================
+  
+  /**
+   * ASUMSI STRUKTUR DATA (CSV) 'Sheet1' & 'Sheet2':
+   * Kolom 1: Nama (nama)
+   * Kolom 2: IDServer (idserver)
+   * Kolom 3: Produk (produk)
+   * Kolom 4: Tanggal (tanggal)
+   * Kolom 5: Status (status) -> Teks harus: "Success", "Progress", "Pending", atau "Failed"
+   * Kolom 6: Catatan (catatan) -> Teks untuk detail (opsional)
+   */
+  function parsePreorderData(csvText) {
+    const csvData = robustCsvParser(csvText);
+    const objects = csvToObjects(csvData);
+    
+    return objects.map(item => ({
+      name: item.nama || 'N/A',
+      id: item.idserver || '',
+      product: item.produk || 'N/A',
+      date: item.tanggal || '',
+      status: (item.status || 'pending').toLowerCase(),
+      notes: item.catatan || 'Tidak ada catatan tambahan.'
+    })).filter(item => item.name !== 'N/A'); // Filter data yang valid
+  }
+  
+  function renderPreorderList() {
+    const { listContainer, prevBtn, nextBtn, pageInfo, total } = elements.preorder;
+    if (!listContainer) return;
+    
+    const { searchQuery, statusFilter } = state.preorder;
+    const query = searchQuery.toLowerCase();
+    
+    // 1. Filter data
+    const filteredData = state.preorder.allData.filter(item => {
+      const matchesSearch = query === '' ||
+        item.name.toLowerCase().includes(query) ||
+        item.id.includes(query);
+      const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+    
+    total.textContent = `${filteredData.length} pesanan ditemukan`;
+    
+    // 2. Terapkan paginasi
+    const { currentPage, perPage } = state.preorder;
+    const totalPages = Math.ceil(filteredData.length / perPage);
+    const start = (currentPage - 1) * perPage;
+    const end = start + perPage;
+    const pageData = filteredData.slice(start, end);
+    
+    // 3. Render
+    listContainer.innerHTML = '';
+    if (pageData.length === 0) {
+      listContainer.innerHTML = `<div class="empty"><p>Tidak ada pesanan yang cocok dengan kriteria Anda.</p></div>`;
+    }
+    
+    const frag = document.createDocumentFragment();
+    pageData.forEach(item => {
+      // Membuat card secara dinamis karena tidak ada template khusus di preorder.html
+      const card = document.createElement('article');
+      card.className = 'card clickable'; // 'clickable' dari style.css
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      
+      const statusClass = item.status.match(/^(success|progress|pending|failed)$/) ? item.status : 'pending';
+      
+      card.innerHTML = `
+        <div class="card-header">
+          <div>
+            <div class="card-name">${sanitizeHTML(item.name)}</div>
+            <div class="card-product">${sanitizeHTML(item.product)}</div>
+          </div>
+          <span class="status-badge ${statusClass}">${sanitizeHTML(item.status)}</span>
+        </div>
+        <div class="card-date">${sanitizeHTML(item.id ? `ID: ${item.id} • ` : '')}${sanitizeHTML(item.date)}</div>
+        <div class="card-details">
+          <div class="details-grid">
+            <div>
+              <div class="detail-label">Catatan</div>
+              <div class="detail-value">${sanitizeHTML(item.notes)}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      setupExpandableCard(card, '.card-header'); // Gunakan helper
+      frag.appendChild(card);
+    });
+    listContainer.appendChild(frag);
+    
+    // 4. Update UI Paginasi
+    pageInfo.textContent = `Hal ${currentPage} / ${totalPages > 0 ? totalPages : 1}`;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+  }
+  
+  async function fetchAndRenderPreorder() {
+    if (preorderFetchController) preorderFetchController.abort();
+    preorderFetchController = new AbortController();
+    
+    const { listContainer, total } = elements.preorder;
+    
+    try {
+      listContainer.innerHTML = '';
+      total.textContent = 'Memuat data...';
+      if (elements.skeletonCardTemplate) {
+        showSkeleton(listContainer, elements.skeletonCardTemplate, 5);
+      }
+      
+      const sheetName = state.preorder.activeSheet === '0' ? config.sheets.preorder.name1 : config.sheets.preorder.name2;
+      const csvText = await fetchSheetCached(sheetName, 'csv', preorderFetchController.signal);
+      
+      if (csvText === null) return; // Dibatalkan
+      
+      state.preorder.allData = parsePreorderData(csvText);
+      state.preorder.currentPage = 1; // Reset ke halaman 1
+      renderPreorderList();
+      
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.error('Failed to load preorder data:', err);
+      listContainer.innerHTML = `<div class="err"><p>Gagal memuat data pesanan.</p></div>`;
+      total.textContent = 'Gagal memuat';
+    }
+  }
+
+  function initializePreorder() {
+    if (state.preorder.initialized) return;
+    state.preorder.initialized = true;
+    
+    const { customSelect, customStatusSelect, searchInput, prevBtn, nextBtn } = elements.preorder;
+
+    // Listener untuk Tipe Pesanan
+    customSelect.options?.addEventListener('click', e => {
+      const target = e.target.closest('.custom-select-option');
+      if (!target) return;
+      
+      const value = target.dataset.value;
+      if (value === state.preorder.activeSheet) {
+        toggleCustomSelect(customSelect.wrapper, false);
+        return;
+      }
+      
+      state.preorder.activeSheet = value;
+      customSelect.value.textContent = target.textContent;
+      customSelect.options.querySelector('.selected')?.classList.remove('selected');
+      target.classList.add('selected');
+      toggleCustomSelect(customSelect.wrapper, false);
+      
+      fetchAndRenderPreorder();
+    });
+
+    // Listener untuk Status Pesanan
+    customStatusSelect.options?.addEventListener('click', e => {
+      const target = e.target.closest('.custom-select-option');
+      if (!target) return;
+
+      state.preorder.statusFilter = target.dataset.value;
+      customStatusSelect.value.textContent = target.textContent;
+      customStatusSelect.options.querySelector('.selected')?.classList.remove('selected');
+      target.classList.add('selected');
+      toggleCustomSelect(customStatusSelect.wrapper, false);
+      
+      state.preorder.currentPage = 1; // Reset halaman saat ganti filter
+      renderPreorderList();
+    });
+    
+    // Listener untuk Pencarian
+    searchInput.addEventListener('input', debounce(e => {
+      state.preorder.searchQuery = e.target.value.trim();
+      state.preorder.currentPage = 1; // Reset halaman saat mencari
+      renderPreorderList();
+    }, 300));
+    
+    // Listener Paginasi
+    prevBtn.addEventListener('click', () => {
+      if (state.preorder.currentPage > 1) {
+        state.preorder.currentPage--;
+        renderPreorderList();
+      }
+    });
+    nextBtn.addEventListener('click', () => {
+      const totalPages = Math.ceil(state.preorder.allData.length / state.preorder.perPage);
+      if (state.preorder.currentPage < totalPages) {
+        state.preorder.currentPage++;
+        renderPreorderList();
+      }
+    });
+
+    // Load data awal
+    fetchAndRenderPreorder();
+  }
 
   // =========================
-  // PAYMENT MODAL
+  // ACCOUNTS PIPELINE
+  // =========================
+  
+  /**
+   * ASUMSI STRUKTUR DATA (CSV) 'Sheet5':
+   * Kolom 1: ID (id) -> ID unik untuk item
+   * Kolom 2: Kategori (kategori) -> Teks kategori (e.g., "Mobile Legends", "Steam")
+   * Kolom 3: Harga (harga) -> Angka saja, tanpa "Rp" atau "."
+   * Kolom 4: Status (status) -> Teks harus "Tersedia" atau "Terjual"
+   * Kolom 5: Images (images) -> Link URL gambar, dipisah koma (",") jika lebih dari satu
+   * Kolom 6: Deskripsi (deskripsi) -> Teks deskripsi, gunakan "||" untuk baris baru (sesuai helper formatDescriptionToHTML)
+   */
+  function parseAccountData(csvText) {
+    const csvData = robustCsvParser(csvText);
+    const objects = csvToObjects(csvData);
+    
+    return objects.map(item => ({
+      id: item.id || `acc-${Math.random()}`,
+      category: item.kategori || 'Lainnya',
+      price: Number(item.harga) || 0,
+      status: (item.status || 'Tersedia').toLowerCase(),
+      images: item.images ? item.images.split(',').map(img => img.trim()) : [],
+      description: item.deskripsi || 'Tidak ada deskripsi.',
+      name: `Akun ${item.kategori || ''} #${item.id || ''}` // Nama untuk modal pembayaran
+    })).filter(item => item.price > 0);
+  }
+  
+  function buildAccountCategorySelect() {
+    const sel = elements.accounts.customSelect;
+    if (!sel?.options || !sel?.value) return;
+
+    const categories = [...new Set(state.accounts.allData.map(item => item.category))];
+    
+    sel.options.innerHTML = '';
+    
+    const allCategories = ['Semua Kategori', ...categories];
+
+    allCategories.forEach(cat => {
+      const el = document.createElement('div');
+      el.className = 'custom-select-option';
+      el.textContent = cat;
+      el.dataset.value = cat;
+      el.setAttribute('role', 'option');
+      
+      if (cat === state.accounts.activeCategory) {
+        el.classList.add('selected');
+        sel.value.textContent = cat;
+      }
+      
+      el.addEventListener('click', () => {
+        state.accounts.activeCategory = cat;
+        sel.value.textContent = cat;
+        sel.options.querySelector('.selected')?.classList.remove('selected');
+        el.classList.add('selected');
+        toggleCustomSelect(sel.wrapper, false);
+        renderAccountCards();
+      });
+      sel.options.appendChild(el);
+    });
+  }
+  
+  function renderAccountCards() {
+    const { cardGrid, empty, cardTemplate } = elements.accounts;
+    if (!cardGrid || !cardTemplate) return;
+    
+    const { activeCategory } = state.accounts;
+    
+    const filteredData = state.accounts.allData.filter(item => 
+      activeCategory === 'Semua Kategori' || item.category === activeCategory
+    );
+    
+    cardGrid.innerHTML = '';
+    
+    if (filteredData.length === 0) {
+      empty.style.display = 'flex';
+      return;
+    }
+    empty.style.display = 'none';
+    
+    const frag = document.createDocumentFragment();
+    filteredData.forEach(item => {
+      const card = cardTemplate.content.cloneNode(true).firstElementChild;
+      
+      // 1. Setup Carousel
+      const carouselWrapper = card.querySelector('.account-card-carousel-wrapper');
+      if (carouselWrapper && item.images.length > 0) {
+        const carouselId = `carousel-${item.id}`;
+        let trackHTML = '';
+        let indicatorsHTML = '';
+        
+        item.images.forEach((img, index) => {
+          trackHTML += `<div class="carousel-slide"><img src="${sanitizeHTML(img)}" alt="Gambar Akun ${index + 1}" loading="lazy"></div>`;
+          if (item.images.length > 1) {
+            indicatorsHTML += `<button type="button" class="indicator-dot ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Slide ${index + 1}"></button>`;
+          }
+        });
+        
+        carouselWrapper.innerHTML = `
+          <div class="carousel-container" id="${carouselId}">
+            <div class="carousel-track" style="transform: translateX(0%);">${trackHTML}</div>
+            ${item.images.length > 1 ? `
+              <button type="button" class="carousel-btn prev" aria-controls="${carouselId}" disabled>&lt;</button>
+              <button type="button" class="carousel-btn next" aria-controls="${carouselId}">&gt;</button>
+              <div class="carousel-indicators">${indicatorsHTML}</div>
+            ` : ''}
+          </div>
+        `;
+      } else if (carouselWrapper) {
+         carouselWrapper.innerHTML = `<div class="carousel-container"><div class="carousel-slide"><img src="/assets/images/placeholder.webp" alt="Placeholder"></div></div>`; // Fallback image
+      }
+      
+      // 2. Setup Info Utama
+      card.querySelector('h3').textContent = formatToIdr(item.price);
+      const statusBadge = card.querySelector('.account-status-badge');
+      if (statusBadge) {
+        statusBadge.textContent = item.status;
+        statusBadge.className = `account-status-badge ${item.status === 'tersedia' ? 'available' : 'sold'}`;
+      }
+      
+      // 3. Setup Detail (Deskripsi)
+      const specsContainer = card.querySelector('.account-card-specs');
+      if (specsContainer) {
+        specsContainer.innerHTML = formatDescriptionToHTML(item.description);
+      }
+      
+      // 4. Setup Tombol Aksi
+      const buyBtn = card.querySelector('.action-btn.buy');
+      const offerBtn = card.querySelector('.action-btn.offer');
+      
+      if (item.status === 'terjual') {
+        buyBtn.disabled = true;
+        offerBtn.disabled = true;
+        buyBtn.textContent = 'Terjual';
+      } else {
+        buyBtn.addEventListener('click', (e) => {
+          elementToFocusOnModalClose = e.currentTarget;
+          openPaymentModal(item); // 'item' sudah punya 'name' dan 'price'
+        });
+        offerBtn.addEventListener('click', () => {
+          const msg = encodeURIComponent(`Halo, saya tertarik untuk menawar ${item.name} (Harga: ${formatToIdr(item.price)}).`);
+          window.open(`https://wa.me/${config.waNumber}?text=${msg}`, '_blank', 'noopener,noreferrer');
+        });
+      }
+      
+      // 5. Inisialisasi UI
+      initializeCarousels(card);
+      setupExpandableCard(card, '.account-card-main-info');
+      
+      frag.appendChild(card);
+    });
+    
+    cardGrid.appendChild(frag);
+  }
+
+  async function initializeAccounts() {
+    if (state.accounts.initialized) return;
+    state.accounts.initialized = true;
+    
+    const { cardGrid, error, empty, customSelect } = elements.accounts;
+    
+    if (!cardGrid) return;
+    
+    if (customSelect.btn) {
+      customSelect.btn.addEventListener('click', (e) => { e.stopPropagation(); toggleCustomSelect(customSelect.wrapper); });
+    }
+    
+    if (accountsFetchController) accountsFetchController.abort();
+    accountsFetchController = new AbortController();
+    
+    try {
+      error.style.display = 'none';
+      empty.style.display = 'none';
+      if (elements.skeletonCardTemplate) {
+        showSkeleton(cardGrid, elements.skeletonCardTemplate, 4);
+      }
+      
+      const csvText = await fetchSheetCached(config.sheets.accounts.name, 'csv', accountsFetchController.signal);
+      
+      if (csvText === null) return;
+      
+      state.accounts.allData = parseAccountData(csvText);
+      
+      if (state.accounts.allData.length === 0) {
+        cardGrid.innerHTML = '';
+        empty.style.display = 'flex';
+        return;
+      }
+      
+      buildAccountCategorySelect();
+      renderAccountCards();
+      
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.error('Failed to load accounts:', err);
+      cardGrid.innerHTML = '';
+      error.style.display = 'block';
+      error.textContent = 'Oops, terjadi kesalahan saat memuat data akun.';
+    }
+  }
+  
+  // =========================
+  // PERPUSTAKAAN PIPELINE
+  // =========================
+
+  /**
+   * ASUMSI STRUKTUR DATA (CSV) 'Sheet_Perpus':
+   * Kolom 1: Judul (judul)
+   * Kolom 2: Link (link) -> URL tujuan saat di-klik
+   * Kolom 3: Cover (cover) -> URL gambar cover
+   */
+  function parsePerpustakaanData(csvText) {
+    const csvData = robustCsvParser(csvText);
+    const objects = csvToObjects(csvData);
+    
+    return objects.map(item => ({
+      title: item.judul || 'Tanpa Judul',
+      link: item.link || '#',
+      cover: item.cover || '/assets/images/placeholder.webp' // Fallback
+    })).filter(item => item.title !== 'Tanpa Judul');
+  }
+  
+  function renderPerpustakaanGrid() {
+    const { gridContainer, error } = elements.perpustakaan;
+    if (!gridContainer) return;
+    
+    gridContainer.innerHTML = '';
+    
+    if (state.perpustakaan.allData.length === 0) {
+       gridContainer.innerHTML = `<div class="empty" style="grid-column: 1 / -1;"><p>Tidak ada tulisan atau cerita yang ditemukan.</p></div>`;
+       return;
+    }
+    
+    const frag = document.createDocumentFragment();
+    state.perpustakaan.allData.forEach(item => {
+      // Membuat kartu buku secara dinamis sesuai style.css
+      const card = document.createElement('a');
+      card.href = item.link;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+      card.className = 'book-card';
+      card.setAttribute('aria-label', item.title);
+      
+      card.innerHTML = `
+        <img src="${sanitizeHTML(item.cover)}" alt="${sanitizeHTML(item.title)}" class="cover" loading="lazy">
+        <div class="overlay"></div>
+        <div class="title">${sanitizeHTML(item.title)}</div>
+      `;
+      frag.appendChild(card);
+    });
+    gridContainer.appendChild(frag);
+  }
+  
+  async function initializePerpustakaan() {
+    if (state.perpustakaan.initialized) return;
+    state.perpustakaan.initialized = true;
+    
+    const { gridContainer, error } = elements.perpustakaan;
+    if (!gridContainer) return;
+    
+    if (perpustakaanFetchController) perpustakaanFetchController.abort();
+    perpustakaanFetchController = new AbortController();
+    
+    try {
+      error.style.display = 'none';
+      // Tampilkan skeleton kustom untuk buku
+      gridContainer.innerHTML = Array(6).fill('<div class="book-card skeleton"><div class="title"><span class="skeleton-text" style="width: 70%;"></span></div></div>').join('');
+
+      const csvText = await fetchSheetCached(config.sheets.perpustakaan.name, 'csv', perpustakaanFetchController.signal);
+      
+      if (csvText === null) return;
+      
+      state.perpustakaan.allData = parsePerpustakaanData(csvText);
+      renderPerpustakaanGrid();
+      
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.error('Failed to load library:', err);
+      gridContainer.innerHTML = '';
+      error.style.display = 'block';
+      error.textContent = 'Oops, terjadi kesalahan saat memuat data perpustakaan.';
+    }
+  }
+
+  // =========================
+  // CAROUSELL PIPELINE
+  // =========================
+
+  /**
+   * ASUMSI STRUKTUR DATA (CSV) 'Sheet8':
+   * Kolom 1: IDProduk (idproduk) -> Nomor unik produk
+   * Kolom 2: Judul (judul)
+   * Kolom 3: Platform (platform) -> e.g., "Shopee", "Tokopedia"
+   * Kolom 4: Harga (harga) -> Angka saja
+   * Kolom 5: Images (images) -> Link URL gambar, dipisah koma (",")
+   * Kolom 6: LinkURL (linkurl) -> Link afiliasi
+   * Kolom 7: Deskripsi (deskripsi) -> Opsional, pakai "||" untuk baris baru
+   */
+  function parseCarousellData(csvText) {
+    const csvData = robustCsvParser(csvText);
+    const objects = csvToObjects(csvData);
+    
+    return objects.map(item => ({
+      id: item.idproduk || `car-${Math.random()}`,
+      title: item.judul || 'Produk Pilihan',
+      platform: item.platform || '',
+      price: Number(item.harga) || 0,
+      images: item.images ? item.images.split(',').map(img => img.trim()) : [],
+      link: item.linkurl || '#',
+      description: item.deskripsi || ''
+    })).filter(item => item.price > 0 && item.link !== '#');
+  }
+  
+  function renderCarousellGrid() {
+    const { gridContainer, total } = elements.carousell;
+    if (!gridContainer) return;
+    
+    const query = state.carousell.searchQuery.toLowerCase();
+    
+    const filteredData = state.carousell.allData.filter(item => 
+      query === '' || item.id.toLowerCase().includes(query)
+    );
+    
+    gridContainer.innerHTML = '';
+    total.textContent = `${filteredData.length} produk ditemukan`;
+    
+    if (filteredData.length === 0) {
+      gridContainer.innerHTML = `<div class="empty" style="grid-column: 1 / -1;"><p>Tidak ada produk yang cocok dengan pencarian Anda.</p></div>`;
+      return;
+    }
+    
+    const frag = document.createDocumentFragment();
+    filteredData.forEach(item => {
+      // Membuat kartu afiliasi secara dinamis (sesuai style.css)
+      const card = document.createElement('article');
+      card.className = 'affiliate-card';
+      
+      // 1. Carousel
+      let carouselHTML = '';
+      if (item.images.length > 0) {
+        const carouselId = `carousel-aff-${item.id}`;
+        let trackHTML = '';
+        let indicatorsHTML = '';
+        
+        item.images.forEach((img, index) => {
+          trackHTML += `<div class="carousel-slide"><img src="${sanitizeHTML(img)}" alt="Gambar Produk ${index + 1}" loading="lazy"></div>`;
+          if (item.images.length > 1) {
+            indicatorsHTML += `<button type="button" class="indicator-dot ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Slide ${index + 1}"></button>`;
+          }
+        });
+        
+        carouselHTML = `
+          <div class="carousel-container" id="${carouselId}">
+            <div class="carousel-track" style="transform: translateX(0%);">${trackHTML}</div>
+            ${item.images.length > 1 ? `
+              <button type="button" class="carousel-btn prev" aria-controls="${carouselId}" disabled>&lt;</button>
+              <button type="button" class="carousel-btn next" aria-controls="${carouselId}">&gt;</button>
+              <div class="carousel-indicators">${indicatorsHTML}</div>
+            ` : ''}
+          </div>
+        `;
+      } else {
+         carouselHTML = `<div class="carousel-container"><div class="carousel-slide"><img src="/assets/images/placeholder.webp" alt="Placeholder"></div></div>`;
+      }
+      
+      // 2. Info Card
+      card.innerHTML = `
+        ${carouselHTML}
+        <div class="affiliate-card-body">
+          <div class="affiliate-card-platform">${sanitizeHTML(item.platform)}</div>
+          <h3 class="affiliate-card-title">${sanitizeHTML(item.title)}</h3>
+          <div class="affiliate-card-price">${formatToIdr(item.price)}</div>
+          ${item.description ? `<div class="affiliate-card-desc">${formatDescriptionToHTML(item.description)}</div>` : ''}
+          <a href="${sanitizeHTML(item.link)}" target="_blank" rel="noopener noreferrer" class="affiliate-card-button">Beli di ${sanitizeHTML(item.platform) || 'Sini'}</a>
+        </div>
+        <div class="affiliate-card-number">#${sanitizeHTML(item.id)}</div>
+      `;
+      
+      initializeCarousels(card);
+      frag.appendChild(card);
+    });
+    
+    gridContainer.appendChild(frag);
+  }
+  
+  async function initializeCarousell() {
+    if (state.carousell.initialized) return;
+    state.carousell.initialized = true;
+    
+    const { gridContainer, error, searchInput, total } = elements.carousell;
+    if (!gridContainer) return;
+    
+    searchInput.addEventListener('input', debounce(e => {
+      state.carousell.searchQuery = e.target.value.trim();
+      renderCarousellGrid();
+    }, 300));
+    
+    if (carousellFetchController) carousellFetchController.abort();
+    carousellFetchController = new AbortController();
+    
+    try {
+      error.style.display = 'none';
+      total.textContent = 'Memuat data...';
+      // Tampilkan skeleton kustom untuk afiliasi
+      gridContainer.innerHTML = Array(3).fill(`
+        <div class="affiliate-card skeleton">
+          <div class="carousel-container skeleton"></div>
+          <div class="affiliate-card-body">
+            <span class="skeleton-text" style="width: 30%; height: 12px; margin-bottom: 8px;"></span>
+            <span class="skeleton-text" style="width: 90%; height: 16px; margin-bottom: 12px;"></span>
+            <span class="skeleton-text" style="width: 50%; height: 24px; margin-bottom: 20px;"></span>
+            <span class="skeleton-text" style="width: 100%; height: 44px; border-radius: 8px;"></span>
+          </div>
+        </div>
+      `).join('');
+      
+      const csvText = await fetchSheetCached(config.sheets.affiliate.name, 'csv', carousellFetchController.signal);
+      
+      if (csvText === null) return;
+      
+      state.carousell.allData = parseCarousellData(csvText);
+      renderCarousellGrid();
+      
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.error('Failed to load carousell data:', err);
+      gridContainer.innerHTML = '';
+      total.textContent = 'Gagal memuat';
+      error.style.display = 'block';
+      error.textContent = 'Oops, terjadi kesalahan saat memuat data produk.';
+    }
+  }
+
+  // =========================
+  // PAYMENT MODAL (Tidak Berubah)
   // =========================
   function calculateFee(price, option) {
     const numPrice = Number(price) || 0;
@@ -441,7 +1150,6 @@
       optionsContainer.innerHTML = '';
       config.paymentOptions.forEach((option, index) => {
         const fee = calculateFee(item.price, option);
-        // Penting: tidak ada 'D' nyasar di sini
         optionsContainer.insertAdjacentHTML('beforeend', `
           <div class="payment-option">
             <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}>
@@ -484,8 +1192,9 @@
     }
 
     modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Mencegah scroll background
     requestAnimationFrame(() => {
-      modal.classList.add('active');
+      modal.classList.add('active'); // 'active' bukan 'visible'
       setupModalFocusTrap(modal);
     });
   }
@@ -495,6 +1204,7 @@
     if (!modal) return;
 
     modal.classList.remove('active');
+    document.body.style.overflow = ''; // Kembalikan scroll background
 
     const finish = () => {
       modal.style.display = 'none';
@@ -536,7 +1246,9 @@
     };
 
     modal.addEventListener('keydown', modalFocusTrap.listener);
-    modalFocusTrap.firstEl?.focus();
+    // Fokus pada elemen pertama yang bisa difokus, biasanya tombol close atau input radio pertama
+    const firstFocusable = modalFocusTrap.firstEl;
+    firstFocusable?.focus();
   }
 
   function teardownModalFocusTrap() {
@@ -547,13 +1259,13 @@
   }
 
   // =========================
-  // UI UTILITIES
+  // UI UTILITIES (Tidak Berubah)
   // =========================
   function initializeCarousels(container) {
     if (!container) return;
     container.querySelectorAll('.carousel-container').forEach(carouselContainer => {
       const track = carouselContainer.querySelector('.carousel-track');
-      const slides = carouselContainer.querySelectorAll('.carousel-slide'); // FIXED: querySelectorAll
+      const slides = carouselContainer.querySelectorAll('.carousel-slide');
       const imageCount = slides.length;
 
       if (imageCount > 1) {
@@ -595,12 +1307,13 @@
     const trigger = card.querySelector(triggerSelector);
     if (trigger) {
       const action = (e) => {
-        if (e.target.closest('a')) return;
+        // Jangan ekspansi jika mengklik link di dalam trigger (jika ada)
+        if (e.target.closest('a') || e.target.closest('button')) return; 
         card.classList.toggle('expanded');
       };
       trigger.addEventListener('click', action);
       trigger.addEventListener('keydown', (e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('a')) {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('a')  && !e.target.closest('button')) {
           e.preventDefault();
           action(e);
         }
@@ -610,14 +1323,15 @@
 
   function formatDescriptionToHTML(text) {
     if (!text) return '';
-    return text.split('||').map(line => {
+    // Menggunakan regex untuk memecah berdasarkan ||
+    return text.split(/\|\|/g).map(line => {
       const trimmedLine = line.trim();
-      if (trimmedLine === '') return '<br><br>';
-      if (trimmedLine.endsWith(':')) return `<br><br><strong>${sanitizeHTML(trimmedLine.slice(0, -1))}</strong>`;
-      if (trimmedLine.startsWith('\u203A')) return `<br><br>&nbsp;&nbsp;› ${sanitizeHTML(trimmedLine.substring(1).trim())}`;
-      if (trimmedLine.startsWith('-')) return `<br><br>&nbsp;&nbsp;• ${sanitizeHTML(trimmedLine.substring(1).trim())}`;
-      if (trimmedLine.startsWith('#')) return `<br><br><em>${sanitizeHTML(trimmedLine)}</em>`;
-      return `<br>${sanitizeHTML(trimmedLine)}`;
+      if (trimmedLine === '') return '<br>'; // Hanya satu <br> agar tidak terlalu renggang
+      if (trimmedLine.endsWith(':')) return `<strong class="spec-title">${sanitizeHTML(trimmedLine.slice(0, -1))}</strong>`;
+      if (trimmedLine.startsWith('\u203A') || trimmedLine.startsWith('>')) return `<p class="spec-item spec-item-arrow">${sanitizeHTML(trimmedLine.substring(1).trim())}</p>`;
+      if (trimmedLine.startsWith('-')) return `<p class="spec-item spec-item-dash">${sanitizeHTML(trimmedLine.substring(1).trim())}</p>`;
+      if (trimmedLine.startsWith('#')) return `<p class="spec-hashtag">${sanitizeHTML(trimmedLine)}</p>`;
+      return `<p class="spec-paragraph">${sanitizeHTML(trimmedLine)}</p>`;
     }).join('');
   }
 
@@ -627,23 +1341,35 @@
     const hour = parseInt(new Intl.DateTimeFormat('en-US', options).format(now), 10);
     const indicator = elements.headerStatusIndicator;
     if (!indicator) return;
-    if (hour >= 8) { indicator.textContent = 'BUKA'; indicator.className = 'status-badge success'; }
-    else { indicator.textContent = 'TUTUP'; indicator.className = 'status-badge closed'; }
+    
+    // Buka jam 8 pagi - 12 malam (23:59)
+    if (hour >= 8 && hour <= 23) { 
+      indicator.textContent = 'BUKA'; 
+      indicator.className = 'status-badge open'; // Pakai 'open' dari CSS
+    } else { 
+      indicator.textContent = 'TUTUP'; 
+      indicator.className = 'status-badge closed'; 
+    }
   }
 
   function toggleSidebar(forceOpen) {
     const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !document.body.classList.contains('sidebar-open');
     document.body.classList.toggle('sidebar-open', isOpen);
     elements.sidebar.burger?.classList.toggle('active', isOpen);
+    elements.sidebar.burger?.setAttribute('aria-expanded', isOpen);
 
     const body = document.body;
     if (isOpen) {
       const y = window.scrollY || window.pageYOffset || 0;
       body.dataset.ppLockY = String(y);
       body.style.position = 'fixed';
-      body.style.top = `-${y}px`;  // keep visual position
+      body.style.top = `-${y}px`;
       body.style.width = '100%';
-      body.style.overflow = 'hidden';
+      body.style.overflow = 'hidden'; // Mencegah scroll body
+      
+      // Fokus ke sidebar untuk aksesibilitas
+      elements.sidebar.nav?.querySelector('a.nav-item')?.focus();
+      
     } else {
       const y = parseInt(body.dataset.ppLockY || '0', 10);
       body.style.position = '';
@@ -651,11 +1377,14 @@
       body.style.width = '';
       body.style.overflow = '';
       window.scrollTo(0, y);
+      
+      // Kembalikan fokus ke tombol burger
+      elements.sidebar.burger?.focus();
     }
   }
 
   // =========================
-  // INITIALIZE
+  // INITIALIZE (UPDATED)
   // =========================
   function initializeApp() {
     // Sidebar
@@ -673,20 +1402,24 @@
     });
 
     // Custom select
-    [elements.home.customSelect, elements.preorder.customSelect, elements.preorder.customStatusSelect, elements.accounts.customSelect]
+    [
+      elements.home.customSelect, 
+      elements.preorder.customSelect, 
+      elements.preorder.customStatusSelect, 
+      elements.accounts.customSelect
+    ]
       .filter(select => select && select.btn)
       .forEach(select => {
         select.btn.addEventListener('click', (e) => { e.stopPropagation(); toggleCustomSelect(select.wrapper); });
         enhanceCustomSelectKeyboard(select.wrapper);
       });
 
-    // Home search
+    // Home search (sudah ada)
     if (elements.home.searchInput) {
-      let homeDebounce;
-      elements.home.searchInput.addEventListener('input', e => {
-        clearTimeout(homeDebounce);
-        homeDebounce = setTimeout(() => { state.home.searchQuery = e.target.value.trim(); renderHomeList(); }, 200);
-      });
+      elements.home.searchInput.addEventListener('input', debounce(e => {
+        state.home.searchQuery = e.target.value.trim(); 
+        renderHomeList(); 
+      }, 300));
     }
 
     // Payment modal
@@ -699,14 +1432,25 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (elements.paymentModal.modal?.classList.contains('active')) closePaymentModal();
-        [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper]
+        if (document.body.classList.contains('sidebar-open')) toggleSidebar(false);
+        [
+          elements.home.customSelect.wrapper, 
+          elements.preorder.customSelect.wrapper, 
+          elements.preorder.customStatusSelect.wrapper, 
+          elements.accounts.customSelect.wrapper
+        ]
           .filter(Boolean).forEach(w => toggleCustomSelect(w, false));
       }
     });
 
     // Click outside to close custom selects
     document.addEventListener('click', (e) => {
-      [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper]
+      [
+        elements.home.customSelect.wrapper, 
+        elements.preorder.customSelect.wrapper, 
+        elements.preorder.customStatusSelect.wrapper, 
+        elements.accounts.customSelect.wrapper
+      ]
         .filter(wrapper => wrapper)
         .forEach(wrapper => { if (!wrapper.contains(e.target)) toggleCustomSelect(wrapper, false); });
     });
@@ -718,17 +1462,32 @@
       setInterval(updateHeaderStatus, 60000);
     }
 
-    // === INIT HOME (KATALOG) ===
+    // === INIT SEMUA HALAMAN ===
+    
+    // 1. Init Home (Katalog)
     if (elements.viewHome) {
       loadCatalog();
     }
-
-    // Catatan:
-    // - Inisialisasi preorder/accounts/carousell tidak diaktifkan di versi ini.
-    //   Tambah fungsi masing-masing bila dibutuhkan, lalu panggil di sini:
-    //   if (elements.viewPreorder) initializePreorder();
-    //   if (elements.viewAccounts) initializeAccounts();
-    //   if (elements.viewCarousell) initializeCarousell();
+    
+    // 2. Init Pre Order
+    if (elements.viewPreorder) {
+      initializePreorder();
+    }
+    
+    // 3. Init Akun Game
+    if (elements.viewAccounts) {
+      initializeAccounts();
+    }
+    
+    // 4. Init Perpustakaan
+    if (elements.viewPerpustakaan) {
+       initializePerpustakaan();
+    }
+    
+    // 5. Init Carousell
+    if (elements.viewCarousell) {
+       initializeCarousell();
+    }
   }
 
   // Start
