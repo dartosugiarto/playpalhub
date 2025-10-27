@@ -435,7 +435,7 @@ function enhanceCustomSelectKeyboard(wrapper){
       `\u203A Item: ${title}`,           // Menggunakan Unicode Escape
       `\u203A Pembayaran: ${option.name}`, // Menggunakan Unicode Escape
       `\u203A Harga: ${formatToIdr(price)}`, // Menggunakan Unicode Escape
-      `\u2Notei: ${formatToIdr(fee)}`,     // Menggunakan Unicode Escape
+      `\u203A Fee: ${formatToIdr(fee)}`,     // Menggunakan Unicode Escape
       `\u203A Total: ${formatToIdr(total)}`, // Menggunakan Unicode Escape
     ].join('\n');
     elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`;
@@ -457,7 +457,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     optionsContainer.innerHTML = '';
     config.paymentOptions.forEach((option, index) => {
       const fee = calculateFee(item.price, option);
-      // --- PERBAIKAN DI BARIS INI ---
+      // --- PERBAIKAN (HURUF "D" DIHAPUS DARI BARIS INI) ---
       optionsContainer.insertAdjacentHTML('beforeend', ` <div class="payment-option"> <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}> <label for="${option.id}" tabindex="0"> ${option.name} <span style="float: right;">+ ${formatToIdr(fee)}</span> </label> </div>`);
     });
     optionsContainer.querySelectorAll('input[name="payment"]').forEach(input => input.addEventListener('change', updatePriceDetails));
