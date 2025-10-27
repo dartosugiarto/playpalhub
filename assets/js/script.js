@@ -424,7 +424,25 @@ function enhanceCustomSelectKeyboard(wrapper){
     }
   }
   function calculateFee(price, option) { if (option.feeType === 'fixed') return option.value; if (option.feeType === 'percentage') return Math.ceil(price * option.value); return 0; }
-  function updatePriceDetails() { const selectedOptionId = elements.paymentModal.optionsContainer.querySelector('input[name="payment"]:checked')?.value; if (!selectedOptionId) return; const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId); if (!currentSelectedItem || !selectedOption) return; const price = currentSelectedItem.price; const fee = calculateFee(price, selectedOption); const total = price + fee; elements.paymentModal.fee.textContent = formatToIdr(fee); elements.paymentModal.total.textContent = formatToIdr(total); updateWaLink(selectedOption, fee, total); }
+
+  // >>> Perbaikan #1: batasi selector radio ke container payment
+  function updatePriceDetails() {
+    const selectedOptionId = elements.paymentModal.optionsContainer
+      .querySelector('input[name="payment"]:checked')?.value;
+    if (!selectedOptionId) return;
+
+    const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId);
+    if (!currentSelectedItem || !selectedOption) return;
+
+    const price = currentSelectedItem.price;
+    const fee = calculateFee(price, selectedOption);
+    const total = price + fee;
+
+    elements.paymentModal.fee.textContent = formatToIdr(fee);
+    elements.paymentModal.total.textContent = formatToIdr(total);
+
+    updateWaLink(selectedOption, fee, total);
+  }
 
   // Fungsi updateWaLink menggunakan Unicode Escape \u203A
   function updateWaLink(option, fee, total) {
@@ -441,6 +459,16 @@ function enhanceCustomSelectKeyboard(wrapper){
     elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`;
   }
 
+  // >>> Perbaikan #2: helper bersihkan text node "D" bila ada
+  function removeStrayDs(root) {
+    if (!root) return;
+    root.querySelectorAll('.payment-option').forEach(opt => {
+      Array.from(opt.childNodes).forEach(n => {
+        if (n.nodeType === Node.TEXT_NODE && n.textContent.trim() === 'D') n.remove();
+      });
+    });
+  }
+
   function openPaymentModal(item) {
     const pageContainer = document.getElementById('pageContainer');
     const modalContentEl = document.querySelector('#paymentModal .modal-content');
@@ -454,13 +482,32 @@ function enhanceCustomSelectKeyboard(wrapper){
     const { modal, itemName, itemPrice, optionsContainer } = elements.paymentModal;
     itemName.textContent = item.title;
     itemPrice.textContent = formatToIdr(item.price);
+
+    // Bangun opsi payment
     optionsContainer.innerHTML = '';
     config.paymentOptions.forEach((option, index) => {
       const fee = calculateFee(item.price, option);
-      optionsContainer.insertAdjacentHTML('beforeend', ` <div class="payment-option"> <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}> <label for="${option.id}" tabindex="0"> ${option.name} <span style="float: right;">+ ${formatToIdr(fee)}</span> </label> </div>`);
+      // >>> Perbaikan #3: hapus "D" nyasar pada HTML
+      optionsContainer.insertAdjacentHTML(
+        'beforeend',
+        `
+        <div class="payment-option">
+          <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}>
+          <label for="${option.id}" tabindex="0">
+            ${option.name}
+            <span style="float: right;">+ ${formatToIdr(fee)}</span>
+          </label>
+        </div>
+        `
+      );
     });
+
+    // Sapu sisa "D" kalau masih ada dari cache lama (aman, hanya di area payment)
+    removeStrayDs(optionsContainer);
+
     optionsContainer.querySelectorAll('input[name="payment"]').forEach(input => input.addEventListener('change', updatePriceDetails));
     updatePriceDetails();
+
     modal.style.display = 'flex';
     setTimeout(() => modal.classList.add('visible'), 10);
     const focusableEls = modal.querySelectorAll('a[href]:not([disabled]), button:not([disabled]), input[type="radio"]:not([disabled])');
