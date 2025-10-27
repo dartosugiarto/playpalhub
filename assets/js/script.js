@@ -269,6 +269,90 @@ function robustCsvParser(text) {
     return rows;
 }
 
+function initializeCarousels(container) {
+    container.querySelectorAll('.carousel-container').forEach(carouselContainer => {
+        const track = carouselContainer.querySelector('.carousel-track');
+        const slides = carouselContainer.querySelectorAll('.carousel-slide');
+        const imageCount = slides.length;
+        
+        if (imageCount > 1) {
+            const prevBtn = carouselContainer.querySelector('.prev');
+            const nextBtn = carouselContainer.querySelector('.next');
+            const indicators = carouselContainer.querySelectorAll('.indicator-dot');
+            let currentIndex = 0;
+            
+            const update = () => {
+                if (!track || !prevBtn || !nextBtn || !indicators) return;
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                prevBtn.disabled = currentIndex === 0;
+                nextBtn.disabled = currentIndex >= imageCount - 1;
+                indicators.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
+            };
+            
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (currentIndex < imageCount - 1) {
+                    currentIndex++;
+                    update();
+                }
+            });
+            
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    update();
+                }
+            });
+            
+            indicators.forEach(dot => dot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                currentIndex = parseInt(e.target.dataset.index, 10);
+                update();
+            }));
+            
+            update();
+        }
+    });
+}
+
+function setupExpandableCard(card, triggerSelector) {
+    const trigger = card.querySelector(triggerSelector);
+    if (trigger) {
+        const action = (e) => {
+            if (e.target.closest('a')) return;
+            card.classList.toggle('expanded');
+        };
+        trigger.addEventListener('click', action);
+        trigger.addEventListener('keydown', (e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('a')) {
+                e.preventDefault();
+                action(e);
+            }
+        });
+    }
+}
+
+function formatDescriptionToHTML(text) {
+    if (!text) return '';
+    return text.split('||').map(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine === '') {
+            return '<br><br>';
+        } else if (trimmedLine.endsWith(':')) {
+            return `<br><br><strong>${trimmedLine.slice(0, -1)}</strong>`;
+        } else if (trimmedLine.startsWith('\u203A')) {
+            return `<br><br>&nbsp;&nbsp;› ${trimmedLine.substring(1).trim()}`;
+        } else if (trimmedLine.startsWith('-')) {
+            return `<br><br>&nbsp;&nbsp;• ${trimmedLine.substring(1).trim()}`;
+        } else if (trimmedLine.startsWith('#')) {
+            return `<br><br><em>${trimmedLine}</em>`;
+        } else {
+            return `<br>${trimmedLine}`;
+        }
+    }).join('');
+}
+
 // FIXED: Added proper validation for price
 function calculateFee(price, option) {
     const numPrice = Number(price) || 0;
@@ -359,252 +443,4 @@ function closePaymentModal() {
     if (!prefersReducedMotion) {
         modal.addEventListener('transitionend', function handler() {
             modal.style.display = 'none';
-            modal.removeEventListener('transitionend', handler);
-            teardownModalFocusTrap();
-            if (elementToFocusOnModalClose) {
-                elementToFocusOnModalClose.focus();
-                elementToFocusOnModalClose = null;
-            }
-        }, { once: true });
-    } else {
-        modal.style.display = 'none';
-        teardownModalFocusTrap();
-        if (elementToFocusOnModalClose) {
-            elementToFocusOnModalClose.focus();
-            elementToFocusOnModalClose = null;
-        }
-    }
-}
-
-function setupModalFocusTrap(modal) {
-    const focusableEls = modal.querySelectorAll(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
-    modalFocusTrap.focusableEls = Array.from(focusableEls);
-    modalFocusTrap.firstEl = modalFocusTrap.focusableEls[0];
-    modalFocusTrap.lastEl = modalFocusTrap.focusableEls[modalFocusTrap.focusableEls.length - 1];
-    
-    modalFocusTrap.listener = (e) => {
-        if (e.key !== 'Tab') return;
-        if (e.shiftKey) {
-            if (document.activeElement === modalFocusTrap.firstEl) {
-                e.preventDefault();
-                modalFocusTrap.lastEl?.focus();
-            }
-        } else {
-            if (document.activeElement === modalFocusTrap.lastEl) {
-                e.preventDefault();
-                modalFocusTrap.firstEl?.focus();
-            }
-        }
-    };
-    
-    modal.addEventListener('keydown', modalFocusTrap.listener);
-    modalFocusTrap.firstEl?.focus();
-}
-
-function teardownModalFocusTrap() {
-    if (modalFocusTrap.listener) {
-        elements.paymentModal.modal.removeEventListener('keydown', modalFocusTrap.listener);
-        modalFocusTrap.listener = null;
-    }
-}
-
-function initializeCarousels(container) {
-    container.querySelectorAll('.carousel-container').forEach(carouselContainer => {
-        const track = carouselContainer.querySelector('.carousel-track');
-        const slides = carouselContainer.querySelector('.carousel-slide');
-        const imageCount = slides ? slides.length : 0;
-        
-        if (imageCount > 1) {
-            const prevBtn = carouselContainer.querySelector('.prev');
-            const nextBtn = carouselContainer.querySelector('.next');
-            const indicators = carouselContainer.querySelectorAll('.indicator-dot');
-            let currentIndex = 0;
-            
-            const update = () => {
-                if (!track || !prevBtn || !nextBtn || !indicators) return;
-                track.style.transform = `translateX(-${currentIndex * 100}%)`;
-                prevBtn.disabled = currentIndex === 0;
-                nextBtn.disabled = currentIndex >= imageCount - 1;
-                indicators.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
-            };
-            
-            nextBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (currentIndex < imageCount - 1) {
-                    currentIndex++;
-                    update();
-                }
-            });
-            
-            prevBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (currentIndex > 0) {
-                    currentIndex--;
-                    update();
-                }
-            });
-            
-            indicators.forEach(dot => dot.addEventListener('click', (e) => {
-                e.stopPropagation();
-                currentIndex = parseInt(e.target.dataset.index, 10);
-                update();
-            }));
-            
-            update();
-        }
-    });
-}
-
-function setupExpandableCard(card, triggerSelector) {
-    const trigger = card.querySelector(triggerSelector);
-    if (trigger) {
-        const action = (e) => {
-            if (e.target.closest('a')) return;
-            card.classList.toggle('expanded');
-        };
-        trigger.addEventListener('click', action);
-        trigger.addEventListener('keydown', (e) => {
-            if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('a')) {
-                e.preventDefault();
-                action(e);
-            }
-        });
-    }
-}
-
-function formatDescriptionToHTML(text) {
-    if (!text) return '';
-    return text.split('||').map(line => {
-        const trimmedLine = line.trim();
-        if (trimmedLine === '') {
-            return '<br><br>';
-        } else if (trimmedLine.endsWith(':')) {
-            return `<br><br><strong>${trimmedLine.slice(0, -1)}</strong>`;
-        } else if (trimmedLine.startsWith('\u203A')) {
-            return `<br><br>&nbsp;&nbsp;› ${trimmedLine.substring(1).trim()}`;
-        } else if (trimmedLine.startsWith('-')) {
-            return `<br><br>&nbsp;&nbsp;• ${trimmedLine.substring(1).trim()}`;
-        } else if (trimmedLine.startsWith('#')) {
-            return `<br><br><em>${trimmedLine}</em>`;
-        } else {
-            return `<br>${trimmedLine}`;
-        }
-    }).join('');
-}
-
-function updateHeaderStatus() {
-    const now = new Date();
-    const options = { timeZone: 'Asia/Jakarta', hour: '2-digit', hour12: false };
-    const hour = parseInt(new Intl.DateTimeFormat('en-US', options).format(now), 10);
-    const indicator = elements.headerStatusIndicator;
-    
-    if (hour >= 8) {
-        indicator.textContent = 'BUKA';
-        indicator.className = 'status-badge success';
-    } else {
-        indicator.textContent = 'TUTUP';
-        indicator.className = 'status-badge closed';
-    }
-}
-
-function initializeApp() {
-    elements.sidebar.burger?.addEventListener('click', () => toggleSidebar());
-    elements.sidebar.overlay?.addEventListener('click', () => toggleSidebar(false));
-    
-    elements.navLinks.forEach(link => {
-        link.addEventListener('click', e => {
-            if (link.dataset.mode === 'donasi') {
-                e.preventDefault();
-                window.open('https://saweria.co/playpal', '_blank', 'noopener');
-            }
-        });
-    });
-    
-    [elements.home.customSelect, elements.preorder.customSelect, 
-     elements.preorder.customStatusSelect, elements.accounts.customSelect]
-        .filter(select => select && select.btn)
-        .forEach(select => {
-            select.btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleCustomSelect(select.wrapper);
-            });
-            enhanceCustomSelectKeyboard(select.wrapper);
-        });
-    
-    if (elements.home.searchInput) {
-        let homeDebounce;
-        elements.home.searchInput.addEventListener('input', e => {
-            clearTimeout(homeDebounce);
-            homeDebounce = setTimeout(() => {
-                state.home.searchQuery = e.target.value.trim();
-                renderHomeList();
-            }, 200);
-        });
-    }
-    
-    elements.paymentModal.closeBtn.addEventListener('click', closePaymentModal);
-    elements.paymentModal.modal.addEventListener('click', e => {
-        if (e.target === elements.paymentModal.modal) closePaymentModal();
-    });
-    
-    // FIXED: Added Escape key handler for modal
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            if (elements.paymentModal.modal.classList.contains('active')) {
-                closePaymentModal();
-            }
-            [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, 
-             elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper]
-                .filter(Boolean).forEach(w => toggleCustomSelect(w, false));
-        }
-    });
-    
-    document.addEventListener('click', (e) => {
-        [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, 
-         elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper]
-            .filter(wrapper => wrapper)
-            .forEach(wrapper => {
-                if (!wrapper.contains(e.target)) {
-                    toggleCustomSelect(wrapper, false);
-                }
-            });
-    });
-    
-    elements.headerStatusIndicator.style.display = 'inline-flex';
-    updateHeaderStatus();
-    setInterval(updateHeaderStatus, 60000);
-}
-
-function toggleSidebar(forceOpen) {
-    const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !document.body.classList.contains('sidebar-open');
-    document.body.classList.toggle('sidebar-open', isOpen);
-    elements.sidebar.burger.classList.toggle('active', isOpen);
-    
-    const body = document.body;
-    if (isOpen) {
-        const y = window.scrollY || window.pageYOffset || 0;
-        body.dataset.ppLockY = String(y);
-        body.style.position = 'fixed';
-        body.style.top = `-${y}px`;
-        body.style.width = '100%';
-        body.style.overflow = 'hidden';
-    } else {
-        const y = parseInt(body.dataset.ppLockY || '0', 10);
-        body.style.position = '';
-        body.style.top = '';
-        body.style.width = '';
-        body.style.overflow = '';
-        window.scrollTo(0, y);
-    }
-}
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-    initializeApp();
-}
-
-})();
+            modal.removeEventListener('transitionend', handler
