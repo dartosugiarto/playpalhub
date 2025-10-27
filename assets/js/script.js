@@ -1,107 +1,67 @@
-/*
-  =============================
-  PlayPal.ID Final Script
-  Versi: 2.0.0
-  
-  Pembaruan:
-  - Mengaktifkan halaman Pre Order (Sheet1, Sheet2)
-  - Mengaktifkan halaman Akun Game (Sheet5)
-  - Mengaktifkan halaman Carousell (Sheet8)
-  - Mengaktifkan halaman Perpustakaan (Sheet_Perpus - *Perlu Konfigurasi*)
-  - Menambahkan parser CSV modular, error handling, dan state management
-    untuk semua halaman.
-  =============================
-*/
 (function () {
   'use strict';
-
-  // =========================
-  // CONFIG & STATE
-  // =========================
   const config = {
     sheetId: '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw',
     sheets: {
       katalog: { name: 'Sheet3' },
       preorder: { name1: 'Sheet1', name2: 'Sheet2' },
       accounts: { name: 'Sheet5' },
-      affiliate: { name: 'Sheet8' },
-      // TODO: Harap ganti 'Sheet_Perpus' dengan nama sheet Anda yang sebenarnya untuk data perpustakaan
-      perpustakaan: { name: 'Sheet_Perpus' } 
+      affiliate: { name: 'Sheet8' }
     },
     waNumber: '6285877001999',
     waGreeting: '*Detail pesanan:*',
     paymentOptions: [
-      { id: 'seabank',     name: 'Seabank',       feeType: 'fixed',      value: 0 },
-      { id: 'shopeepay',   name: 'ShopeePay',     feeType: 'fixed',      value: 0 },
-      { id: 'gopay',       name: 'Gopay',         feeType: 'fixed',      value: 0 },
-      { id: 'dana',        name: 'Dana',          feeType: 'fixed',      value: 125 },
-      { id: 'bank_to_dana',name: 'Bank ke Dana',  feeType: 'fixed',      value: 500 },
-      { id: 'qris',        name: 'Qris',          feeType: 'percentage', value: 0.007 }
-    ]
+      { id: 'seabank', name: 'Seabank', feeType: 'fixed', value: 0 },
+      { id: 'shopeepay', name: 'ShopeePay', feeType: 'fixed', value: 0 },
+      { id: 'gopay', name: 'Gopay', feeType: 'fixed', value: 0 },
+      { id: 'dana', name: 'Dana', feeType: 'fixed', value: 125 },
+      { id: 'bank_to_dana', name: 'Bank ke Dana', feeType: 'fixed', value: 500 },
+      { id: 'qris', name: 'Qris', feeType: 'percentage', value: 0.01 },
+    ],
   };
-
   const state = {
     home: { activeCategory: '', searchQuery: '' },
-    preorder: { 
-      initialized: false, 
-      allData: [], 
-      currentPage: 1, 
-      perPage: 15, 
-      activeSheet: '0', // '0' untuk name1, '1' untuk name2
-      searchQuery: '',
-      statusFilter: 'all'
-    },
-    accounts: { 
-      initialized: false, 
-      allData: [], 
-      activeCategory: 'Semua Kategori' 
-    },
-    carousell: { 
-      initialized: false, 
-      allData: [], 
-      searchQuery: '' 
-    },
-    perpustakaan: {
+    preorder: {
       initialized: false,
-      allData: []
+      allData: [],
+      currentPage: 1,
+      perPage: 15,
+      displayMode: 'detailed',
+    },
+    accounts: {
+      initialized: false,
+      allData: [],
+      activeCategory: 'Semua Kategori',
+    },
+    carousell: {
+      initialized: false,
+      allData: [],
+      searchQuery: '',
     }
   };
-
   let allCatalogData = [];
   let currentSelectedItem = null;
-
   let catalogFetchController;
   let preorderFetchController;
   let accountsFetchController;
-  let carousellFetchController;
-  let perpustakaanFetchController;
-
   let modalFocusTrap = { listener: null, focusableEls: [], firstEl: null, lastEl: null };
   let elementToFocusOnModalClose = null;
-
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // =========================
-  // DOM GETTERS
-  // =========================
-  function getElement(id) { return document.getElementById(id); }
-
+  function getElement(id) {
+    return document.getElementById(id);
+  }
   const elements = {
     sidebar: {
       nav: getElement('sidebarNav'),
       overlay: getElement('sidebarOverlay'),
-      burger: getElement('burgerBtn')
+      burger: getElement('burgerBtn'),
     },
     navLinks: document.querySelectorAll('[data-mode]'),
-
-    // View flags
     viewHome: getElement('viewHome'),
     viewPreorder: getElement('viewPreorder'),
     viewAccounts: getElement('viewAccounts'),
     viewPerpustakaan: getElement('viewPerpustakaan'),
     viewCarousell: getElement('viewCarousell'),
-
-    // Home
     home: {
       listContainer: getElement('homeListContainer'),
       countInfo: getElement('homeCountInfo'),
@@ -114,16 +74,10 @@
         options: getElement('homeCustomSelectOptions'),
       },
     },
-
     headerStatusIndicator: getElement('headerStatusIndicator'),
-
-    // Templates
     itemTemplate: getElement('itemTemplate'),
     skeletonItemTemplate: getElement('skeletonItemTemplate'),
     skeletonCardTemplate: getElement('skeletonCardTemplate'),
-    accountCardTemplate: getElement('accountCardTemplate'), // Diperlukan untuk Akun Game
-
-    // Payment modal
     paymentModal: {
       modal: getElement('paymentModal'),
       closeBtn: getElement('closeModalBtn'),
@@ -134,11 +88,9 @@
       total: getElement('modalTotal'),
       waBtn: getElement('continueToWaBtn'),
     },
-
-    // Preorder
     preorder: {
       searchInput: getElement('preorderSearchInput'),
-      statusSelect: getElement('preorderStatusSelect'), // Fallback, tidak digunakan jika custom select ada
+      statusSelect: getElement('preorderStatusSelect'),
       listContainer: getElement('preorderListContainer'),
       prevBtn: getElement('preorderPrevBtn'),
       nextBtn: getElement('preorderNextBtn'),
@@ -157,10 +109,9 @@
         options: getElement('preorderStatusCustomSelectOptions'),
       }
     },
-
-    // Accounts
     accounts: {
       cardGrid: getElement('accountCardGrid'),
+      cardTemplate: getElement('accountCardTemplate'),
       empty: getElement('accountEmpty'),
       error: getElement('accountError'),
       customSelect: {
@@ -170,1110 +121,73 @@
         options: getElement('accountCustomSelectOptions'),
       },
     },
-
-    // Carousell
     carousell: {
       gridContainer: getElement('carousellGridContainer'),
       error: getElement('carousellError'),
-      searchInput: getElement('carousellSearchInput'),
-      total: getElement('carousellTotal'),
-    },
-    
-    // Perpustakaan
-    perpustakaan: {
-      gridContainer: getElement('libraryGridContainer'),
-      error: getElement('libraryError'),
     }
   };
+  function formatToIdr(value) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value); }
+  function getSheetUrl(sheetName, format = 'json') { const baseUrl = `https://docs.google.com/spreadsheets/d/${config.sheetId}/gviz/tq`; const encodedSheetName = encodeURIComponent(sheetName); return format === 'csv' ? `${baseUrl}?tqx=out:csv&sheet=${encodedSheetName}` : `${baseUrl}?sheet=${encodedSheetName}&tqx=out:json`; }
 
-  // =========================
-  // HELPERS
-  // =========================
-  function formatToIdr(value) {
-    const numValue = Number(value);
-    if (isNaN(numValue) || numValue < 0) return 'Rp 0';
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(numValue);
+async function fetchSheetCached(sheetName, format = 'json'){
+  const url = getSheetUrl(sheetName, format === 'csv' ? 'csv' : 'json');
+  const key = `pp_cache_${sheetName}_${format}`;
+  const cached = sessionStorage.getItem(key);
+  if (cached) {
+    // kick off background revalidate
+    try { fetch(url).then(r => r.text()).then(t => sessionStorage.setItem(key, t)); } catch(e) {}
+    return cached;
   }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Network error: ${res.statusText}`);
+  const text = await res.text();
+  sessionStorage.setItem(key, text);
+  return text;
+}
 
-  function sanitizeHTML(str) {
-    const div = document.createElement('div');
-    div.textContent = String(str ?? '');
-    return div.innerHTML;
-  }
-  
-  function debounce(func, delay = 300) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), delay);
-    };
-  }
+  function showSkeleton(container, template, count = 6) { container.innerHTML = ''; const fragment = document.createDocumentFragment(); for (let i = 0; i < count; i++) { fragment.appendChild(template.content.cloneNode(true)); } container.appendChild(fragment); }
+  function toggleCustomSelect(wrapper, forceOpen) { const btn = wrapper.querySelector('.custom-select-btn'); const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !wrapper.classList.contains('open'); wrapper.classList.toggle('open', isOpen); btn.setAttribute('aria-expanded', isOpen); }
 
-  function getSheetUrl(sheetName, format = 'json') {
-    const baseUrl = `https://docs.google.com/spreadsheets/d/${config.sheetId}/gviz/tq`;
-    const encodedSheetName = encodeURIComponent(sheetName);
-    return format === 'csv'
-      ? `${baseUrl}?tqx=out:csv&sheet=${encodedSheetName}`
-      : `${baseUrl}?sheet=${encodedSheetName}&tqx=out:json`;
-  }
+function enhanceCustomSelectKeyboard(wrapper){
+  if (!wrapper) return;
+  const options = wrapper.querySelector('.custom-select-options');
+  const btn = wrapper.querySelector('.custom-select-btn');
+  if (!options || !btn) return;
+  options.setAttribute('role','listbox');
+  options.addEventListener('keydown', (e)=>{
+    const items = Array.from(options.querySelectorAll('.custom-select-option'));
+    if (!items.length) return;
+    let i = items.findIndex(o => o.classList.contains('highlight'));
 
-  async function fetchSheetCached(sheetName, format = 'json', signal) {
-    const url = getSheetUrl(sheetName, format);
-    const key = `pp_cache_${sheetName}_${format}`;
-    const cached = sessionStorage.getItem(key);
-    
-    const fetchOptions = { signal };
-    if (cached) {
-      // background revalidate
-      try { 
-        fetch(url, fetchOptions)
-          .then(r => r.text())
-          .then(t => { if (t) sessionStorage.setItem(key, t); })
-          .catch(err => { if (err.name !== 'AbortError') console.warn('Cache revalidation failed', err); });
-      } catch (e) {}
-      return cached;
-    }
-
-    try {
-      const res = await fetch(url, fetchOptions);
-      if (!res.ok) throw new Error(`Network error: ${res.statusText}`);
-      const text = await res.text();
-      if (text) {
-        sessionStorage.setItem(key, text);
-      }
-      return text;
-    } catch (err) {
-       if (err.name === 'AbortError') {
-        console.log('Fetch aborted');
-        return null; // Return null or empty string if aborted
-      }
-      throw err; // Re-throw other errors
-    }
-  }
-
-  function showSkeleton(container, template, count = 6) {
-    if (!container || !template) return;
-    container.innerHTML = '';
-    const fragment = document.createDocumentFragment();
-    for (let i = 0; i < count; i++) {
-      fragment.appendChild(template.content.cloneNode(true));
-    }
-    container.appendChild(fragment);
-  }
-
-  function toggleCustomSelect(wrapper, forceOpen) {
-    if (!wrapper) return;
-    const btn = wrapper.querySelector('.custom-select-btn');
-    const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !wrapper.classList.contains('open');
-    wrapper.classList.toggle('open', isOpen);
-    if (btn) btn.setAttribute('aria-expanded', isOpen);
-  }
-
-  function enhanceCustomSelectKeyboard(wrapper) {
-    if (!wrapper) return;
-    const options = wrapper.querySelector('.custom-select-options');
-    const btn = wrapper.querySelector('.custom-select-btn');
-    if (!options || !btn) return;
-
-    options.setAttribute('role', 'listbox');
-    options.addEventListener('keydown', (e) => {
-      const items = Array.from(options.querySelectorAll('.custom-select-option'));
-      if (!items.length) return;
-      let i = items.findIndex(o => o.classList.contains('highlight'));
-
-      const move = (delta) => {
-        i = (i === -1 ? items.findIndex(o => o.classList.contains('selected')) : i);
-        if (i === -1) i = 0;
-        i = (i + delta + items.length) % items.length;
-        items.forEach(o => o.classList.remove('highlight'));
-        items[i].classList.add('highlight');
-        items[i].scrollIntoView({ block: 'nearest' });
-      };
-
-      if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
-      if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
-      if (e.key === 'Home') { e.preventDefault(); move(-9999); }
-      if (e.key === 'End') { e.preventDefault(); move(9999); }
-      if (e.key === 'Enter') { e.preventDefault(); if (i > -1) items[i].click(); }
-      if (e.key === 'Escape') { e.preventDefault(); toggleCustomSelect(wrapper, false); btn.focus(); }
-    });
-  }
-
-  function robustCsvParser(text) {
-    const normalizedText = String(text || '').trim().replace(/\r\n/g, '\n');
-    const rows = [];
-    let currentRow = [];
-    let currentField = '';
-    let inQuotedField = false;
-
-    for (let i = 0; i < normalizedText.length; i++) {
-      const char = normalizedText[i];
-      if (inQuotedField) {
-        if (char === '"') {
-          if (i + 1 < normalizedText.length && normalizedText[i + 1] === '"') { currentField += '"'; i++; }
-          else { inQuotedField = false; }
-        } else {
-          currentField += char;
-        }
-      } else {
-        if (char === '"') { inQuotedField = true; }
-        else if (char === ',') { currentRow.push(currentField.trim()); currentField = ''; }
-        else if (char === '\n') { currentRow.push(currentField.trim()); rows.push(currentRow); currentRow = []; currentField = ''; }
-        else { currentField += char; }
-      }
-    }
-    currentRow.push(currentField.trim());
-    rows.push(currentRow);
-    return rows;
-  }
-  
-  /**
-   * Mengubah data CSV (array dari array) menjadi array objek, menggunakan baris pertama sebagai header.
-   */
-  function csvToObjects(csvData) {
-    if (!csvData || csvData.length < 2) return [];
-    const headers = csvData[0].map(h => h.toLowerCase().trim());
-    const dataRows = csvData.slice(1);
-    
-    return dataRows.map(row => {
-      const obj = {};
-      headers.forEach((header, index) => {
-        obj[header] = row[index] || '';
-      });
-      return obj;
-    });
-  }
-
-  // =========================
-  // KATALOG PIPELINE (HOME)
-  // =========================
-  function parseGvizPairs(jsonText) {
-    const match = jsonText.match(/\{.*\}/s);
-    if (!match) throw new Error('Invalid GViz response.');
-    const obj = JSON.parse(match[0]);
-    const { rows = [], cols = [] } = obj.table || {};
-
-    // Asumsi pasangan kolom: [Judul, Harga, Judul, Harga, ...]
-    const pairs = Array.from({ length: Math.floor(cols.length / 2) }, (_, i) => ({
-      iTitle: i * 2,
-      iPrice: i * 2 + 1,
-      label: cols[i * 2]?.label || '',
-    })).filter(p => p.label && cols[p.iPrice]);
-
-    const out = [];
-    for (const r of rows) {
-      const c = r.c || [];
-      for (const p of pairs) {
-        const title = String(c[p.iTitle]?.v ?? '').trim();
-        const priceRaw = c[p.iPrice]?.v;
-        const price = priceRaw != null && priceRaw !== '' ? Number(priceRaw) : NaN;
-        if (title && !isNaN(price)) {
-          out.push({
-            catKey: p.label,
-            catLabel: String(p.label || '').trim().replace(/\s+/g, ' '),
-            title,
-            price,
-          });
-        }
-      }
-    }
-    return out;
-  }
-
-  function renderList(container, countInfoEl, items, emptyText) {
-    if (!container) return;
-    container.innerHTML = '';
-    if (!items.length) {
-      container.innerHTML = `<div class="empty"><p>${emptyText}</p></div>`;
-      if (countInfoEl) countInfoEl.textContent = '';
-      return;
-    }
-
-    const frag = document.createDocumentFragment();
-    for (const item of items) {
-      if (elements.itemTemplate?.content) {
-        const clone = elements.itemTemplate.content.cloneNode(true);
-        const buttonEl = clone.querySelector('.list-item');
-        buttonEl.querySelector('.title').textContent = item.title;
-        buttonEl.querySelector('.price').textContent = formatToIdr(item.price);
-        buttonEl.addEventListener('click', () => {
-          elementToFocusOnModalClose = buttonEl; // Simpan fokus
-          openPaymentModal(item);
-        });
-        frag.appendChild(clone);
-      }
-    }
-    container.appendChild(frag);
-    if (countInfoEl) countInfoEl.textContent = `${items.length} item ditemukan`;
-  }
-
-  function buildHomeCategorySelect(catalogData) {
-    const sel = elements.home.customSelect;
-    if (!sel?.options || !sel?.value) return;
-
-    const categoryMap = new Map();
-    catalogData.forEach(item => { if (!categoryMap.has(item.catKey)) categoryMap.set(item.catKey, item.catLabel); });
-    const categories = [...categoryMap].map(([key, label]) => ({ key, label }));
-
-    sel.options.innerHTML = '';
-    const activeKey = state.home.activeCategory || (categories[0]?.key || '');
-    const activeCat = categories.find(c => c.key === activeKey) || categories[0];
-
-    if (activeCat) { state.home.activeCategory = activeCat.key; sel.value.textContent = activeCat.label; }
-    else { sel.value.textContent = 'Data tidak tersedia'; }
-
-    categories.forEach(cat => {
-      const el = document.createElement('div');
-      el.className = 'custom-select-option';
-      el.textContent = cat.label;
-      el.dataset.value = cat.key;
-      el.setAttribute('role', 'option');
-      if (cat.key === state.home.activeCategory) el.classList.add('selected');
-      el.addEventListener('click', () => {
-        state.home.activeCategory = cat.key;
-        sel.value.textContent = cat.label;
-        sel.options.querySelector('.selected')?.classList.remove('selected');
-        el.classList.add('selected');
-        toggleCustomSelect(sel.wrapper, false);
-        renderHomeList();
-      });
-      sel.options.appendChild(el);
-    });
-  }
-
-  function renderHomeList() {
-    const { activeCategory, searchQuery } = state.home;
-    const query = (searchQuery || '').toLowerCase();
-    const items = allCatalogData.filter(x =>
-      x.catKey === activeCategory &&
-      (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))
-    );
-    renderList(elements.home.listContainer, elements.home.countInfo, items, 'Tidak ada item ditemukan.');
-  }
-
-  async function loadCatalog() {
-    if (!elements.home?.listContainer) return;
-    if (catalogFetchController) catalogFetchController.abort();
-    catalogFetchController = new AbortController();
-
-    try {
-      elements.home.errorContainer && (elements.home.errorContainer.style.display = 'none');
-      if (elements.skeletonItemTemplate) showSkeleton(elements.home.listContainer, elements.skeletonItemTemplate, 6);
-
-      const text = await fetchSheetCached(config.sheets.katalog.name, 'json', catalogFetchController.signal);
-      if (text === null) return; // Fetch dibatalkan
-      
-      allCatalogData = parseGvizPairs(text);
-      if (!allCatalogData.length) throw new Error('Katalog kosong / format tidak sesuai.');
-
-      if (!state.home.activeCategory && allCatalogData[0]) {
-        state.home.activeCategory = allCatalogData[0].catKey;
-      }
-
-      buildHomeCategorySelect(allCatalogData);
-      renderHomeList();
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      console.error('Failed to load catalog:', err);
-      if (elements.home.errorContainer) {
-        elements.home.listContainer.innerHTML = '';
-        elements.home.errorContainer.style.display = 'block';
-        elements.home.errorContainer.textContent = 'Oops, terjadi kesalahan saat memuat katalog.';
-      }
-    }
-  }
-  
-  // =========================
-  // PREORDER PIPELINE
-  // =========================
-  
-  /**
-   * ASUMSI STRUKTUR DATA (CSV) 'Sheet1' & 'Sheet2':
-   * Kolom 1: Nama (nama)
-   * Kolom 2: IDServer (idserver)
-   * Kolom 3: Produk (produk)
-   * Kolom 4: Tanggal (tanggal)
-   * Kolom 5: Status (status) -> Teks harus: "Success", "Progress", "Pending", atau "Failed"
-   * Kolom 6: Catatan (catatan) -> Teks untuk detail (opsional)
-   */
-  function parsePreorderData(csvText) {
-    const csvData = robustCsvParser(csvText);
-    const objects = csvToObjects(csvData);
-    
-    return objects.map(item => ({
-      name: item.nama || 'N/A',
-      id: item.idserver || '',
-      product: item.produk || 'N/A',
-      date: item.tanggal || '',
-      status: (item.status || 'pending').toLowerCase(),
-      notes: item.catatan || 'Tidak ada catatan tambahan.'
-    })).filter(item => item.name !== 'N/A'); // Filter data yang valid
-  }
-  
-  function renderPreorderList() {
-    const { listContainer, prevBtn, nextBtn, pageInfo, total } = elements.preorder;
-    if (!listContainer) return;
-    
-    const { searchQuery, statusFilter } = state.preorder;
-    const query = searchQuery.toLowerCase();
-    
-    // 1. Filter data
-    const filteredData = state.preorder.allData.filter(item => {
-      const matchesSearch = query === '' ||
-        item.name.toLowerCase().includes(query) ||
-        item.id.includes(query);
-      const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-    
-    total.textContent = `${filteredData.length} pesanan ditemukan`;
-    
-    // 2. Terapkan paginasi
-    const { currentPage, perPage } = state.preorder;
-    const totalPages = Math.ceil(filteredData.length / perPage);
-    const start = (currentPage - 1) * perPage;
-    const end = start + perPage;
-    const pageData = filteredData.slice(start, end);
-    
-    // 3. Render
-    listContainer.innerHTML = '';
-    if (pageData.length === 0) {
-      listContainer.innerHTML = `<div class="empty"><p>Tidak ada pesanan yang cocok dengan kriteria Anda.</p></div>`;
-    }
-    
-    const frag = document.createDocumentFragment();
-    pageData.forEach(item => {
-      // Membuat card secara dinamis karena tidak ada template khusus di preorder.html
-      const card = document.createElement('article');
-      card.className = 'card clickable'; // 'clickable' dari style.css
-      card.setAttribute('role', 'button');
-      card.setAttribute('tabindex', '0');
-      
-      const statusClass = item.status.match(/^(success|progress|pending|failed)$/) ? item.status : 'pending';
-      
-      card.innerHTML = `
-        <div class="card-header">
-          <div>
-            <div class="card-name">${sanitizeHTML(item.name)}</div>
-            <div class="card-product">${sanitizeHTML(item.product)}</div>
-          </div>
-          <span class="status-badge ${statusClass}">${sanitizeHTML(item.status)}</span>
-        </div>
-        <div class="card-date">${sanitizeHTML(item.id ? `ID: ${item.id} • ` : '')}${sanitizeHTML(item.date)}</div>
-        <div class="card-details">
-          <div class="details-grid">
-            <div>
-              <div class="detail-label">Catatan</div>
-              <div class="detail-value">${sanitizeHTML(item.notes)}</div>
-            </div>
-          </div>
-        </div>
-      `;
-      setupExpandableCard(card, '.card-header'); // Gunakan helper
-      frag.appendChild(card);
-    });
-    listContainer.appendChild(frag);
-    
-    // 4. Update UI Paginasi
-    pageInfo.textContent = `Hal ${currentPage} / ${totalPages > 0 ? totalPages : 1}`;
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === totalPages || totalPages === 0;
-  }
-  
-  async function fetchAndRenderPreorder() {
-    if (preorderFetchController) preorderFetchController.abort();
-    preorderFetchController = new AbortController();
-    
-    const { listContainer, total } = elements.preorder;
-    
-    try {
-      listContainer.innerHTML = '';
-      total.textContent = 'Memuat data...';
-      if (elements.skeletonCardTemplate) {
-        showSkeleton(listContainer, elements.skeletonCardTemplate, 5);
-      }
-      
-      const sheetName = state.preorder.activeSheet === '0' ? config.sheets.preorder.name1 : config.sheets.preorder.name2;
-      const csvText = await fetchSheetCached(sheetName, 'csv', preorderFetchController.signal);
-      
-      if (csvText === null) return; // Dibatalkan
-      
-      state.preorder.allData = parsePreorderData(csvText);
-      state.preorder.currentPage = 1; // Reset ke halaman 1
-      renderPreorderList();
-      
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      console.error('Failed to load preorder data:', err);
-      listContainer.innerHTML = `<div class="err"><p>Gagal memuat data pesanan.</p></div>`;
-      total.textContent = 'Gagal memuat';
-    }
-  }
-
-  function initializePreorder() {
-    if (state.preorder.initialized) return;
-    state.preorder.initialized = true;
-    
-    const { customSelect, customStatusSelect, searchInput, prevBtn, nextBtn } = elements.preorder;
-
-    // Listener untuk Tipe Pesanan
-    customSelect.options?.addEventListener('click', e => {
-      const target = e.target.closest('.custom-select-option');
-      if (!target) return;
-      
-      const value = target.dataset.value;
-      if (value === state.preorder.activeSheet) {
-        toggleCustomSelect(customSelect.wrapper, false);
-        return;
-      }
-      
-      state.preorder.activeSheet = value;
-      customSelect.value.textContent = target.textContent;
-      customSelect.options.querySelector('.selected')?.classList.remove('selected');
-      target.classList.add('selected');
-      toggleCustomSelect(customSelect.wrapper, false);
-      
-      fetchAndRenderPreorder();
-    });
-
-    // Listener untuk Status Pesanan
-    customStatusSelect.options?.addEventListener('click', e => {
-      const target = e.target.closest('.custom-select-option');
-      if (!target) return;
-
-      state.preorder.statusFilter = target.dataset.value;
-      customStatusSelect.value.textContent = target.textContent;
-      customStatusSelect.options.querySelector('.selected')?.classList.remove('selected');
-      target.classList.add('selected');
-      toggleCustomSelect(customStatusSelect.wrapper, false);
-      
-      state.preorder.currentPage = 1; // Reset halaman saat ganti filter
-      renderPreorderList();
-    });
-    
-    // Listener untuk Pencarian
-    searchInput.addEventListener('input', debounce(e => {
-      state.preorder.searchQuery = e.target.value.trim();
-      state.preorder.currentPage = 1; // Reset halaman saat mencari
-      renderPreorderList();
-    }, 300));
-    
-    // Listener Paginasi
-    prevBtn.addEventListener('click', () => {
-      if (state.preorder.currentPage > 1) {
-        state.preorder.currentPage--;
-        renderPreorderList();
-      }
-    });
-    nextBtn.addEventListener('click', () => {
-      const totalPages = Math.ceil(state.preorder.allData.length / state.preorder.perPage);
-      if (state.preorder.currentPage < totalPages) {
-        state.preorder.currentPage++;
-        renderPreorderList();
-      }
-    });
-
-    // Load data awal
-    fetchAndRenderPreorder();
-  }
-
-  // =========================
-  // ACCOUNTS PIPELINE
-  // =========================
-  
-  /**
-   * ASUMSI STRUKTUR DATA (CSV) 'Sheet5':
-   * Kolom 1: ID (id) -> ID unik untuk item
-   * Kolom 2: Kategori (kategori) -> Teks kategori (e.g., "Mobile Legends", "Steam")
-   * Kolom 3: Harga (harga) -> Angka saja, tanpa "Rp" atau "."
-   * Kolom 4: Status (status) -> Teks harus "Tersedia" atau "Terjual"
-   * Kolom 5: Images (images) -> Link URL gambar, dipisah koma (",") jika lebih dari satu
-   * Kolom 6: Deskripsi (deskripsi) -> Teks deskripsi, gunakan "||" untuk baris baru (sesuai helper formatDescriptionToHTML)
-   */
-  function parseAccountData(csvText) {
-    const csvData = robustCsvParser(csvText);
-    const objects = csvToObjects(csvData);
-    
-    return objects.map(item => ({
-      id: item.id || `acc-${Math.random()}`,
-      category: item.kategori || 'Lainnya',
-      price: Number(item.harga) || 0,
-      status: (item.status || 'Tersedia').toLowerCase(),
-      images: item.images ? item.images.split(',').map(img => img.trim()) : [],
-      description: item.deskripsi || 'Tidak ada deskripsi.',
-      name: `Akun ${item.kategori || ''} #${item.id || ''}` // Nama untuk modal pembayaran
-    })).filter(item => item.price > 0);
-  }
-  
-  function buildAccountCategorySelect() {
-    const sel = elements.accounts.customSelect;
-    if (!sel?.options || !sel?.value) return;
-
-    const categories = [...new Set(state.accounts.allData.map(item => item.category))];
-    
-    sel.options.innerHTML = '';
-    
-    const allCategories = ['Semua Kategori', ...categories];
-
-    allCategories.forEach(cat => {
-      const el = document.createElement('div');
-      el.className = 'custom-select-option';
-      el.textContent = cat;
-      el.dataset.value = cat;
-      el.setAttribute('role', 'option');
-      
-      if (cat === state.accounts.activeCategory) {
-        el.classList.add('selected');
-        sel.value.textContent = cat;
-      }
-      
-      el.addEventListener('click', () => {
-        state.accounts.activeCategory = cat;
-        sel.value.textContent = cat;
-        sel.options.querySelector('.selected')?.classList.remove('selected');
-        el.classList.add('selected');
-        toggleCustomSelect(sel.wrapper, false);
-        renderAccountCards();
-      });
-      sel.options.appendChild(el);
-    });
-  }
-  
-  function renderAccountCards() {
-    const { cardGrid, empty, cardTemplate } = elements.accounts;
-    if (!cardGrid || !cardTemplate) return;
-    
-    const { activeCategory } = state.accounts;
-    
-    const filteredData = state.accounts.allData.filter(item => 
-      activeCategory === 'Semua Kategori' || item.category === activeCategory
-    );
-    
-    cardGrid.innerHTML = '';
-    
-    if (filteredData.length === 0) {
-      empty.style.display = 'flex';
-      return;
-    }
-    empty.style.display = 'none';
-    
-    const frag = document.createDocumentFragment();
-    filteredData.forEach(item => {
-      const card = cardTemplate.content.cloneNode(true).firstElementChild;
-      
-      // 1. Setup Carousel
-      const carouselWrapper = card.querySelector('.account-card-carousel-wrapper');
-      if (carouselWrapper && item.images.length > 0) {
-        const carouselId = `carousel-${item.id}`;
-        let trackHTML = '';
-        let indicatorsHTML = '';
-        
-        item.images.forEach((img, index) => {
-          trackHTML += `<div class="carousel-slide"><img src="${sanitizeHTML(img)}" alt="Gambar Akun ${index + 1}" loading="lazy"></div>`;
-          if (item.images.length > 1) {
-            indicatorsHTML += `<button type="button" class="indicator-dot ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Slide ${index + 1}"></button>`;
-          }
-        });
-        
-        carouselWrapper.innerHTML = `
-          <div class="carousel-container" id="${carouselId}">
-            <div class="carousel-track" style="transform: translateX(0%);">${trackHTML}</div>
-            ${item.images.length > 1 ? `
-              <button type="button" class="carousel-btn prev" aria-controls="${carouselId}" disabled>&lt;</button>
-              <button type="button" class="carousel-btn next" aria-controls="${carouselId}">&gt;</button>
-              <div class="carousel-indicators">${indicatorsHTML}</div>
-            ` : ''}
-          </div>
-        `;
-      } else if (carouselWrapper) {
-         carouselWrapper.innerHTML = `<div class="carousel-container"><div class="carousel-slide"><img src="/assets/images/placeholder.webp" alt="Placeholder"></div></div>`; // Fallback image
-      }
-      
-      // 2. Setup Info Utama
-      card.querySelector('h3').textContent = formatToIdr(item.price);
-      const statusBadge = card.querySelector('.account-status-badge');
-      if (statusBadge) {
-        statusBadge.textContent = item.status;
-        statusBadge.className = `account-status-badge ${item.status === 'tersedia' ? 'available' : 'sold'}`;
-      }
-      
-      // 3. Setup Detail (Deskripsi)
-      const specsContainer = card.querySelector('.account-card-specs');
-      if (specsContainer) {
-        specsContainer.innerHTML = formatDescriptionToHTML(item.description);
-      }
-      
-      // 4. Setup Tombol Aksi
-      const buyBtn = card.querySelector('.action-btn.buy');
-      const offerBtn = card.querySelector('.action-btn.offer');
-      
-      if (item.status === 'terjual') {
-        buyBtn.disabled = true;
-        offerBtn.disabled = true;
-        buyBtn.textContent = 'Terjual';
-      } else {
-        buyBtn.addEventListener('click', (e) => {
-          elementToFocusOnModalClose = e.currentTarget;
-          openPaymentModal(item); // 'item' sudah punya 'name' dan 'price'
-        });
-        offerBtn.addEventListener('click', () => {
-          const msg = encodeURIComponent(`Halo, saya tertarik untuk menawar ${item.name} (Harga: ${formatToIdr(item.price)}).`);
-          window.open(`https://wa.me/${config.waNumber}?text=${msg}`, '_blank', 'noopener,noreferrer');
-        });
-      }
-      
-      // 5. Inisialisasi UI
-      initializeCarousels(card);
-      setupExpandableCard(card, '.account-card-main-info');
-      
-      frag.appendChild(card);
-    });
-    
-    cardGrid.appendChild(frag);
-  }
-
-  async function initializeAccounts() {
-    if (state.accounts.initialized) return;
-    state.accounts.initialized = true;
-    
-    const { cardGrid, error, empty, customSelect } = elements.accounts;
-    
-    if (!cardGrid) return;
-    
-    if (customSelect.btn) {
-      customSelect.btn.addEventListener('click', (e) => { e.stopPropagation(); toggleCustomSelect(customSelect.wrapper); });
-    }
-    
-    if (accountsFetchController) accountsFetchController.abort();
-    accountsFetchController = new AbortController();
-    
-    try {
-      error.style.display = 'none';
-      empty.style.display = 'none';
-      if (elements.skeletonCardTemplate) {
-        showSkeleton(cardGrid, elements.skeletonCardTemplate, 4);
-      }
-      
-      const csvText = await fetchSheetCached(config.sheets.accounts.name, 'csv', accountsFetchController.signal);
-      
-      if (csvText === null) return;
-      
-      state.accounts.allData = parseAccountData(csvText);
-      
-      if (state.accounts.allData.length === 0) {
-        cardGrid.innerHTML = '';
-        empty.style.display = 'flex';
-        return;
-      }
-      
-      buildAccountCategorySelect();
-      renderAccountCards();
-      
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      console.error('Failed to load accounts:', err);
-      cardGrid.innerHTML = '';
-      error.style.display = 'block';
-      error.textContent = 'Oops, terjadi kesalahan saat memuat data akun.';
-    }
-  }
-  
-  // =========================
-  // PERPUSTAKAAN PIPELINE
-  // =========================
-
-  /**
-   * ASUMSI STRUKTUR DATA (CSV) 'Sheet_Perpus':
-   * Kolom 1: Judul (judul)
-   * Kolom 2: Link (link) -> URL tujuan saat di-klik
-   * Kolom 3: Cover (cover) -> URL gambar cover
-   */
-  function parsePerpustakaanData(csvText) {
-    const csvData = robustCsvParser(csvText);
-    const objects = csvToObjects(csvData);
-    
-    return objects.map(item => ({
-      title: item.judul || 'Tanpa Judul',
-      link: item.link || '#',
-      cover: item.cover || '/assets/images/placeholder.webp' // Fallback
-    })).filter(item => item.title !== 'Tanpa Judul');
-  }
-  
-  function renderPerpustakaanGrid() {
-    const { gridContainer, error } = elements.perpustakaan;
-    if (!gridContainer) return;
-    
-    gridContainer.innerHTML = '';
-    
-    if (state.perpustakaan.allData.length === 0) {
-       gridContainer.innerHTML = `<div class="empty" style="grid-column: 1 / -1;"><p>Tidak ada tulisan atau cerita yang ditemukan.</p></div>`;
-       return;
-    }
-    
-    const frag = document.createDocumentFragment();
-    state.perpustakaan.allData.forEach(item => {
-      // Membuat kartu buku secara dinamis sesuai style.css
-      const card = document.createElement('a');
-      card.href = item.link;
-      card.target = '_blank';
-      card.rel = 'noopener noreferrer';
-      card.className = 'book-card';
-      card.setAttribute('aria-label', item.title);
-      
-      card.innerHTML = `
-        <img src="${sanitizeHTML(item.cover)}" alt="${sanitizeHTML(item.title)}" class="cover" loading="lazy">
-        <div class="overlay"></div>
-        <div class="title">${sanitizeHTML(item.title)}</div>
-      `;
-      frag.appendChild(card);
-    });
-    gridContainer.appendChild(frag);
-  }
-  
-  async function initializePerpustakaan() {
-    if (state.perpustakaan.initialized) return;
-    state.perpustakaan.initialized = true;
-    
-    const { gridContainer, error } = elements.perpustakaan;
-    if (!gridContainer) return;
-    
-    if (perpustakaanFetchController) perpustakaanFetchController.abort();
-    perpustakaanFetchController = new AbortController();
-    
-    try {
-      error.style.display = 'none';
-      // Tampilkan skeleton kustom untuk buku
-      gridContainer.innerHTML = Array(6).fill('<div class="book-card skeleton"><div class="title"><span class="skeleton-text" style="width: 70%;"></span></div></div>').join('');
-
-      const csvText = await fetchSheetCached(config.sheets.perpustakaan.name, 'csv', perpustakaanFetchController.signal);
-      
-      if (csvText === null) return;
-      
-      state.perpustakaan.allData = parsePerpustakaanData(csvText);
-      renderPerpustakaanGrid();
-      
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      console.error('Failed to load library:', err);
-      gridContainer.innerHTML = '';
-      error.style.display = 'block';
-      error.textContent = 'Oops, terjadi kesalahan saat memuat data perpustakaan.';
-    }
-  }
-
-  // =========================
-  // CAROUSELL PIPELINE
-  // =========================
-
-  /**
-   * ASUMSI STRUKTUR DATA (CSV) 'Sheet8':
-   * Kolom 1: IDProduk (idproduk) -> Nomor unik produk
-   * Kolom 2: Judul (judul)
-   * Kolom 3: Platform (platform) -> e.g., "Shopee", "Tokopedia"
-   * Kolom 4: Harga (harga) -> Angka saja
-   * Kolom 5: Images (images) -> Link URL gambar, dipisah koma (",")
-   * Kolom 6: LinkURL (linkurl) -> Link afiliasi
-   * Kolom 7: Deskripsi (deskripsi) -> Opsional, pakai "||" untuk baris baru
-   */
-  function parseCarousellData(csvText) {
-    const csvData = robustCsvParser(csvText);
-    const objects = csvToObjects(csvData);
-    
-    return objects.map(item => ({
-      id: item.idproduk || `car-${Math.random()}`,
-      title: item.judul || 'Produk Pilihan',
-      platform: item.platform || '',
-      price: Number(item.harga) || 0,
-      images: item.images ? item.images.split(',').map(img => img.trim()) : [],
-      link: item.linkurl || '#',
-      description: item.deskripsi || ''
-    })).filter(item => item.price > 0 && item.link !== '#');
-  }
-  
-  function renderCarousellGrid() {
-    const { gridContainer, total } = elements.carousell;
-    if (!gridContainer) return;
-    
-    const query = state.carousell.searchQuery.toLowerCase();
-    
-    const filteredData = state.carousell.allData.filter(item => 
-      query === '' || item.id.toLowerCase().includes(query)
-    );
-    
-    gridContainer.innerHTML = '';
-    total.textContent = `${filteredData.length} produk ditemukan`;
-    
-    if (filteredData.length === 0) {
-      gridContainer.innerHTML = `<div class="empty" style="grid-column: 1 / -1;"><p>Tidak ada produk yang cocok dengan pencarian Anda.</p></div>`;
-      return;
-    }
-    
-    const frag = document.createDocumentFragment();
-    filteredData.forEach(item => {
-      // Membuat kartu afiliasi secara dinamis (sesuai style.css)
-      const card = document.createElement('article');
-      card.className = 'affiliate-card';
-      
-      // 1. Carousel
-      let carouselHTML = '';
-      if (item.images.length > 0) {
-        const carouselId = `carousel-aff-${item.id}`;
-        let trackHTML = '';
-        let indicatorsHTML = '';
-        
-        item.images.forEach((img, index) => {
-          trackHTML += `<div class="carousel-slide"><img src="${sanitizeHTML(img)}" alt="Gambar Produk ${index + 1}" loading="lazy"></div>`;
-          if (item.images.length > 1) {
-            indicatorsHTML += `<button type="button" class="indicator-dot ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Slide ${index + 1}"></button>`;
-          }
-        });
-        
-        carouselHTML = `
-          <div class="carousel-container" id="${carouselId}">
-            <div class="carousel-track" style="transform: translateX(0%);">${trackHTML}</div>
-            ${item.images.length > 1 ? `
-              <button type="button" class="carousel-btn prev" aria-controls="${carouselId}" disabled>&lt;</button>
-              <button type="button" class="carousel-btn next" aria-controls="${carouselId}">&gt;</button>
-              <div class="carousel-indicators">${indicatorsHTML}</div>
-            ` : ''}
-          </div>
-        `;
-      } else {
-         carouselHTML = `<div class="carousel-container"><div class="carousel-slide"><img src="/assets/images/placeholder.webp" alt="Placeholder"></div></div>`;
-      }
-      
-      // 2. Info Card
-      card.innerHTML = `
-        ${carouselHTML}
-        <div class="affiliate-card-body">
-          <div class="affiliate-card-platform">${sanitizeHTML(item.platform)}</div>
-          <h3 class="affiliate-card-title">${sanitizeHTML(item.title)}</h3>
-          <div class="affiliate-card-price">${formatToIdr(item.price)}</div>
-          ${item.description ? `<div class="affiliate-card-desc">${formatDescriptionToHTML(item.description)}</div>` : ''}
-          <a href="${sanitizeHTML(item.link)}" target="_blank" rel="noopener noreferrer" class="affiliate-card-button">Beli di ${sanitizeHTML(item.platform) || 'Sini'}</a>
-        </div>
-        <div class="affiliate-card-number">#${sanitizeHTML(item.id)}</div>
-      `;
-      
-      initializeCarousels(card);
-      frag.appendChild(card);
-    });
-    
-    gridContainer.appendChild(frag);
-  }
-  
-  async function initializeCarousell() {
-    if (state.carousell.initialized) return;
-    state.carousell.initialized = true;
-    
-    const { gridContainer, error, searchInput, total } = elements.carousell;
-    if (!gridContainer) return;
-    
-    searchInput.addEventListener('input', debounce(e => {
-      state.carousell.searchQuery = e.target.value.trim();
-      renderCarousellGrid();
-    }, 300));
-    
-    if (carousellFetchController) carousellFetchController.abort();
-    carousellFetchController = new AbortController();
-    
-    try {
-      error.style.display = 'none';
-      total.textContent = 'Memuat data...';
-      // Tampilkan skeleton kustom untuk afiliasi
-      gridContainer.innerHTML = Array(3).fill(`
-        <div class="affiliate-card skeleton">
-          <div class="carousel-container skeleton"></div>
-          <div class="affiliate-card-body">
-            <span class="skeleton-text" style="width: 30%; height: 12px; margin-bottom: 8px;"></span>
-            <span class="skeleton-text" style="width: 90%; height: 16px; margin-bottom: 12px;"></span>
-            <span class="skeleton-text" style="width: 50%; height: 24px; margin-bottom: 20px;"></span>
-            <span class="skeleton-text" style="width: 100%; height: 44px; border-radius: 8px;"></span>
-          </div>
-        </div>
-      `).join('');
-      
-      const csvText = await fetchSheetCached(config.sheets.affiliate.name, 'csv', carousellFetchController.signal);
-      
-      if (csvText === null) return;
-      
-      state.carousell.allData = parseCarousellData(csvText);
-      renderCarousellGrid();
-      
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      console.error('Failed to load carousell data:', err);
-      gridContainer.innerHTML = '';
-      total.textContent = 'Gagal memuat';
-      error.style.display = 'block';
-      error.textContent = 'Oops, terjadi kesalahan saat memuat data produk.';
-    }
-  }
-
-  // =========================
-  // PAYMENT MODAL (Tidak Berubah)
-  // =========================
-  function calculateFee(price, option) {
-    const numPrice = Number(price) || 0;
-    if (option.feeType === 'fixed') return option.value;
-    if (option.feeType === 'percentage') return Math.ceil(numPrice * option.value);
-    return 0;
-  }
-
-  function updatePriceDetails() {
-    const selectedOptionId = document.querySelector('input[name="payment"]:checked')?.value;
-    if (!selectedOptionId) return;
-
-    const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId);
-    if (!currentSelectedItem || !selectedOption) return;
-
-    const price = Number(currentSelectedItem.price) || 0;
-    const fee = calculateFee(price, selectedOption);
-    const total = price + fee;
-
-    elements.paymentModal.fee.textContent = formatToIdr(fee);
-    elements.paymentModal.total.textContent = formatToIdr(total);
-  }
-
-  function openPaymentModal(item) {
-    if (!item) return;
-
-    currentSelectedItem = item;
-
-    const { modal, itemName, itemPrice, optionsContainer, waBtn } = elements.paymentModal;
-    if (!modal) return;
-
-    itemName && (itemName.textContent = item.title || item.name || '');
-    itemPrice && (itemPrice.textContent = formatToIdr(item.price));
-
-    if (optionsContainer) {
-      optionsContainer.innerHTML = '';
-      config.paymentOptions.forEach((option, index) => {
-        const fee = calculateFee(item.price, option);
-        optionsContainer.insertAdjacentHTML('beforeend', `
-          <div class="payment-option">
-            <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}>
-            <label for="${option.id}" tabindex="0">
-              ${sanitizeHTML(option.name)}
-              <span style="float: right">+ ${formatToIdr(fee)}</span>
-            </label>
-          </div>
-        `);
-      });
-
-      optionsContainer.querySelectorAll('input[name="payment"]').forEach(input => {
-        input.addEventListener('change', updatePriceDetails);
-      });
-    }
-
-    updatePriceDetails();
-
-    if (waBtn) {
-      waBtn.onclick = () => {
-        const selectedOptionId = document.querySelector('input[name="payment"]:checked')?.value;
-        const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId);
-        if (!selectedOption) return;
-
-        const price = Number(item.price) || 0;
-        const fee = calculateFee(price, selectedOption);
-        const total = price + fee;
-
-        const message =
-          `${config.waGreeting}\n\n` +
-          `Produk: ${item.title || item.name}\n` +
-          `Harga: ${formatToIdr(price)}\n` +
-          `Metode Pembayaran: ${selectedOption.name}\n` +
-          `Biaya Admin: ${formatToIdr(fee)}\n` +
-          `Total: ${formatToIdr(total)}`;
-
-        const waUrl = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(message)}`;
-        window.open(waUrl, '_blank', 'noopener,noreferrer');
-      };
-    }
-
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Mencegah scroll background
-    requestAnimationFrame(() => {
-      modal.classList.add('active'); // 'active' bukan 'visible'
-      setupModalFocusTrap(modal);
-    });
-  }
-
-  function closePaymentModal() {
-    const { modal } = elements.paymentModal;
-    if (!modal) return;
-
-    modal.classList.remove('active');
-    document.body.style.overflow = ''; // Kembalikan scroll background
-
-    const finish = () => {
-      modal.style.display = 'none';
-      teardownModalFocusTrap();
-      if (elementToFocusOnModalClose) {
-        elementToFocusOnModalClose.focus();
-        elementToFocusOnModalClose = null;
-      }
+    const move = (delta)=>{
+      i = (i === -1 ? items.findIndex(o=>o.classList.contains('selected')) : i);
+      if (i === -1) i = 0;
+      i = (i + delta + items.length) % items.length;
+      items.forEach(o=>o.classList.remove('highlight'));
+      items[i].classList.add('highlight');
+      items[i].scrollIntoView({ block: 'nearest' });
     };
 
-    if (!prefersReducedMotion) {
-      modal.addEventListener('transitionend', function handler() { finish(); modal.removeEventListener('transitionend', handler); }, { once: true });
-    } else {
-      finish();
-    }
-  }
+    if (e.key === 'ArrowDown'){ e.preventDefault(); move(1); }
+    if (e.key === 'ArrowUp'){ e.preventDefault(); move(-1); }
+    if (e.key === 'Home'){ e.preventDefault(); move(-9999); }
+    if (e.key === 'End'){ e.preventDefault(); move(9999); }
+    if (e.key === 'Enter'){ e.preventDefault(); if (i>-1) items[i].click(); }
+    if (e.key === 'Escape'){ e.preventDefault(); toggleCustomSelect(wrapper, false); btn.focus(); }
+  });
+}
 
-  function setupModalFocusTrap(modal) {
-    const focusableEls = modal.querySelectorAll(
-      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
-    modalFocusTrap.focusableEls = Array.from(focusableEls);
-    modalFocusTrap.firstEl = modalFocusTrap.focusableEls[0];
-    modalFocusTrap.lastEl = modalFocusTrap.focusableEls[modalFocusTrap.focusableEls.length - 1];
-
-    modalFocusTrap.listener = (e) => {
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey) {
-        if (document.activeElement === modalFocusTrap.firstEl) {
-          e.preventDefault();
-          modalFocusTrap.lastEl?.focus();
-        }
-      } else {
-        if (document.activeElement === modalFocusTrap.lastEl) {
-          e.preventDefault();
-          modalFocusTrap.firstEl?.focus();
-        }
-      }
-    };
-
-    modal.addEventListener('keydown', modalFocusTrap.listener);
-    // Fokus pada elemen pertama yang bisa difokus, biasanya tombol close atau input radio pertama
-    const firstFocusable = modalFocusTrap.firstEl;
-    firstFocusable?.focus();
-  }
-
-  function teardownModalFocusTrap() {
-    if (modalFocusTrap.listener) {
-      elements.paymentModal.modal.removeEventListener('keydown', modalFocusTrap.listener);
-      modalFocusTrap.listener = null;
-    }
-  }
-
-  // =========================
-  // UI UTILITIES (Tidak Berubah)
-  // =========================
+  function robustCsvParser(text) { const normalizedText = text.trim().replace(/\r\n/g, '\n'); const rows = []; let currentRow = []; let currentField = ''; let inQuotedField = false; for (let i = 0; i < normalizedText.length; i++) { const char = normalizedText[i]; if (inQuotedField) { if (char === '"') { if (i + 1 < normalizedText.length && normalizedText[i + 1] === '"') { currentField += '"'; i++; } else { inQuotedField = false; } } else { currentField += char; } } else { if (char === '"') { inQuotedField = true; } else if (char === ',') { currentRow.push(currentField); currentField = ''; } else if (char === '\n') { currentRow.push(currentField); rows.push(currentRow); currentRow = []; currentField = ''; } else { currentField += char; } } } currentRow.push(currentField); rows.push(currentRow); return rows; }
   function initializeCarousels(container) {
-    if (!container) return;
     container.querySelectorAll('.carousel-container').forEach(carouselContainer => {
       const track = carouselContainer.querySelector('.carousel-track');
       const slides = carouselContainer.querySelectorAll('.carousel-slide');
       const imageCount = slides.length;
-
       if (imageCount > 1) {
         const prevBtn = carouselContainer.querySelector('.prev');
         const nextBtn = carouselContainer.querySelector('.next');
         const indicators = carouselContainer.querySelectorAll('.indicator-dot');
         let currentIndex = 0;
-
         const update = () => {
           if (!track || !prevBtn || !nextBtn || !indicators) return;
           track.style.transform = `translateX(-${currentIndex * 100}%)`;
@@ -1281,117 +195,82 @@
           nextBtn.disabled = currentIndex >= imageCount - 1;
           indicators.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
         };
-
-        nextBtn?.addEventListener('click', (e) => {
+        nextBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (currentIndex < imageCount - 1) { currentIndex++; update(); }
+          if (currentIndex < imageCount - 1) {
+            currentIndex++;
+            update();
+          }
         });
-
-        prevBtn?.addEventListener('click', (e) => {
+        prevBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (currentIndex > 0) { currentIndex--; update(); }
+          if (currentIndex > 0) {
+            currentIndex--;
+            update();
+          }
         });
-
         indicators.forEach(dot => dot.addEventListener('click', (e) => {
           e.stopPropagation();
           currentIndex = parseInt(e.target.dataset.index, 10);
           update();
         }));
-
         update();
       }
     });
   }
-
   function setupExpandableCard(card, triggerSelector) {
     const trigger = card.querySelector(triggerSelector);
     if (trigger) {
       const action = (e) => {
-        // Jangan ekspansi jika mengklik link di dalam trigger (jika ada)
-        if (e.target.closest('a') || e.target.closest('button')) return; 
+        if (e.target.closest('a')) return;
         card.classList.toggle('expanded');
       };
       trigger.addEventListener('click', action);
       trigger.addEventListener('keydown', (e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('a')  && !e.target.closest('button')) {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('a')) {
           e.preventDefault();
           action(e);
         }
       });
     }
   }
-
   function formatDescriptionToHTML(text) {
     if (!text) return '';
-    // Menggunakan regex untuk memecah berdasarkan ||
-    return text.split(/\|\|/g).map(line => {
-      const trimmedLine = line.trim();
-      if (trimmedLine === '') return '<br>'; // Hanya satu <br> agar tidak terlalu renggang
-      if (trimmedLine.endsWith(':')) return `<strong class="spec-title">${sanitizeHTML(trimmedLine.slice(0, -1))}</strong>`;
-      if (trimmedLine.startsWith('\u203A') || trimmedLine.startsWith('>')) return `<p class="spec-item spec-item-arrow">${sanitizeHTML(trimmedLine.substring(1).trim())}</p>`;
-      if (trimmedLine.startsWith('-')) return `<p class="spec-item spec-item-dash">${sanitizeHTML(trimmedLine.substring(1).trim())}</p>`;
-      if (trimmedLine.startsWith('#')) return `<p class="spec-hashtag">${sanitizeHTML(trimmedLine)}</p>`;
-      return `<p class="spec-paragraph">${sanitizeHTML(trimmedLine)}</p>`;
+    return text.split('||').map(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine === '') {
+            return '<br>';
+        } else if (trimmedLine.endsWith(':')) {
+            return `<p class="spec-title">${trimmedLine.slice(0, -1)}</p>`;
+        } else if (trimmedLine.startsWith('\u203A')) { // Menggunakan Unicode Escape
+            return `<p class="spec-item spec-item-arrow">${trimmedLine.substring(1).trim()}</p>`;
+        } else if (trimmedLine.startsWith('-')) {
+            return `<p class="spec-item spec-item-dash">${trimmedLine.substring(1).trim()}</p>`;
+        } else if (trimmedLine.startsWith('#')) {
+            return `<p class="spec-hashtag">${trimmedLine}</p>`;
+        } else {
+            return `<p class="spec-paragraph">${trimmedLine}</p>`;
+        }
     }).join('');
   }
-
   function updateHeaderStatus() {
     const now = new Date();
     const options = { timeZone: 'Asia/Jakarta', hour: '2-digit', hour12: false };
     const hour = parseInt(new Intl.DateTimeFormat('en-US', options).format(now), 10);
     const indicator = elements.headerStatusIndicator;
-    if (!indicator) return;
-    
-    // Buka jam 8 pagi - 12 malam (23:59)
-    if (hour >= 8 && hour <= 23) { 
-      indicator.textContent = 'BUKA'; 
-      indicator.className = 'status-badge open'; // Pakai 'open' dari CSS
-    } else { 
-      indicator.textContent = 'TUTUP'; 
-      indicator.className = 'status-badge closed'; 
-    }
-  }
-
-  function toggleSidebar(forceOpen) {
-    const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !document.body.classList.contains('sidebar-open');
-    document.body.classList.toggle('sidebar-open', isOpen);
-    elements.sidebar.burger?.classList.toggle('active', isOpen);
-    elements.sidebar.burger?.setAttribute('aria-expanded', isOpen);
-
-    const body = document.body;
-    if (isOpen) {
-      const y = window.scrollY || window.pageYOffset || 0;
-      body.dataset.ppLockY = String(y);
-      body.style.position = 'fixed';
-      body.style.top = `-${y}px`;
-      body.style.width = '100%';
-      body.style.overflow = 'hidden'; // Mencegah scroll body
-      
-      // Fokus ke sidebar untuk aksesibilitas
-      elements.sidebar.nav?.querySelector('a.nav-item')?.focus();
-      
+    if (hour >= 8) {
+      indicator.textContent = 'BUKA';
+      indicator.className = 'status-badge success';
     } else {
-      const y = parseInt(body.dataset.ppLockY || '0', 10);
-      body.style.position = '';
-      body.style.top = '';
-      body.style.width = '';
-      body.style.overflow = '';
-      window.scrollTo(0, y);
-      
-      // Kembalikan fokus ke tombol burger
-      elements.sidebar.burger?.focus();
+      indicator.textContent = 'TUTUP';
+      indicator.className = 'status-badge closed';
     }
   }
-
-  // =========================
-  // INITIALIZE (UPDATED)
-  // =========================
   function initializeApp() {
-    // Sidebar
     elements.sidebar.burger?.addEventListener('click', () => toggleSidebar());
     elements.sidebar.overlay?.addEventListener('click', () => toggleSidebar(false));
 
-    // Link donasi
+    // Logika navigasi 'donasi' (link eksternal) masih diperlukan
     elements.navLinks.forEach(link => {
       link.addEventListener('click', e => {
         if (link.dataset.mode === 'donasi') {
@@ -1401,99 +280,623 @@
       });
     });
 
-    // Custom select
-    [
-      elements.home.customSelect, 
-      elements.preorder.customSelect, 
-      elements.preorder.customStatusSelect, 
-      elements.accounts.customSelect
-    ]
+    [elements.home.customSelect, elements.preorder.customSelect, elements.preorder.customStatusSelect, elements.accounts.customSelect]
       .filter(select => select && select.btn)
       .forEach(select => {
         select.btn.addEventListener('click', (e) => { e.stopPropagation(); toggleCustomSelect(select.wrapper); });
         enhanceCustomSelectKeyboard(select.wrapper);
       });
-
-    // Home search (sudah ada)
-    if (elements.home.searchInput) {
-      elements.home.searchInput.addEventListener('input', debounce(e => {
-        state.home.searchQuery = e.target.value.trim(); 
-        renderHomeList(); 
-      }, 300));
-    }
-
-    // Payment modal
-    if (elements.paymentModal.closeBtn && elements.paymentModal.modal) {
-      elements.paymentModal.closeBtn.addEventListener('click', closePaymentModal);
-      elements.paymentModal.modal.addEventListener('click', e => { if (e.target === elements.paymentModal.modal) closePaymentModal(); });
-    }
-
-    // Escape handler
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (elements.paymentModal.modal?.classList.contains('active')) closePaymentModal();
-        if (document.body.classList.contains('sidebar-open')) toggleSidebar(false);
-        [
-          elements.home.customSelect.wrapper, 
-          elements.preorder.customSelect.wrapper, 
-          elements.preorder.customStatusSelect.wrapper, 
-          elements.accounts.customSelect.wrapper
-        ]
-          .filter(Boolean).forEach(w => toggleCustomSelect(w, false));
-      }
-    });
-
-    // Click outside to close custom selects
-    document.addEventListener('click', (e) => {
-      [
-        elements.home.customSelect.wrapper, 
-        elements.preorder.customSelect.wrapper, 
-        elements.preorder.customStatusSelect.wrapper, 
-        elements.accounts.customSelect.wrapper
-      ]
-        .filter(wrapper => wrapper)
-        .forEach(wrapper => { if (!wrapper.contains(e.target)) toggleCustomSelect(wrapper, false); });
-    });
-
-    // Header status
-    if (elements.headerStatusIndicator) {
-      elements.headerStatusIndicator.style.display = 'inline-flex';
-      updateHeaderStatus();
-      setInterval(updateHeaderStatus, 60000);
-    }
-
-    // === INIT SEMUA HALAMAN ===
     
-    // 1. Init Home (Katalog)
+    // Pastikan elemen ini ada sebelum menambahkan listener
+    if (elements.home.searchInput) {
+      let homeDebounce;
+      elements.home.searchInput.addEventListener('input', e => {
+        clearTimeout(homeDebounce);
+        homeDebounce = setTimeout(() => { state.home.searchQuery = e.target.value.trim(); renderHomeList(); }, 200);
+      });
+    }
+
+    elements.paymentModal.closeBtn.addEventListener('click', closePaymentModal);
+    elements.paymentModal.modal.addEventListener('click', e => { if (e.target === elements.paymentModal.modal) closePaymentModal(); });
+    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape'){ [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper].filter(Boolean).forEach(w=>toggleCustomSelect(w,false)); } });
+    document.addEventListener('click', (e) => {
+      [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper]
+        .filter(wrapper => wrapper)
+        .forEach(wrapper => toggleCustomSelect(wrapper, false));
+    });
+
+    // Inisialisasi berdasarkan halaman saat ini
     if (elements.viewHome) {
       loadCatalog();
     }
-    
-    // 2. Init Pre Order
     if (elements.viewPreorder) {
       initializePreorder();
     }
-    
-    // 3. Init Akun Game
     if (elements.viewAccounts) {
       initializeAccounts();
     }
-    
-    // 4. Init Perpustakaan
     if (elements.viewPerpustakaan) {
-       initializePerpustakaan();
+      if (getElement('libraryGridContainer') && !getElement('libraryGridContainer').innerHTML.trim()) {
+        initializeLibrary();
+      }
+    }
+    if (elements.viewCarousell) {
+      initializeCarousell();
     }
     
-    // 5. Init Carousell
-    if (elements.viewCarousell) {
-       initializeCarousell();
+    // HAPUS LOGIKA testimonialSection DARI SINI
+
+    elements.headerStatusIndicator.style.display = 'inline-flex';
+    updateHeaderStatus();
+    setInterval(updateHeaderStatus, 60000);
+    const heroImg = document.querySelector('.home-banner-img');
+    if (heroImg){ heroImg.setAttribute('decoding','async'); try{ heroImg.setAttribute('fetchpriority','high'); }catch(e){} }
+  }
+  function toggleSidebar(forceOpen) {
+  const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !document.body.classList.contains('sidebar-open');
+  document.body.classList.toggle('sidebar-open', isOpen);
+  elements.sidebar.burger.classList.toggle('active', isOpen);
+
+  const body = document.body;
+  if (isOpen) {
+    // Lock scroll without causing layout shift
+    const y = window.scrollY || window.pageYOffset || 0;
+    body.dataset.ppLockY = String(y);
+    body.style.position = 'fixed';
+    body.style.top = `-${y}px`;  /* keep visual position */
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+  } else {
+    // Restore scroll exactly where the user was
+    const y = parseInt(body.dataset.ppLockY || '0', 10);
+    body.style.position = '';
+    body.style.top = '';
+    body.style.width = '';
+    body.style.overflow = '';
+    window.scrollTo(0, y);
+  }
+}
+  // FUNGSI setMode() SUDAH DIHAPUS
+
+  function parseGvizPairs(jsonText) { const match = jsonText.match(/\{.*\}/s); if (!match) throw new Error('Invalid GViz response.'); const obj = JSON.parse(match[0]); const { rows = [], cols = [] } = obj.table || {}; const pairs = Array.from({ length: Math.floor(cols.length / 2) }, (_, i) => ({ iTitle: i * 2, iPrice: i * 2 + 1, label: cols[i * 2]?.label || '', })).filter(p => p.label && cols[p.iPrice]); const out = []; for (const r of rows) { const c = r.c || []; for (const p of pairs) { const title = String(c[p.iTitle]?.v || '').trim(); const priceRaw = c[p.iPrice]?.v; const price = priceRaw != null && priceRaw !== '' ? Number(priceRaw) : NaN; if (title && !isNaN(price)) { out.push({ catKey: p.label, catLabel: String(p.label || '').trim().replace(/\s+/g, ' '), title, price, }); } } } return out; }
+  function buildHomeCategorySelect(catalogData) {
+    const { options, value } = elements.home.customSelect;
+    const categoryMap = new Map();
+    catalogData.forEach(item => { if (!categoryMap.has(item.catKey)) categoryMap.set(item.catKey, item.catLabel); });
+    const categories = [...categoryMap].map(([key, label]) => ({ key, label }));
+    options.innerHTML = '';
+    const activeCategoryKey = state.home.activeCategory || (categories[0]?.key || '');
+    const activeCategory = categories.find(c => c.key === activeCategoryKey) || categories[0];
+    if (activeCategory) { state.home.activeCategory = activeCategory.key; value.textContent = activeCategory.label; }
+    else { value.textContent = 'Data tidak tersedia'; }
+    categories.forEach(cat => {
+      const el = document.createElement('div');
+      el.className = 'custom-select-option';
+      el.textContent = cat.label;
+      el.dataset.value = cat.key;
+      el.setAttribute('role', 'option');
+      if (cat.key === state.home.activeCategory) el.classList.add('selected');
+      el.addEventListener('click', () => {
+        state.home.activeCategory = cat.key;
+        value.textContent = cat.label;
+        options.querySelector('.selected')?.classList.remove('selected');
+        el.classList.add('selected');
+        toggleCustomSelect(elements.home.customSelect.wrapper, false);
+        const url = new URL(window.location);
+        url.searchParams.set('kategori', cat.label.toLowerCase().replace(/ /g, '-').replace(/[+&]/g, ''));
+        history.pushState({ activeCategory: cat.key }, '', url);
+        renderHomeList();
+      });
+      options.appendChild(el);
+    });
+  }
+  function renderList(container, countInfoEl, items, emptyText) { container.innerHTML = ''; if (items.length === 0) { container.innerHTML = `<div class="empty"><div class="empty-content"><svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg><p>${emptyText}</p></div></div>`; countInfoEl.textContent = ''; return; } const fragment = document.createDocumentFragment(); for (const item of items) { const clone = elements.itemTemplate.content.cloneNode(true); const buttonEl = clone.querySelector('.list-item'); buttonEl.querySelector('.title').textContent = item.title; buttonEl.querySelector('.price').textContent = formatToIdr(item.price); buttonEl.addEventListener('click', () => openPaymentModal(item)); fragment.appendChild(clone); } container.appendChild(fragment); countInfoEl.textContent = `${items.length} item ditemukan`; }
+  function renderHomeList() { const { activeCategory, searchQuery } = state.home; const query = searchQuery.toLowerCase(); const items = allCatalogData.filter(x => x.catKey === activeCategory && (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))); renderList(elements.home.listContainer, elements.home.countInfo, items, 'Tidak ada item ditemukan.'); }
+  async function loadCatalog() {
+    if (catalogFetchController) catalogFetchController.abort();
+    catalogFetchController = new AbortController();
+    try {
+      elements.home.errorContainer.style.display = 'none';
+      showSkeleton(elements.home.listContainer, elements.skeletonItemTemplate, 6);
+      const text = await fetchSheetCached(config.sheets.katalog.name, 'json');
+      allCatalogData = parseGvizPairs(text);
+      if (allCatalogData.length === 0) throw new Error('Data is empty or format is incorrect.');
+      const params = new URLSearchParams(window.location.search);
+      const categoryFromUrl = params.get('kategori');
+      if (categoryFromUrl && (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html'))) {
+          const urlToCatKeyMap = new Map();
+          allCatalogData.forEach(item => {
+              const urlFriendlyLabel = item.catLabel.toLowerCase().replace(/ /g, '-').replace(/[+&]/g, '');
+              if (!urlToCatKeyMap.has(urlFriendlyLabel)) urlToCatKeyMap.set(urlFriendlyLabel, item.catKey);
+          });
+          const foundKey = urlToCatKeyMap.get(categoryFromUrl);
+          if (foundKey) state.home.activeCategory = foundKey;
+      }
+      buildHomeCategorySelect(allCatalogData);
+      renderHomeList();
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.error('Failed to load catalog:', err);
+      const view = elements.home;
+      view.listContainer.innerHTML = '';
+      view.errorContainer.style.display = 'block';
+      view.errorContainer.textContent = 'Oops, terjadi kesalahan. Silakan coba lagi nanti.';
+    }
+  }
+  function calculateFee(price, option) { if (option.feeType === 'fixed') return option.value; if (option.feeType === 'percentage') return Math.ceil(price * option.value); return 0; }
+  function updatePriceDetails() { const selectedOptionId = document.querySelector('input[name="payment"]:checked')?.value; if (!selectedOptionId) return; const selectedOption = config.paymentOptions.find(opt => opt.id === selectedOptionId); if (!currentSelectedItem || !selectedOption) return; const price = currentSelectedItem.price; const fee = calculateFee(price, selectedOption); const total = price + fee; elements.paymentModal.fee.textContent = formatToIdr(fee); elements.paymentModal.total.textContent = formatToIdr(total); updateWaLink(selectedOption, fee, total); }
+
+  // Fungsi updateWaLink menggunakan Unicode Escape \u203A
+  function updateWaLink(option, fee, total) {
+    const { catLabel = "Produk", title, price } = currentSelectedItem;
+    const text = [
+      config.waGreeting,
+      `\u203A Tipe: ${catLabel}`,         // Menggunakan Unicode Escape
+      `\u203A Item: ${title}`,           // Menggunakan Unicode Escape
+      `\u203A Pembayaran: ${option.name}`, // Menggunakan Unicode Escape
+      `\u203A Harga: ${formatToIdr(price)}`, // Menggunakan Unicode Escape
+      `\u203A Fee: ${formatToIdr(fee)}`,     // Menggunakan Unicode Escape
+      `\u203A Total: ${formatToIdr(total)}`, // Menggunakan Unicode Escape
+    ].join('\n');
+    elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`;
+  }
+
+  function openPaymentModal(item) {
+    const pageContainer = document.getElementById('pageContainer');
+    const modalContentEl = document.querySelector('#paymentModal .modal-content');
+    if (modalContentEl){ modalContentEl.setAttribute('role','dialog'); modalContentEl.setAttribute('aria-modal','true'); modalContentEl.setAttribute('aria-labelledby','paymentModalTitle'); }
+    const modalTitle = document.querySelector('#paymentModal .modal-header h2');
+    if (modalTitle){ modalTitle.id = 'paymentModalTitle'; }
+    if (pageContainer){ pageContainer.setAttribute('inert',''); }
+    document.documentElement.style.overflow = "hidden"; document.body.style.overflow = "hidden";
+    elementToFocusOnModalClose = document.activeElement;
+    currentSelectedItem = item;
+    const { modal, itemName, itemPrice, optionsContainer } = elements.paymentModal;
+    itemName.textContent = item.title;
+    itemPrice.textContent = formatToIdr(item.price);
+    optionsContainer.innerHTML = '';
+    config.paymentOptions.forEach((option, index) => {
+      const fee = calculateFee(item.price, option);
+      optionsContainer.insertAdjacentHTML('beforeend', ` <div class="payment-option"> <input type="radio" id="${option.id}" name="payment" value="${option.id}" ${index === 0 ? 'checked' : ''}> <label for="${option.id}" tabindex="0"> ${option.name} <span style="float: right;">+ ${formatToIdr(fee)}</span> </label> D</div>`);
+    });
+    optionsContainer.querySelectorAll('input[name="payment"]').forEach(input => input.addEventListener('change', updatePriceDetails));
+    updatePriceDetails();
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('visible'), 10);
+    const focusableEls = modal.querySelectorAll('a[href]:not([disabled]), button:not([disabled]), input[type="radio"]:not([disabled])');
+    modalFocusTrap.focusableEls = Array.from(focusableEls);
+    modalFocusTrap.firstEl = modalFocusTrap.focusableEls[0];
+    modalFocusTrap.lastEl = modalFocusTrap.focusableEls[modalFocusTrap.focusableEls.length - 1];
+    modalFocusTrap.listener = function(e) { if (e.key !== 'Tab') return; if (e.shiftKey) { if (document.activeElement === modalFocusTrap.firstEl) { modalFocusTrap.lastEl.focus(); e.preventDefault(); } } else { if (document.activeElement === modalFocusTrap.lastEl) { modalFocusTrap.firstEl.focus(); e.preventDefault(); } } };
+    modal.addEventListener('keydown', modalFocusTrap.listener);
+    setTimeout(() => modalFocusTrap.firstEl?.focus(), 100);
+  }
+  function closePaymentModal() {
+    const pageContainer = document.getElementById('pageContainer');
+    if (pageContainer){ pageContainer.removeAttribute('inert'); }
+    document.documentElement.style.overflow = ""; document.body.style.overflow = "";
+    const { modal } = elements.paymentModal;
+    modal.classList.remove('visible');
+    if (modalFocusTrap.listener) modal.removeEventListener('keydown', modalFocusTrap.listener);
+    setTimeout(() => {
+      modal.style.display = 'none';
+      currentSelectedItem = null;
+      elementToFocusOnModalClose?.focus();
+    }, 200);
+  }
+  function normalizeStatus(rawStatus) { const s = String(rawStatus || '').trim().toLowerCase(); if (['success', 'selesai', 'berhasil', 'done'].includes(s)) return 'success'; if (['progress', 'proses', 'diproses', 'processing'].includes(s)) return 'progress'; if (['failed', 'gagal', 'dibatalkan', 'cancel', 'error'].includes(s)) return 'failed'; return 'pending'; }
+  function filterPreorderData() { const query = elements.preorder.searchInput.value.trim().toLowerCase(); const statusFilter = elements.preorder.statusSelect.value; const mode = state.preorder.displayMode; return state.preorder.allData.filter(item => { const status = normalizeStatus(item[mode === 'detailed' ? 6 : 2]); if (statusFilter !== 'all' && status !== statusFilter) return false; if (mode === 'detailed') return [item[3], item[5], item[7]].some(val => (val || '').toLowerCase().includes(query)); return [item[0], item[1]].some(val => (val || '').toLowerCase().includes(query)); }); }
+  function updatePreorderPagination(currentPage, totalPages) { elements.preorder.prevBtn.disabled = currentPage <= 1; elements.preorder.nextBtn.disabled = currentPage >= totalPages; elements.preorder.pageInfo.textContent = totalPages > 0 ? `Hal ${currentPage} dari ${totalPages}` : ''; }
+  function renderPreorderCards() {
+    const filtered = filterPreorderData();
+    const { perPage } = state.preorder;
+    const { listContainer, total } = elements.preorder;
+    total.textContent = `${state.preorder.allData.length} total pesanan${filtered.length !== state.preorder.allData.length ? `, ${filtered.length} ditemukan` : ''}`;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+    state.preorder.currentPage = Math.min(Math.max(1, state.preorder.currentPage), totalPages);
+    const start = (state.preorder.currentPage - 1) * perPage;
+    const pageData = filtered.slice(start, start + perPage);
+    listContainer.innerHTML = '';
+    if (pageData.length === 0) { listContainer.innerHTML = `<div class="empty"><div class="empty-content"><svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg><p>Tidak Ada Hasil Ditemukan</p></div></div>`; updatePreorderPagination(0, 0); return; }
+    const fragment = document.createDocumentFragment();
+    pageData.forEach(item => {
+      const card = document.createElement('article');
+      if (state.preorder.displayMode === 'detailed') {
+        const [tglOrder, estPengiriman, , product, bulan, name, statusRaw] = item;
+        const status = normalizeStatus(statusRaw);
+        const details = [{ label: 'TGL ORDER', value: tglOrder }, { label: 'BULAN', value: bulan }];
+        const detailsHtml = details.filter(d => d.value && String(d.value).trim()).map(d => `<div class="detail-item"><div class="detail-label">${d.label}</div><div class="detail-value">${d.value}</div></div>`).join('');
+        card.className = `card ${detailsHtml ? 'clickable' : ''}`;
+        card.innerHTML = `<div class="card-header"><div><div class="card-name">${name || 'Tanpa Nama'}</div><div class="card-product">${product || 'N/A'}</div></div><div class="status-badge-wrapper"><div class="status-badge ${status}">${(statusRaw || 'Pending').toUpperCase()}</div>${detailsHtml ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="expand-indicator"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>` : ''}</div></div>${estPengiriman ? `<div class="card-date">Estimasi Pengiriman: ${estPengiriman} 20:00 WIB</div>` : ''}${detailsHtml ? `<div class="card-details"><div class="details-grid">${detailsHtml}</div></div>` : ''}`;
+        if (detailsHtml) card.addEventListener('click', () => card.classList.toggle('expanded'));
+      } else {
+        const [orderNum, product, statusRaw] = item;
+        const status = normalizeStatus(statusRaw);
+        card.className = 'card';
+        card.innerHTML = `<div class="card-header"><div><div class="card-name">${orderNum || 'Tanpa Nomor'}</div><div class="card-product">${product || 'N/A'}</div></div><div class="status-badge ${status}">${(statusRaw || 'Pending').toUpperCase()}</div></div>`;
+      }
+      fragment.appendChild(card);
+    });
+    listContainer.appendChild(fragment);
+    updatePreorderPagination(state.preorder.currentPage, totalPages);
+  }
+  async function fetchPreorderData(sheetName) {
+    if (preorderFetchController) preorderFetchController.abort();
+    preorderFetchController = new AbortController();
+    elements.preorder.total.textContent = 'Memuat data...';
+    showSkeleton(elements.preorder.listContainer, elements.skeletonCardTemplate, 5);
+    state.preorder.displayMode = sheetName === config.sheets.preorder.name1 ? 'detailed' : 'simple';
+    try {
+      const text = await fetchSheetCached(sheetName, 'csv');
+      let rows = robustCsvParser(text);
+      rows.shift();
+      const statusOrder = { progress: 1, pending: 2, success: 3, failed: 4 };
+      const statusIndex = state.preorder.displayMode === 'detailed' ? 6 : 2;
+      state.preorder.allData = rows.filter(row => row && (row[0] || '').trim()).sort((a, b) => statusOrder[normalizeStatus(a[statusIndex])] - statusOrder[normalizeStatus(b[statusIndex])]);
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      state.preorder.allData = [];
+      elements.preorder.total.textContent = 'Gagal memuat data.';
+      console.error('Fetch Pre-Order failed:', e);
+    } finally {
+      state.preorder.currentPage = 1;
+      renderPreorderCards();
+    }
+  }
+  function initializePreorder() {
+    if (state.preorder.initialized) return;
+    const { searchInput, customSelect, prevBtn, nextBtn, customStatusSelect } = elements.preorder;
+    const rebound = () => { state.preorder.currentPage = 1; renderPreorderCards(); };
+    searchInput.addEventListener('input', rebound);
+    customSelect.options.querySelectorAll('.custom-select-option').forEach(option => {
+      option.addEventListener('click', e => {
+        customSelect.value.textContent = e.target.textContent;
+        customSelect.options.querySelector('.selected')?.classList.remove('selected');
+        e.target.classList.add('selected');
+        fetchPreorderData(e.target.dataset.value === '0' ? config.sheets.preorder.name1 : config.sheets.preorder.name2);
+        toggleCustomSelect(customSelect.wrapper, false);
+      });
+    });
+    customStatusSelect.options.querySelectorAll('.custom-select-option').forEach(option => {
+      option.addEventListener('click', e => {
+        customStatusSelect.value.textContent = e.target.textContent;
+        customStatusSelect.options.querySelector('.selected')?.classList.remove('selected');
+        e.target.classList.add('selected');
+        elements.preorder.statusSelect.value = e.target.dataset.value;
+        toggleCustomSelect(customStatusSelect.wrapper, false);
+        rebound();
+      });
+    });
+    prevBtn.addEventListener('click', () => { if (state.preorder.currentPage > 1) { state.preorder.currentPage--; renderPreorderCards(); window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' }); } });
+    nextBtn.addEventListener('click', () => { state.preorder.currentPage++; renderPreorderCards(); window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' }); });
+    fetchPreorderData(config.sheets.preorder.name1);
+    state.preorder.initialized = true;
+  }
+  function populateAccountCategorySelect() {
+    const { customSelect } = elements.accounts;
+    const { options, value } = customSelect;
+    const categories = ['Semua Kategori', 'Mobile Legends', 'Free Fire', 'Roblox', 'PUBG Mobile', 'Clash Of Clans', 'Lainnya'];
+    options.innerHTML = '';
+    value.textContent = state.accounts.activeCategory;
+    categories.forEach((cat) => {
+      const el = document.createElement('div');
+      el.className = 'custom-select-option';
+      el.textContent = cat;
+      el.dataset.value = cat;
+      if (cat === state.accounts.activeCategory) el.classList.add('selected');
+      el.addEventListener('click', () => {
+        value.textContent = cat;
+        document.querySelector('#accountCustomSelectOptions .custom-select-option.selected')?.classList.remove('selected');
+        el.classList.add('selected');
+        toggleCustomSelect(customSelect.wrapper, false);
+        state.accounts.activeCategory = cat;
+        renderAccountCards();
+      });
+      options.appendChild(el);
+    });
+  }
+  async function parseAccountsSheet(text) {
+    const rows = robustCsvParser(text);
+    rows.shift();
+    return rows.filter(row => row && row.length >= 5 && row[0]).map(row => ({
+      id: `acc_${Date.now()}_${Math.random()}`,
+      title: `${row[0] || 'Akun'} (${formatToIdr(Number(row[1]) || 0)})`,
+      category: row[0] || 'Lainnya',
+      price: Number(row[1]) || 0,
+      status: row[2] || 'Tersedia',
+      description: row[3] || 'Tidak ada deskripsi.',
+      images: (row[4] || '').split(',').map(url => url.trim()).filter(Boolean),
+    }));
+  }
+  function renderAccountCards() {
+    const { cardGrid, cardTemplate, empty } = elements.accounts;
+    const filteredAccounts = state.accounts.allData.filter(acc => state.accounts.activeCategory === 'Semua Kategori' || acc.category === state.accounts.activeCategory);
+    cardGrid.innerHTML = '';
+    empty.style.display = filteredAccounts.length === 0 ? 'flex' : 'none';
+    if (filteredAccounts.length === 0) return;
+    const fragment = document.createDocumentFragment();
+    filteredAccounts.forEach(account => {
+      const cardClone = cardTemplate.content.cloneNode(true);
+      const cardElement = cardClone.querySelector('.account-card');
+      const carouselWrapper = cardElement.querySelector('.account-card-carousel-wrapper');
+      if (account.images.length > 0) {
+        const carouselContainer = document.createElement('div');
+        carouselContainer.className = 'carousel-container';
+        const slides = account.images.map(src => `<div class="carousel-slide"><img src="${src}" alt="Gambar detail untuk ${account.category}" loading="lazy"></div>`).join('');
+        const indicators = account.images.map((_, i) => `<button class="indicator-dot" data-index="${i}"></button>`).join('');
+        carouselContainer.innerHTML = `<div class="carousel-track">${slides}</div>${account.images.length > 1 ? `<button class="carousel-btn prev" type="button" aria-label="Gambar sebelumnya" disabled><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg></button><button class="carousel-btn next" type="button" aria-label="Gambar selanjutnya"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></button><div class="carousel-indicators">${indicators}</div>` : ''}`;
+        carouselWrapper.appendChild(carouselContainer);
+      }
+      cardElement.querySelector('h3').textContent = formatToIdr(account.price);
+      const statusBadge = cardElement.querySelector('.account-status-badge');
+      statusBadge.textContent = account.status;
+      statusBadge.className = `account-status-badge ${account.status.toLowerCase() === 'tersedia' ? 'available' : 'sold'}`;
+      const specsContainer = cardElement.querySelector('.account-card-specs');
+      const specsList = document.createElement('ul');
+      specsList.className = 'specs-list';
+      account.description.split('\n').forEach(spec => {
+        const trimmedSpec = spec.trim();
+        if (trimmedSpec === '') { specsList.innerHTML += `<li class="spec-divider"></li>`; }
+        else { const isTitle = ['Spesifikasi Akun', 'Pengaturan Akun', 'Kontak Penjual'].some(title => trimmedSpec.startsWith(title)); specsList.innerHTML += `<li class="${isTitle ? 'spec-title' : 'spec-item'}">${trimmedSpec}</li>`; }
+      });
+      specsContainer.appendChild(specsList);
+      cardElement.querySelector('.action-btn.buy').addEventListener('click', () => openPaymentModal({ title: account.title, price: account.price, catLabel: 'Akun Game' }));
+      cardElement.querySelector('.action-btn.offer').addEventListener('click', () => window.open(`https://wa.me/${config.waNumber}?text=${encodeURIComponent(`Halo, saya tertarik untuk menawar Akun Game: ${account.category} (${formatToIdr(account.price)})`)}`, '_blank', 'noopener'));
+      setupExpandableCard(cardElement, '.account-card-main-info');
+      fragment.appendChild(cardElement);
+    });
+    cardGrid.appendChild(fragment);
+    initializeCarousels(cardGrid);
+  }
+  async function initializeAccounts() {
+    if (state.accounts.initialized) return;
+    state.accounts.initialized = true;
+    const { cardGrid, error, empty } = elements.accounts;
+    error.style.display = 'none'; empty.style.display = 'none';
+    cardGrid.innerHTML = '';
+    try {
+      const accText = await fetchSheetCached(config.sheets.accounts.name, 'csv');
+      state.accounts.allData = await parseAccountsSheet(accText);
+      populateAccountCategorySelect();
+      renderAccountCards();
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.error('Fetch Accounts failed:', err);
+      error.textContent = 'Gagal memuat data akun. Coba lagi nanti.';
+      error.style.display = 'block';
+    }
+  }
+  async function initializeLibrary() {
+    const container = getElement('libraryGridContainer');
+    const errorEl = getElement('libraryError');
+    container.innerHTML = ''; errorEl.style.display = 'none';
+    try {
+      const libText = await fetchSheetCached('Sheet6', 'csv');
+      const rows = robustCsvParser(libText);
+      rows.shift();
+      const books = rows.filter(r => r && r[0]).map(r => ({ title: r[0], coverUrl: r[1], bookUrl: r[2] }));
+      if (!books || books.length === 0) { container.innerHTML = '<div class="empty">Belum ada buku yang ditambahkan.</div>'; return; }
+      const fragment = document.createDocumentFragment();
+      books.forEach(book => {
+        const card = document.createElement('a');
+        card.className = 'book-card';
+        card.href = book.bookUrl;
+        card.target = '_blank';
+        card.rel = 'noopener';
+        card.innerHTML = `<img src="${book.coverUrl}" alt="${book.title}" class="cover" decoding="async" loading="lazy"><div class="overlay"></div><div class="title">${book.title}</div>`;
+        fragment.appendChild(card);
+      });
+      container.appendChild(fragment);
+    } catch (err) {
+      console.error('Failed to load library:', err);
+      errorEl.textContent = 'Gagal memuat perpustakaan. Coba lagi nanti.';
+      errorEl.style.display = 'block';
+    }
+  }
+  async function initializeCarousell() {
+    if (state.carousell.initialized) return;
+    const { gridContainer, error } = elements.carousell;
+    gridContainer.innerHTML = '';
+    error.style.display = 'none';
+    elements.carousell.searchInput = getElement('carousellSearchInput');
+    elements.carousell.total = getElement('carousellTotal');
+    let searchDebounce;
+    elements.carousell.searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => {
+            state.carousell.searchQuery = e.target.value.trim();
+            renderCarousellGrid(state.carousell.allData);
+        }, 200);
+    });
+    try {
+        const carText = await fetchSheetCached(config.sheets.affiliate.name, 'csv');
+        const rows = robustCsvParser(carText);
+        rows.shift();
+        const products = rows.filter(r => r && r[0] && r[3]).map(r => ({
+            name: r[0],
+            price: Number(r[1]) || 0,
+            images: (r[2] || '').split(',').map(url => url.trim()).filter(Boolean),
+            linkUrl: r[3],
+            description: r[4] || 'Klik untuk melihat detail produk.',
+            platform: r[5] || '',
+            productNumber: r[6] || ''
+        }));
+        state.carousell.allData = products;
+        renderCarousellGrid(products);
+    } catch (err) {
+        console.error('Failed to load Carousell products:', err);
+        error.textContent = 'Gagal memuat produk Carousell. Coba lagi nanti.';
+        error.style.display = 'block';
+    } finally {
+        state.carousell.initialized = true;
+    }
+  }
+  function renderCarousellGrid(products) {
+      const container = elements.carousell.gridContainer;
+      const totalEl = elements.carousell.total;
+      const query = state.carousell.searchQuery || '';
+      const filteredProducts = query
+          ? products.filter(p => p.productNumber.includes(query))
+          : products;
+      if (products.length > 0) {
+        totalEl.textContent = `${products.length} total produk${query ? `, ${filteredProducts.length} ditemukan` : ''}`;
+        totalEl.style.display = 'block';
+      } else {
+        totalEl.style.display = 'none';
+      }
+      if (!filteredProducts || filteredProducts.length === 0) {
+          container.innerHTML = '<div class="empty">Belum ada produk di Carousell.</div>';
+          return;
+      }
+      container.innerHTML = '';
+      const fragment = document.createDocumentFragment();
+      filteredProducts.forEach(product => {
+          const card = document.createElement('div');
+          card.className = 'affiliate-card';
+          let imagesHTML = '';
+          if (product.images.length > 0) {
+            const slides = product.images.map(src => `<div class="carousel-slide"><img src="${src}" alt="Gambar produk ${product.name}" loading="lazy"></div>`).join('');
+            const indicators = product.images.map((_, i) => `<button class="indicator-dot" data-index="${i}"></button>`).join('');
+            imagesHTML = `<div class="carousel-container"><div class="carousel-track">${slides}</div>${product.images.length > 1 ? `<button class="carousel-btn prev" type="button" aria-label="Gambar sebelumnya" disabled><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg></button><button class="carousel-btn next" type="button" aria-label="Gambar selanjutnya"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></button><div class="carousel-indicators">${indicators}</div>` : ''}</div>`;
+          } else {
+            imagesHTML = `<div class="affiliate-card-img-container"></div>`;
+          }
+          const platformHTML = product.platform ? `<p class="affiliate-card-platform">${product.platform}</p>` : ''
+          const formattedProductNumber = product.productNumber ? String(product.productNumber).padStart(3, '0') : '';
+          const productNumberHTML = formattedProductNumber ? `<span class="affiliate-card-number">#${formattedProductNumber}</span>` : '';
+          card.innerHTML = `
+            ${productNumberHTML}
+            ${imagesHTML}
+            <div class="affiliate-card-body" role="button" tabindex="0">
+                <div class="affiliate-card-main-info">
+                  <h3 class="affiliate-card-title">${product.name}</h3>
+                  <svg class="expand-indicator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+                </div>
+                ${platformHTML}
+                <p class="affiliate-card-price">${formatToIdr(product.price)}</p>
+                <div class="affiliate-card-details-wrapper">
+                  <div class="affiliate-card-desc">${formatDescriptionToHTML(product.description)}</div>
+                </div>
+                <a href="${product.linkUrl}" target="_blank" rel="noopener" class="affiliate-card-button">Beli Sekarang</a>
+            </div>
+          `;
+          setupExpandableCard(card, '.affiliate-card-body');
+          fragment.appendChild(card);
+      });
+      container.appendChild(fragment);
+      initializeCarousels(container);
+  }
+  function pp_makeNodes(list) {
+    const frag = document.createDocumentFragment();
+    list.forEach(({ name, url }) => {
+      const li = document.createElement('li');
+      li.className = 'testi-item';
+      li.innerHTML = `<figure class="testi-fig"><img src="${url}" alt="Testimoni ${name.replace(/"/g,'&quot;')}" decoding="async" loading="lazy"></figure><figcaption class="testi-caption">&mdash; ${name.replace(/</g,'&lt;')}</figcaption>`;
+      frag.appendChild(li);
+    });
+    return frag;
+  }
+  async function initializeTestimonialMarquee() {
+    const section = document.getElementById('testimonialSection');
+    const marquee = section.querySelector('.testi-marquee');
+    const track = section.querySelector('#testiTrack');
+    if (!marquee || !track) return;
+
+    try {
+      const csv = await fetchSheetCached('Sheet7', 'csv');
+      const rows = robustCsvParser(csv);
+      if (rows.length <= 1) {
+        section.style.display = 'none';
+        return;
+      }
+      const items = rows.slice(1).filter(r => r && r[0] && r[1]).map(r => ({ name: String(r[0]).trim(), url: String(r[1]).trim() }));
+      if (!items.length) {
+        section.style.display = 'none';
+        return;
+      }
+      track.innerHTML = '';
+      track.appendChild(pp_makeNodes(items));
+      track.appendChild(pp_makeNodes(items));
+
+      let pos = 0;
+      let isDragging = false;
+      let startX = 0;
+      let startPos = 0;
+      let animationFrameId;
+
+      // --- Sesuaikan kecepatan di sini ---
+      // Angka lebih besar = lebih cepat. 0.5 adalah kecepatan sedang.
+      const speed = 0.5;
+      // ---------------------------------
+
+      const firstHalfWidth = track.scrollWidth / 2;
+
+      function animate() {
+        if (prefersReducedMotion || document.hidden) { return; }
+        if (!isDragging) {
+          pos -= speed;
+        }
+        if (pos <= -firstHalfWidth) {
+          pos += firstHalfWidth;
+        }
+        track.style.transform = `translateX(${pos}px)`;
+        animationFrameId = requestAnimationFrame(animate);
+      }
+
+      function onDragStart(e) {
+        isDragging = true;
+        marquee.classList.add('is-grabbing');
+        startX = e.pageX || e.touches[0].pageX;
+        startPos = pos;
+        cancelAnimationFrame(animationFrameId);
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('touchmove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('touchend', onDragEnd);
+      }
+
+      function onDragMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const currentX = e.pageX || e.touches[0].pageX;
+        const diff = currentX - startX;
+        pos = startPos + diff;
+        track.style.transform = `translateX(${pos}px)`;
+      }
+
+      function onDragEnd() {
+        isDragging = false;
+        marquee.classList.remove('is-grabbing');
+        // Wrap position
+        const trackWidth = track.scrollWidth / 2;
+        pos = pos % trackWidth;
+
+        animate();
+        window.removeEventListener('mousemove', onDragMove);
+        window.removeEventListener('touchmove', onDragMove);
+        window.removeEventListener('mouseup', onDragEnd);
+        window.removeEventListener('touchend', onDragEnd);
+      }
+
+      marquee.addEventListener('mousedown', onDragStart);
+      document.addEventListener('visibilitychange', ()=>{ if (document.hidden) { cancelAnimationFrame(animationFrameId); } else { animate(); } });
+      marquee.addEventListener('touchstart', onDragStart, { passive: true });
+
+      animate();
+
+    } catch (err) {
+      console.error('Testimonials error:', err);
+      if (section) section.style.display = 'none';
     }
   }
 
-  // Start
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
-  } else {
+  document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
-  }
+    
+    // --- PERUBAHAN DI SINI ---
+    // Hanya jalankan skrip testimoni jika elemennya ada di halaman (yaitu, hanya di index.html)
+    if (document.getElementById('testimonialSection')) {
+      initializeTestimonialMarquee();
+    }
+  });
 })();
