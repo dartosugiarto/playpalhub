@@ -435,7 +435,7 @@ function enhanceCustomSelectKeyboard(wrapper){
       `\u203A Item: ${title}`,           // Menggunakan Unicode Escape
       `\u203A Pembayaran: ${option.name}`, // Menggunakan Unicode Escape
       `\u203A Harga: ${formatToIdr(price)}`, // Menggunakan Unicode Escape
-      `\u203A Fee: ${formatToIdr(fee)}`,     // Menggunakan Unicode Escape
+      `\u203A Fee: ${formatToIdr(fee)}`,     // --- PERBAIKAN DI SINI ---
       `\u203A Total: ${formatToIdr(total)}`, // Menggunakan Unicode Escape
     ].join('\n');
     elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`;
