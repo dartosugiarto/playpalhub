@@ -2,7 +2,7 @@
   color-scheme: light;
   --brand-blue: #5C80BC;
   --brand-blue-rgb: 92, 128, 188;
-  --brand-cta: #EE4D2D; 
+  --brand-cta: #EE4D2D;
   --success: #3dc1d3;
   --warning: #f5cd79;
   --error: #c44569;
@@ -45,12 +45,12 @@ html[data-theme="dark"] {
   color-scheme: dark;
   --brand-blue: #6c95d8; /* Sedikit lebih cerah agar menonjol */
   --brand-blue-rgb: 108, 149, 216;
-  --brand-cta: #EE4D2D; 
+  --brand-cta: #EE4D2D;
   --success: #4cd8e9;
   --warning: #f8d68f;
   --error: #d86687;
   --dark-base: #e9ecf3; /* Kebalikan dari light mode */
-  
+
   --bg-primary: #191e2b;
   --bg-primary-rgb: 25, 30, 43;
   --text-primary: #e9ecf3;
@@ -64,15 +64,26 @@ html[data-theme="dark"] {
   --shadow-focus: 0 0 0 3px rgba(var(--brand-blue-rgb), .4);
 }
 
+/* === LOGIKA TAMPIL/SEMBUNYI IKON DARK MODE (PERBAIKAN) === */
+
+/* 1. Sembunyikan KEDUA ikon secara default di dalam tombol */
 #themeToggleBtn .icon-sun,
-html[data-theme="dark"] #themeToggleBtn .icon-moon {
+#themeToggleBtn .icon-moon {
   display: none;
 }
 
-html[data-theme="dark"] #themeToggleBtn .icon-sun {
-  display: block;
+/* 2. Tampilkan IKON BULAN jika BUKAN dark mode (mode terang/default) */
+html:not([data-theme="dark"]) #themeToggleBtn .icon-moon {
+  display: block; /* atau 'inline'/'inline-block' jika perlu */
 }
+
+/* 3. Tampilkan IKON MATAHARI HANYA jika dark mode aktif */
+html[data-theme="dark"] #themeToggleBtn .icon-sun {
+  display: block; /* atau 'inline'/'inline-block' jika perlu */
+}
+/* === AKHIR PERBAIKAN IKON === */
 /* === AKHIR TAMBAHAN DARK MODE === */
+
 
 * { box-sizing: border-box; }
 html, body { height: 100%; overflow-x: hidden; touch-action: manipulation; }
@@ -108,11 +119,11 @@ body.sidebar-open .page-container { filter: blur(5px); transform: scale(0.99); }
 .header-logo-link { display: flex; align-items: center; gap: var(--sp-fib-4); text-decoration: none; color: var(--text-primary); }
 .header-logo { height: 36px; width: 36px; object-fit: contain; }
 .header-title { font-weight: 800; font-size: 20px; display: none; }
-@media (min-width: 769px) { 
-  .header-title { display: block; } 
-  .account-card-grid { 
+@media (min-width: 769px) {
+  .header-title { display: block; }
+  .account-card-grid {
     grid-template-columns: repeat(2, 1fr); /* Aturan desktop: 2 kolom */
-  } 
+  }
   .affiliate-grid {
     grid-template-columns: repeat(3, 1fr); /* Aturan desktop: 3 kolom */
   }
@@ -288,10 +299,10 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 .price-details p { margin: var(--sp-fib-2) 0; }
 .price-details strong { font-size: 18px; }
 .wa-button { display: block; width: 100%; margin-top: var(--sp-fib-5); padding: var(--sp-fib-4); padding-bottom: max(var(--sp-fib-4), env(safe-area-inset-bottom)); background-color: var(--brand-blue); color: #fff; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; border-radius: var(--radius-fib-small); }
-.library-grid { 
-  display: grid; 
+.library-grid {
+  display: grid;
   grid-template-columns: repeat(3, 1fr); /* Aturan 3 kolom untuk semua ukuran layar */
-  gap: var(--sp-fib-4); 
+  gap: var(--sp-fib-4);
 }
 .book-card { position: relative; border: none; padding: 0; cursor: pointer; border-radius: var(--radius-fib-medium); overflow: hidden; aspect-ratio: 3 / 4; transition: transform var(--duration-fast); }
 .book-card:hover { transform: scale(1.05); }
