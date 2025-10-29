@@ -74,12 +74,12 @@ html[data-theme="dark"] {
 
 /* 2. Tampilkan IKON BULAN jika BUKAN dark mode (mode terang/default) */
 html:not([data-theme="dark"]) #themeToggleBtn .icon-moon {
-  display: block; /* atau 'inline'/'inline-block' jika perlu */
+  display: block;
 }
 
 /* 3. Tampilkan IKON MATAHARI HANYA jika dark mode aktif */
 html[data-theme="dark"] #themeToggleBtn .icon-sun {
-  display: block; /* atau 'inline'/'inline-block' jika perlu */
+  display: block;
 }
 /* === AKHIR PERBAIKAN IKON === */
 /* === AKHIR TAMBAHAN DARK MODE === */
@@ -132,6 +132,14 @@ body.sidebar-open .page-container { filter: blur(5px); transform: scale(0.99); }
 .icon-btn { position: relative; display: grid; place-content: center; width: 44px; height: 44px; background: transparent; border: 1px solid transparent; border-radius: var(--radius-fib-small); color: var(--text-secondary); cursor: pointer; transition: background-color var(--duration-fast), color var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast); }
 .icon-btn:hover { background: var(--surface-secondary); color: var(--brand-blue); }
 .icon-btn:active { transform: scale(0.95); }
+
+/* === PERBAIKAN BAYANGAN KOTAK FOKUS === */
+.icon-btn:focus-visible {
+  box-shadow: none; /* Menghilangkan bayangan kotak biru global */
+  background-color: var(--surface-secondary); /* Menggantinya dengan background halus (sama seperti hover) */
+}
+/* === AKHIR PERBAIKAN === */
+
 .sidebar { position: fixed; top: var(--header-height); right: 0; z-index: 1100; width: var(--sidebar-width); height: calc(100% - var(--header-height)); background-color: var(--surface-primary); border-left: 1px solid var(--separator); padding: var(--sp-fib-5); transform: translateX(100%); transition: transform var(--duration-natural) var(--ease-natural); }
 body.sidebar-open .sidebar { transform: translateX(0); }
 .sidebar-overlay { position: fixed; top: var(--header-height); left: 0; width: 100%; height: calc(100% - var(--header-height)); background-color: rgba(0, 0, 0, 0.5); z-index: 1050; opacity: 0; pointer-events: none; transition: opacity var(--duration-natural); }
@@ -329,7 +337,12 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 .skeleton-badge { width: 90px; height: 28px; background-color: var(--surface-tertiary); border-radius: 999px; }
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 .noscript-warning { padding: var(--sp-fib-4); background: var(--warning); color: var(--dark-base); text-align: center; font-weight: 700; }
-:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--radius-fib-small); }
+/* Global Focus Style (default) */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus); /* Default blue shadow */
+  border-radius: var(--radius-fib-small);
+}
 
 
 /* === Polishing: Sidebar mobile ergonomics === */
