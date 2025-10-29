@@ -39,6 +39,41 @@
   --sidebar-width: 264px;
   --header-height: 60px;
 }
+
+/* === TAMBAHAN: PALET & LOGIKA DARK MODE === */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --brand-blue: #6c95d8; /* Sedikit lebih cerah agar menonjol */
+  --brand-blue-rgb: 108, 149, 216;
+  --brand-cta: #EE4D2D; 
+  --success: #4cd8e9;
+  --warning: #f8d68f;
+  --error: #d86687;
+  --dark-base: #e9ecf3; /* Kebalikan dari light mode */
+  
+  --bg-primary: #191e2b;
+  --bg-primary-rgb: 25, 30, 43;
+  --text-primary: #e9ecf3;
+  --text-secondary: rgba(233, 236, 243, 0.65);
+  --text-tertiary: rgba(233, 236, 243, 0.45);
+  --surface-primary: #222a3c;
+  --surface-secondary: #333d52;
+  --surface-tertiary: #4a5568;
+  --separator: rgba(233, 236, 243, 0.12);
+  --shadow-sm: 0 3px 8px rgba(0, 0, 0, 0.15);
+  --shadow-focus: 0 0 0 3px rgba(var(--brand-blue-rgb), .4);
+}
+
+#themeToggleBtn .icon-sun,
+html[data-theme="dark"] #themeToggleBtn .icon-moon {
+  display: none;
+}
+
+html[data-theme="dark"] #themeToggleBtn .icon-sun {
+  display: block;
+}
+/* === AKHIR TAMBAHAN DARK MODE === */
+
 * { box-sizing: border-box; }
 html, body { height: 100%; overflow-x: hidden; touch-action: manipulation; }
 body {
