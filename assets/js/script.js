@@ -74,12 +74,12 @@ html[data-theme="dark"] {
 
 /* 2. Tampilkan IKON BULAN jika BUKAN dark mode (mode terang/default) */
 html:not([data-theme="dark"]) #themeToggleBtn .icon-moon {
-  display: block; /* atau 'inline'/'inline-block' jika perlu */
+  display: block;
 }
 
 /* 3. Tampilkan IKON MATAHARI HANYA jika dark mode aktif */
 html[data-theme="dark"] #themeToggleBtn .icon-sun {
-  display: block; /* atau 'inline'/'inline-block' jika perlu */
+  display: block;
 }
 /* === AKHIR PERBAIKAN IKON === */
 /* === AKHIR TAMBAHAN DARK MODE === */
@@ -337,7 +337,12 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
 .skeleton-badge { width: 90px; height: 28px; background-color: var(--surface-tertiary); border-radius: 999px; }
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 .noscript-warning { padding: var(--sp-fib-4); background: var(--warning); color: var(--dark-base); text-align: center; font-weight: 700; }
-:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--radius-fib-small); }
+/* Global Focus Style (default) */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus); /* Default blue shadow */
+  border-radius: var(--radius-fib-small);
+}
 
 
 /* === Polishing: Sidebar mobile ergonomics === */
