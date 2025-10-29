@@ -1,5 +1,35 @@
 (function () {
   'use strict';
+
+  // --- TAMBAHAN: LOGIKA DARK MODE ---
+  const THEME_KEY = 'pp_theme';
+  const docHtml = document.documentElement;
+  
+  function getPreferredTheme() {
+    const storedTheme = localStorage.getItem(THEME_KEY);
+    if (storedTheme) return storedTheme;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  
+  function setTheme(theme) {
+    if (theme === 'dark') {
+      docHtml.setAttribute('data-theme', 'dark');
+    } else {
+      docHtml.setAttribute('data-theme', 'light');
+    }
+    localStorage.setItem(THEME_KEY, theme);
+  }
+  
+  function toggleTheme() {
+    const currentTheme = docHtml.getAttribute('data-theme') || getPreferredTheme();
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+  }
+  
+  // Terapkan tema sesegera mungkin untuk mencegah FOUC
+  setTheme(getPreferredTheme());
+  // --- AKHIR TAMBAHAN DARK MODE ---
+
   const config = {
     sheetId: '1B0XPR4uSvRzy9LfzWDjNjwAyMZVtJs6_Kk_r2fh7dTw',
     sheets: {
@@ -56,6 +86,7 @@
       overlay: getElement('sidebarOverlay'),
       burger: getElement('burgerBtn'),
     },
+    themeToggle: getElement('themeToggleBtn'), // <-- TAMBAHKAN INI
     navLinks: document.querySelectorAll('[data-mode]'),
     viewHome: getElement('viewHome'),
     viewPreorder: getElement('viewPreorder'),
@@ -269,6 +300,7 @@ function enhanceCustomSelectKeyboard(wrapper){
   function initializeApp() {
     elements.sidebar.burger?.addEventListener('click', () => toggleSidebar());
     elements.sidebar.overlay?.addEventListener('click', () => toggleSidebar(false));
+    elements.themeToggle?.addEventListener('click', toggleTheme); // <-- TAMBAHKAN INI
 
     // Logika navigasi 'donasi' (link eksternal) masih diperlukan
     elements.navLinks.forEach(link => {
@@ -569,7 +601,7 @@ function enhanceCustomSelectKeyboard(wrapper){
   }
   async function fetchPreorderData(sheetName) {
     if (preorderFetchController) preorderFetchController.abort();
-    preorderFetchController = new AbortController();
+    preorderFetchController = new AbortController(); // <-- INI ADALAH PERBAIKANNYA
     elements.preorder.total.textContent = 'Memuat data...';
     showSkeleton(elements.preorder.listContainer, elements.skeletonCardTemplate, 5);
     state.preorder.displayMode = sheetName === config.sheets.preorder.name1 ? 'detailed' : 'simple';
