@@ -133,10 +133,9 @@ body.sidebar-open .page-container { filter: blur(5px); transform: scale(0.99); }
 .icon-btn:hover { background: var(--surface-secondary); color: var(--brand-blue); }
 .icon-btn:active { transform: scale(0.95); }
 
-/* === PERBAIKAN BAYANGAN KOTAK FOKUS === */
+/* === PERBAIKAN BAYANGAN KOTAK FOKUS (Tanpa Background) === */
 .icon-btn:focus-visible {
-  box-shadow: none; /* Menghilangkan bayangan kotak biru global */
-  background-color: var(--surface-secondary); /* Menggantinya dengan background halus (sama seperti hover) */
+  box-shadow: none; /* Hanya hilangkan shadow */
 }
 /* === AKHIR PERBAIKAN === */
 
