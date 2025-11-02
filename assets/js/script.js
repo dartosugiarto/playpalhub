@@ -49,8 +49,11 @@
       { id: 'qris', name: 'Qris', feeType: 'percentage', value: 0.01 },
     ],
   };
+  
+  const HOME_ITEM_LIMIT = 10; // Batas item per halaman
+
   const state = {
-    home: { activeCategory: '', searchQuery: '' },
+    home: { activeCategory: '', searchQuery: '', itemsToShow: HOME_ITEM_LIMIT }, // MODIFIKASI
     preorder: {
       initialized: false,
       allData: [],
@@ -86,7 +89,7 @@
       overlay: getElement('sidebarOverlay'),
       burger: getElement('burgerBtn'),
     },
-    themeToggle: getElement('themeToggleBtn'), // <-- TAMBAHKAN INI
+    themeToggle: getElement('themeToggleBtn'),
     navLinks: document.querySelectorAll('[data-mode]'),
     viewHome: getElement('viewHome'),
     viewPreorder: getElement('viewPreorder'),
@@ -104,6 +107,8 @@
         value: getElement('homeCustomSelectValue'),
         options: getElement('homeCustomSelectOptions'),
       },
+      showMoreContainer: getElement('homeShowMoreContainer'), // BARU
+      showMoreBtn: getElement('homeShowMoreBtn') // BARU
     },
     headerStatusIndicator: getElement('headerStatusIndicator'),
     itemTemplate: getElement('itemTemplate'),
@@ -176,7 +181,7 @@ async function fetchSheetCached(sheetName, format = 'json'){
   return text;
 }
 
-  function showSkeleton(container, template, count = 6) { container.innerHTML = ''; const fragment = document.createDocumentFragment(); for (let i = 0; i < count; i++) { fragment.appendChild(template.content.cloneNode(true)); } container.appendChild(fragment); }
+  function showSkeleton(container, template, count = 6) { if (!container || !template) return; container.innerHTML = ''; const fragment = document.createDocumentFragment(); for (let i = 0; i < count; i++) { fragment.appendChild(template.content.cloneNode(true)); } container.appendChild(fragment); }
   function toggleCustomSelect(wrapper, forceOpen) { const btn = wrapper.querySelector('.custom-select-btn'); const isOpen = typeof forceOpen === 'boolean' ? forceOpen : !wrapper.classList.contains('open'); wrapper.classList.toggle('open', isOpen); btn.setAttribute('aria-expanded', isOpen); }
 
 function enhanceCustomSelectKeyboard(wrapper){
@@ -210,6 +215,7 @@ function enhanceCustomSelectKeyboard(wrapper){
 
   function robustCsvParser(text) { const normalizedText = text.trim().replace(/\r\n/g, '\n'); const rows = []; let currentRow = []; let currentField = ''; let inQuotedField = false; for (let i = 0; i < normalizedText.length; i++) { const char = normalizedText[i]; if (inQuotedField) { if (char === '"') { if (i + 1 < normalizedText.length && normalizedText[i + 1] === '"') { currentField += '"'; i++; } else { inQuotedField = false; } } else { currentField += char; } } else { if (char === '"') { inQuotedField = true; } else if (char === ',') { currentRow.push(currentField); currentField = ''; } else if (char === '\n') { currentRow.push(currentField); rows.push(currentRow); currentRow = []; currentField = ''; } else { currentField += char; } } } currentRow.push(currentField); rows.push(currentRow); return rows; }
   function initializeCarousels(container) {
+    if (!container) return;
     container.querySelectorAll('.carousel-container').forEach(carouselContainer => {
       const track = carouselContainer.querySelector('.carousel-track');
       const slides = carouselContainer.querySelectorAll('.carousel-slide');
@@ -289,20 +295,21 @@ function enhanceCustomSelectKeyboard(wrapper){
     const options = { timeZone: 'Asia/Jakarta', hour: '2-digit', hour12: false };
     const hour = parseInt(new Intl.DateTimeFormat('en-US', options).format(now), 10);
     const indicator = elements.headerStatusIndicator;
-    if (hour >= 8) {
-      indicator.textContent = 'BUKA';
-      indicator.className = 'status-badge success';
-    } else {
-      indicator.textContent = 'TUTUP';
-      indicator.className = 'status-badge closed';
+    if (indicator) {
+      if (hour >= 8) {
+        indicator.textContent = 'BUKA';
+        indicator.className = 'status-badge success';
+      } else {
+        indicator.textContent = 'TUTUP';
+        indicator.className = 'status-badge closed';
+      }
     }
   }
   function initializeApp() {
     elements.sidebar.burger?.addEventListener('click', () => toggleSidebar());
     elements.sidebar.overlay?.addEventListener('click', () => toggleSidebar(false));
-    elements.themeToggle?.addEventListener('click', toggleTheme); // <-- TAMBAHKAN INI
+    elements.themeToggle?.addEventListener('click', toggleTheme);
 
-    // Logika navigasi 'donasi' (link eksternal) masih diperlukan
     elements.navLinks.forEach(link => {
       link.addEventListener('click', e => {
         if (link.dataset.mode === 'donasi') {
@@ -319,17 +326,20 @@ function enhanceCustomSelectKeyboard(wrapper){
         enhanceCustomSelectKeyboard(select.wrapper);
       });
     
-    // Pastikan elemen ini ada sebelum menambahkan listener
     if (elements.home.searchInput) {
       let homeDebounce;
       elements.home.searchInput.addEventListener('input', e => {
         clearTimeout(homeDebounce);
-        homeDebounce = setTimeout(() => { state.home.searchQuery = e.target.value.trim(); renderHomeList(); }, 200);
+        homeDebounce = setTimeout(() => { 
+          state.home.searchQuery = e.target.value.trim(); 
+          state.home.itemsToShow = HOME_ITEM_LIMIT; // RESET saat mencari
+          renderHomeList(); 
+        }, 200);
       });
     }
 
-    elements.paymentModal.closeBtn.addEventListener('click', closePaymentModal);
-    elements.paymentModal.modal.addEventListener('click', e => { if (e.target === elements.paymentModal.modal) closePaymentModal(); });
+    elements.paymentModal.closeBtn?.addEventListener('click', closePaymentModal);
+    elements.paymentModal.modal?.addEventListener('click', e => { if (e.target === elements.paymentModal.modal) closePaymentModal(); });
     document.addEventListener('keydown', (e)=>{ if (e.key==='Escape'){ [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper].filter(Boolean).forEach(w=>toggleCustomSelect(w,false)); } });
     document.addEventListener('click', (e) => {
       [elements.home.customSelect.wrapper, elements.preorder.customSelect.wrapper, elements.preorder.customStatusSelect.wrapper, elements.accounts.customSelect.wrapper]
@@ -340,6 +350,12 @@ function enhanceCustomSelectKeyboard(wrapper){
     // Inisialisasi berdasarkan halaman saat ini
     if (elements.viewHome) {
       loadCatalog();
+      if (elements.home.showMoreBtn) { // Listener BARU untuk tombol
+        elements.home.showMoreBtn.addEventListener('click', () => {
+          state.home.itemsToShow += HOME_ITEM_LIMIT; // Tambah 10 item lagi
+          renderHomeList(); // Render ulang
+        });
+      }
     }
     if (elements.viewPreorder) {
       initializePreorder();
@@ -356,11 +372,11 @@ function enhanceCustomSelectKeyboard(wrapper){
       initializeCarousell();
     }
     
-    // HAPUS LOGIKA testimonialSection DARI SINI
-
-    elements.headerStatusIndicator.style.display = 'inline-flex';
-    updateHeaderStatus();
-    setInterval(updateHeaderStatus, 60000);
+    if (elements.headerStatusIndicator) {
+      elements.headerStatusIndicator.style.display = 'inline-flex';
+      updateHeaderStatus();
+      setInterval(updateHeaderStatus, 60000);
+    }
     const heroImg = document.querySelector('.home-banner-img');
     if (heroImg){ heroImg.setAttribute('decoding','async'); try{ heroImg.setAttribute('fetchpriority','high'); }catch(e){} }
   }
@@ -371,15 +387,13 @@ function enhanceCustomSelectKeyboard(wrapper){
 
   const body = document.body;
   if (isOpen) {
-    // Lock scroll without causing layout shift
     const y = window.scrollY || window.pageYOffset || 0;
     body.dataset.ppLockY = String(y);
     body.style.position = 'fixed';
-    body.style.top = `-${y}px`;  /* keep visual position */
+    body.style.top = `-${y}px`;
     body.style.width = '100%';
     body.style.overflow = 'hidden';
   } else {
-    // Restore scroll exactly where the user was
     const y = parseInt(body.dataset.ppLockY || '0', 10);
     body.style.position = '';
     body.style.top = '';
@@ -388,10 +402,10 @@ function enhanceCustomSelectKeyboard(wrapper){
     window.scrollTo(0, y);
   }
 }
-  // FUNGSI setMode() SUDAH DIHAPUS
-
   function parseGvizPairs(jsonText) { const match = jsonText.match(/\{.*\}/s); if (!match) throw new Error('Invalid GViz response.'); const obj = JSON.parse(match[0]); const { rows = [], cols = [] } = obj.table || {}; const pairs = Array.from({ length: Math.floor(cols.length / 2) }, (_, i) => ({ iTitle: i * 2, iPrice: i * 2 + 1, label: cols[i * 2]?.label || '', })).filter(p => p.label && cols[p.iPrice]); const out = []; for (const r of rows) { const c = r.c || []; for (const p of pairs) { const title = String(c[p.iTitle]?.v || '').trim(); const priceRaw = c[p.iPrice]?.v; const price = priceRaw != null && priceRaw !== '' ? Number(priceRaw) : NaN; if (title && !isNaN(price)) { out.push({ catKey: p.label, catLabel: String(p.label || '').trim().replace(/\s+/g, ' '), title, price, }); } } } return out; }
+  
   function buildHomeCategorySelect(catalogData) {
+    if (!elements.home.customSelect.options) return;
     const { options, value } = elements.home.customSelect;
     const categoryMap = new Map();
     catalogData.forEach(item => { if (!categoryMap.has(item.catKey)) categoryMap.set(item.catKey, item.catLabel); });
@@ -417,14 +431,73 @@ function enhanceCustomSelectKeyboard(wrapper){
         const url = new URL(window.location);
         url.searchParams.set('kategori', cat.label.toLowerCase().replace(/ /g, '-').replace(/[+&]/g, ''));
         history.pushState({ activeCategory: cat.key }, '', url);
+        
+        state.home.itemsToShow = HOME_ITEM_LIMIT; // RESET saat ganti kategori
         renderHomeList();
       });
       options.appendChild(el);
     });
   }
-  function renderList(container, countInfoEl, items, emptyText) { container.innerHTML = ''; if (items.length === 0) { container.innerHTML = `<div class="empty"><div class="empty-content"><svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg><p>${emptyText}</p></div></div>`; countInfoEl.textContent = ''; return; } const fragment = document.createDocumentFragment(); for (const item of items) { const clone = elements.itemTemplate.content.cloneNode(true); const buttonEl = clone.querySelector('.list-item'); buttonEl.querySelector('.title').textContent = item.title; buttonEl.querySelector('.price').textContent = formatToIdr(item.price); buttonEl.addEventListener('click', () => openPaymentModal(item)); fragment.appendChild(clone); } container.appendChild(fragment); countInfoEl.textContent = `${items.length} item ditemukan`; }
-  function renderHomeList() { const { activeCategory, searchQuery } = state.home; const query = searchQuery.toLowerCase(); const items = allCatalogData.filter(x => x.catKey === activeCategory && (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))); renderList(elements.home.listContainer, elements.home.countInfo, items, 'Tidak ada item ditemukan.'); }
+
+  // === FUNGSI renderHomeList() DI-UPDATE TOTAL ===
+  function renderHomeList() { 
+    if (!elements.home.listContainer) return; // Guard clause
+    const { listContainer, countInfo, showMoreContainer, errorContainer } = elements.home;
+    
+    // Sembunyikan error & tombol "lihat lagi" sebelum render
+    if(errorContainer) errorContainer.style.display = 'none';
+    if (showMoreContainer) showMoreContainer.style.display = 'none';
+
+    const { activeCategory, searchQuery, itemsToShow } = state.home;
+    const query = searchQuery.toLowerCase();
+    
+    // 1. Ambil SEMUA item yang terfilter
+    const allFilteredItems = allCatalogData.filter(x => 
+      x.catKey === activeCategory && 
+      (query === '' || x.title.toLowerCase().includes(query) || String(x.price).includes(query))
+    );
+
+    // 2. Ambil HANYA item yang perlu ditampilkan (sesuai batas)
+    const itemsToDisplay = allFilteredItems.slice(0, itemsToShow);
+    
+    listContainer.innerHTML = ''; // Selalu bersihkan list sebelum render
+
+    if (allFilteredItems.length === 0) {
+      // Tampilkan pesan kosong
+      listContainer.innerHTML = `<div class="empty"><div class="empty-content"><svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg><p>Tidak ada item ditemukan.</p></div></div>`;
+      if(countInfo) countInfo.textContent = '';
+      return;
+    }
+
+    // 3. Render item yang perlu ditampilkan
+    const fragment = document.createDocumentFragment();
+    for (const item of itemsToDisplay) {
+      const clone = elements.itemTemplate.content.cloneNode(true);
+      const buttonEl = clone.querySelector('.list-item');
+      buttonEl.querySelector('.title').textContent = item.title;
+      buttonEl.querySelector('.price').textContent = formatToIdr(item.price);
+      buttonEl.addEventListener('click', () => openPaymentModal(item));
+      fragment.appendChild(clone);
+    }
+    listContainer.appendChild(fragment);
+
+    // 4. Update info jumlah
+    if(countInfo) countInfo.textContent = `${allFilteredItems.length} item ditemukan`;
+
+    // 5. Tampilkan/sembunyikan tombol "Lihat Lebih Banyak"
+    if (showMoreContainer) {
+      if (allFilteredItems.length > itemsToDisplay.length) {
+        // Jika item total > item yang ditampilkan, tunjukkan tombol
+        showMoreContainer.style.display = 'block';
+      } else {
+        // Jika semua item sudah tampil, sembunyikan tombol
+        showMoreContainer.style.display = 'none';
+      }
+    }
+  }
+
   async function loadCatalog() {
+    if (!elements.viewHome) return; // Guard clause
     if (catalogFetchController) catalogFetchController.abort();
     catalogFetchController = new AbortController();
     try {
@@ -433,6 +506,7 @@ function enhanceCustomSelectKeyboard(wrapper){
       const text = await fetchSheetCached(config.sheets.katalog.name, 'json');
       allCatalogData = parseGvizPairs(text);
       if (allCatalogData.length === 0) throw new Error('Data is empty or format is incorrect.');
+      
       const params = new URLSearchParams(window.location.search);
       const categoryFromUrl = params.get('kategori');
       if (categoryFromUrl && (window.location.pathname === '/' || window.location.pathname.endsWith('/index.html'))) {
@@ -444,21 +518,25 @@ function enhanceCustomSelectKeyboard(wrapper){
           const foundKey = urlToCatKeyMap.get(categoryFromUrl);
           if (foundKey) state.home.activeCategory = foundKey;
       }
-      buildHomeCategorySelect(allCatalogData);
-      renderHomeList();
+      
+      buildHomeCategorySelect(allCatalogData); // Ini akan memanggil renderHomeList() secara internal
+      
     } catch (err) {
       if (err.name === 'AbortError') return;
       console.error('Failed to load catalog:', err);
       const view = elements.home;
       view.listContainer.innerHTML = '';
-      view.errorContainer.style.display = 'block';
-      view.errorContainer.textContent = 'Oops, terjadi kesalahan. Silakan coba lagi nanti.';
+      if(view.errorContainer) {
+        view.errorContainer.style.display = 'block';
+        view.errorContainer.textContent = 'Oops, terjadi kesalahan. Silakan coba lagi nanti.';
+      }
     }
   }
+  
   function calculateFee(price, option) { if (option.feeType === 'fixed') return option.value; if (option.feeType === 'percentage') return Math.ceil(price * option.value); return 0; }
 
-  // >>> Perbaikan #1: batasi selector radio ke container payment
   function updatePriceDetails() {
+    if (!elements.paymentModal.optionsContainer) return;
     const selectedOptionId = elements.paymentModal.optionsContainer
       .querySelector('input[name="payment"]:checked')?.value;
     if (!selectedOptionId) return;
@@ -476,22 +554,20 @@ function enhanceCustomSelectKeyboard(wrapper){
     updateWaLink(selectedOption, fee, total);
   }
 
-  // Fungsi updateWaLink menggunakan Unicode Escape \u203A
   function updateWaLink(option, fee, total) {
     const { catLabel = "Produk", title, price } = currentSelectedItem;
     const text = [
       config.waGreeting,
-      `\u203A Tipe: ${catLabel}`,         // Menggunakan Unicode Escape
-      `\u203A Item: ${title}`,           // Menggunakan Unicode Escape
-      `\u203A Pembayaran: ${option.name}`, // Menggunakan Unicode Escape
-      `\u203A Harga: ${formatToIdr(price)}`, // Menggunakan Unicode Escape
-      `\u203A Fee: ${formatToIdr(fee)}`,     // Menggunakan Unicode Escape
-      `\u203A Total: ${formatToIdr(total)}`, // Menggunakan Unicode Escape
+      `\u203A Tipe: ${catLabel}`,
+      `\u203A Item: ${title}`,
+      `\u203A Pembayaran: ${option.name}`,
+      `\u203A Harga: ${formatToIdr(price)}`,
+      `\u203A Fee: ${formatToIdr(fee)}`,
+      `\u203A Total: ${formatToIdr(total)}`,
     ].join('\n');
     elements.paymentModal.waBtn.href = `https://wa.me/${config.waNumber}?text=${encodeURIComponent(text)}`;
   }
 
-  // >>> Perbaikan #2: helper bersihkan text node "D" bila ada
   function removeStrayDs(root) {
     if (!root) return;
     root.querySelectorAll('.payment-option').forEach(opt => {
@@ -515,11 +591,9 @@ function enhanceCustomSelectKeyboard(wrapper){
     itemName.textContent = item.title;
     itemPrice.textContent = formatToIdr(item.price);
 
-    // Bangun opsi payment
     optionsContainer.innerHTML = '';
     config.paymentOptions.forEach((option, index) => {
       const fee = calculateFee(item.price, option);
-      // >>> Perbaikan #3: hapus "D" nyasar pada HTML
       optionsContainer.insertAdjacentHTML(
         'beforeend',
         `
@@ -534,7 +608,6 @@ function enhanceCustomSelectKeyboard(wrapper){
       );
     });
 
-    // Sapu sisa "D" kalau masih ada dari cache lama (aman, hanya di area payment)
     removeStrayDs(optionsContainer);
 
     optionsContainer.querySelectorAll('input[name="payment"]').forEach(input => input.addEventListener('change', updatePriceDetails));
@@ -601,7 +674,7 @@ function enhanceCustomSelectKeyboard(wrapper){
   }
   async function fetchPreorderData(sheetName) {
     if (preorderFetchController) preorderFetchController.abort();
-    preorderFetchController = new AbortController(); // <-- INI ADALAH PERBAIKANNYA
+    preorderFetchController = new AbortController();
     elements.preorder.total.textContent = 'Memuat data...';
     showSkeleton(elements.preorder.listContainer, elements.skeletonCardTemplate, 5);
     state.preorder.displayMode = sheetName === config.sheets.preorder.name1 ? 'detailed' : 'simple';
@@ -623,7 +696,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     }
   }
   function initializePreorder() {
-    if (state.preorder.initialized) return;
+    if (state.preorder.initialized || !elements.viewPreorder) return;
     const { searchInput, customSelect, prevBtn, nextBtn, customStatusSelect } = elements.preorder;
     const rebound = () => { state.preorder.currentPage = 1; renderPreorderCards(); };
     searchInput.addEventListener('input', rebound);
@@ -652,6 +725,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     state.preorder.initialized = true;
   }
   function populateAccountCategorySelect() {
+    if (!elements.accounts.customSelect.options) return;
     const { customSelect } = elements.accounts;
     const { options, value } = customSelect;
     const categories = ['Semua Kategori', 'Mobile Legends', 'Free Fire', 'Roblox', 'PUBG Mobile', 'Clash Of Clans', 'Lainnya'];
@@ -688,6 +762,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     }));
   }
   function renderAccountCards() {
+    if (!elements.accounts.cardGrid) return;
     const { cardGrid, cardTemplate, empty } = elements.accounts;
     const filteredAccounts = state.accounts.allData.filter(acc => state.accounts.activeCategory === 'Semua Kategori' || acc.category === state.accounts.activeCategory);
     cardGrid.innerHTML = '';
@@ -728,7 +803,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     initializeCarousels(cardGrid);
   }
   async function initializeAccounts() {
-    if (state.accounts.initialized) return;
+    if (state.accounts.initialized || !elements.viewAccounts) return;
     state.accounts.initialized = true;
     const { cardGrid, error, empty } = elements.accounts;
     error.style.display = 'none'; empty.style.display = 'none';
@@ -748,6 +823,7 @@ function enhanceCustomSelectKeyboard(wrapper){
   async function initializeLibrary() {
     const container = getElement('libraryGridContainer');
     const errorEl = getElement('libraryError');
+    if (!container || !errorEl) return;
     container.innerHTML = ''; errorEl.style.display = 'none';
     try {
       const libText = await fetchSheetCached('Sheet6', 'csv');
@@ -773,7 +849,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     }
   }
   async function initializeCarousell() {
-    if (state.carousell.initialized) return;
+    if (state.carousell.initialized || !elements.viewCarousell) return;
     const { gridContainer, error } = elements.carousell;
     gridContainer.innerHTML = '';
     error.style.display = 'none';
@@ -811,6 +887,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     }
   }
   function renderCarousellGrid(products) {
+      if (!elements.carousell.gridContainer) return;
       const container = elements.carousell.gridContainer;
       const totalEl = elements.carousell.total;
       const query = state.carousell.searchQuery || '';
@@ -865,117 +942,14 @@ function enhanceCustomSelectKeyboard(wrapper){
       container.appendChild(fragment);
       initializeCarousels(container);
   }
-  function pp_makeNodes(list) {
-    const frag = document.createDocumentFragment();
-    list.forEach(({ name, url }) => {
-      const li = document.createElement('li');
-      li.className = 'testi-item';
-      li.innerHTML = `<figure class="testi-fig"><img src="${url}" alt="Testimoni ${name.replace(/"/g,'&quot;')}" decoding="async" loading="lazy"></figure><figcaption class="testi-caption">&mdash; ${name.replace(/</g,'&lt;')}</figcaption>`;
-      frag.appendChild(li);
-    });
-    return frag;
-  }
-  async function initializeTestimonialMarquee() {
-    const section = document.getElementById('testimonialSection');
-    const marquee = section.querySelector('.testi-marquee');
-    const track = section.querySelector('#testiTrack');
-    if (!marquee || !track) return;
-
-    try {
-      const csv = await fetchSheetCached('Sheet7', 'csv');
-      const rows = robustCsvParser(csv);
-      if (rows.length <= 1) {
-        section.style.display = 'none';
-        return;
-      }
-      const items = rows.slice(1).filter(r => r && r[0] && r[1]).map(r => ({ name: String(r[0]).trim(), url: String(r[1]).trim() }));
-      if (!items.length) {
-        section.style.display = 'none';
-        return;
-      }
-      track.innerHTML = '';
-      track.appendChild(pp_makeNodes(items));
-      track.appendChild(pp_makeNodes(items));
-
-      let pos = 0;
-      let isDragging = false;
-      let startX = 0;
-      let startPos = 0;
-      let animationFrameId;
-
-      // --- Sesuaikan kecepatan di sini ---
-      // Angka lebih besar = lebih cepat. 0.5 adalah kecepatan sedang.
-      const speed = 0.5;
-      // ---------------------------------
-
-      const firstHalfWidth = track.scrollWidth / 2;
-
-      function animate() {
-        if (prefersReducedMotion || document.hidden) { return; }
-        if (!isDragging) {
-          pos -= speed;
-        }
-        if (pos <= -firstHalfWidth) {
-          pos += firstHalfWidth;
-        }
-        track.style.transform = `translateX(${pos}px)`;
-        animationFrameId = requestAnimationFrame(animate);
-      }
-
-      function onDragStart(e) {
-        isDragging = true;
-        marquee.classList.add('is-grabbing');
-        startX = e.pageX || e.touches[0].pageX;
-        startPos = pos;
-        cancelAnimationFrame(animationFrameId);
-        window.addEventListener('mousemove', onDragMove);
-        window.addEventListener('touchmove', onDragMove);
-        window.addEventListener('mouseup', onDragEnd);
-        window.addEventListener('touchend', onDragEnd);
-      }
-
-      function onDragMove(e) {
-        if (!isDragging) return;
-        e.preventDefault();
-        const currentX = e.pageX || e.touches[0].pageX;
-        const diff = currentX - startX;
-        pos = startPos + diff;
-        track.style.transform = `translateX(${pos}px)`;
-      }
-
-      function onDragEnd() {
-        isDragging = false;
-        marquee.classList.remove('is-grabbing');
-        // Wrap position
-        const trackWidth = track.scrollWidth / 2;
-        pos = pos % trackWidth;
-
-        animate();
-        window.removeEventListener('mousemove', onDragMove);
-        window.removeEventListener('touchmove', onDragMove);
-        window.removeEventListener('mouseup', onDragEnd);
-        window.removeEventListener('touchend', onDragEnd);
-      }
-
-      marquee.addEventListener('mousedown', onDragStart);
-      document.addEventListener('visibilitychange', ()=>{ if (document.hidden) { cancelAnimationFrame(animationFrameId); } else { animate(); } });
-      marquee.addEventListener('touchstart', onDragStart, { passive: true });
-
-      animate();
-
-    } catch (err) {
-      console.error('Testimonials error:', err);
-      if (section) section.style.display = 'none';
-    }
-  }
+  
+  // Fungsi testimoni lama sudah tidak dipakai/dihapus
+  // function pp_makeNodes(list) { ... }
+  // async function initializeTestimonialMarquee() { ... }
 
   document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     
-    // --- PERUBAHAN DI SINI ---
-    // Hanya jalankan skrip testimoni jika elemennya ada di halaman (yaitu, hanya di index.html)
-    if (document.getElementById('testimonialSection')) {
-      initializeTestimonialMarquee();
-    }
+    // (Tidak ada pemanggilan testimoni di sini lagi)
   });
 })();
