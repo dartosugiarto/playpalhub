@@ -70,7 +70,6 @@
       font-weight: 800;
     }
 
-    /* CSS BARU UNTUK JUDUL SOSIAL MEDIA */
     .footer-social-title {
       font-size: 14px;
       font-weight: 700;
@@ -98,6 +97,38 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       color: #dc2743; /* Fallback */
+    }
+
+    /* CSS UNTUK TOMBOL "LIHAT LEBIH BANYAK" */
+    .show-more-container {
+      margin-top: var(--sp-fib-5);
+      text-align: center;
+      display: none; /* Sembunyi by default, diatur oleh script.js */
+    }
+    .show-more-container .main-button {
+      width: 100%;
+      max-width: 300px; /* Agar tidak terlalu lebar di desktop */
+      padding: var(--sp-fib-4) var(--sp-fib-5);
+      font-size: 16px; /* Disesuaikan agar pas */
+      font-weight: 700;
+      border-radius: 9999px; /* Bentuk pil */
+      background-color: var(--brand-blue);
+      color: #fff; /* Teks putih di atas tombol biru */
+      border: none;
+      cursor: pointer;
+      transition: background-color var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast);
+      box-shadow: var(--shadow-sm);
+      display: inline-block;
+      text-decoration: none;
+    }
+    .show-more-container .main-button:hover {
+      background-color: var(--brand-blue); /* Anda bisa tambahkan variabel --brand-blue-hover jika ada */
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-focus);
+    }
+    .show-more-container .main-button:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
     }
   </style>
   </head>
@@ -191,6 +222,11 @@
           <div id="homeCountInfo" aria-live="polite"></div>
         </div>
         <section id="homeListContainer" class="list-container" aria-live="polite"></section>
+        
+        <div id="homeShowMoreContainer" class="show-more-container">
+          <button id="homeShowMoreBtn" type="button" class="main-button">Lihat Lebih Banyak</button>
+        </div>
+        
         <section id="homeErrorContainer" class="err" style="display:none"></section>
       </section>
       </main>
