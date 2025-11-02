@@ -53,7 +53,7 @@
   const HOME_ITEM_LIMIT = 10; // Batas item per halaman
 
   const state = {
-    home: { activeCategory: '', searchQuery: '', itemsToShow: HOME_ITEM_LIMIT }, // MODIFIKASI
+    home: { activeCategory: '', searchQuery: '', itemsToShow: HOME_ITEM_LIMIT },
     preorder: {
       initialized: false,
       allData: [],
@@ -107,8 +107,8 @@
         value: getElement('homeCustomSelectValue'),
         options: getElement('homeCustomSelectOptions'),
       },
-      showMoreContainer: getElement('homeShowMoreContainer'), // BARU
-      showMoreBtn: getElement('homeShowMoreBtn') // BARU
+      showMoreContainer: getElement('homeShowMoreContainer'),
+      showMoreBtn: getElement('homeShowMoreBtn')
     },
     headerStatusIndicator: getElement('headerStatusIndicator'),
     itemTemplate: getElement('itemTemplate'),
@@ -496,6 +496,7 @@ function enhanceCustomSelectKeyboard(wrapper){
     }
   }
 
+  // === FUNGSI loadCatalog() DIPERBAIKI ===
   async function loadCatalog() {
     if (!elements.viewHome) return; // Guard clause
     if (catalogFetchController) catalogFetchController.abort();
@@ -519,7 +520,11 @@ function enhanceCustomSelectKeyboard(wrapper){
           if (foundKey) state.home.activeCategory = foundKey;
       }
       
-      buildHomeCategorySelect(allCatalogData); // Ini akan memanggil renderHomeList() secara internal
+      // Langkah 1: Bangun menu dropdown (ini juga akan menetapkan state.home.activeCategory default)
+      buildHomeCategorySelect(allCatalogData); 
+      
+      // Langkah 2 (INI ADALAH PERBAIKANNYA): Render list untuk kategori yang aktif saat itu
+      renderHomeList(); 
       
     } catch (err) {
       if (err.name === 'AbortError') return;
@@ -942,14 +947,8 @@ function enhanceCustomSelectKeyboard(wrapper){
       container.appendChild(fragment);
       initializeCarousels(container);
   }
-  
-  // Fungsi testimoni lama sudah tidak dipakai/dihapus
-  // function pp_makeNodes(list) { ... }
-  // async function initializeTestimonialMarquee() { ... }
 
   document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
-    
-    // (Tidak ada pemanggilan testimoni di sini lagi)
   });
 })();
