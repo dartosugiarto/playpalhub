@@ -353,3 +353,76 @@ body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
   flex: 1; min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+
+/* --- (MULAI) STYLES UNTUK TESTIMONI PAGE --- */
+
+/* Keyframes untuk animasi fade-in */
+@keyframes testiFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.testimoni-grid {
+  display: grid;
+  /* Mobile: 2 kolom */
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-fib-4); /* 13px gap */
+  margin-top: var(--sp-fib-5); /* Jarak 21px dari header di atasnya */
+}
+
+/* Tablet: 3 kolom */
+@media (min-width: 600px) {
+  .testimoni-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-fib-5); /* 21px gap */
+  }
+}
+
+/* Desktop: 4 kolom (sesuai permintaan) */
+@media (min-width: 900px) {
+  .testimoni-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.testi-fig {
+  margin: 0;
+  background: var(--surface-secondary);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-fib-medium);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+  
+  /* Terapkan animasi */
+  animation: testiFadeIn 0.5s var(--ease-natural) both;
+}
+
+/* Animasi staggered (bertahap) untuk 8 item pertama */
+.testimoni-grid .testi-fig:nth-child(1) { animation-delay: 0.05s; }
+.testimoni-grid .testi-fig:nth-child(2) { animation-delay: 0.1s; }
+.testimoni-grid .testi-fig:nth-child(3) { animation-delay: 0.15s; }
+.testimoni-grid .testi-fig:nth-child(4) { animation-delay: 0.2s; }
+.testimoni-grid .testi-fig:nth-child(5) { animation-delay: 0.25s; }
+.testimoni-grid .testi-fig:nth-child(6) { animation-delay: 0.3s; }
+.testimoni-grid .testi-fig:nth-child(7) { animation-delay: 0.35s; }
+.testimoni-grid .testi-fig:nth-child(8) { animation-delay: 0.4s; }
+
+
+.testi-fig:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 13px rgba(var(--dark-base), 0.12);
+}
+
+.testi-fig img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+/* --- (AKHIR) STYLES UNTUK TESTIMONI PAGE --- */
