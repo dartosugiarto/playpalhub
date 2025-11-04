@@ -9,16 +9,380 @@
   <link rel="apple-touch-icon" href="/assets/images/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/style.css">
   <script src="/assets/js/script.js" defer></script>
+  <style>
+    /* === VARIABLES - Light & Dark Mode === */
+    :root {
+      --primary: #5b8fd8;
+      --primary-hover: #4a7bc4;
+      --bg-card: #ffffff;
+      --bg-body: #f8f9fa;
+      --border: #e5e7eb;
+      --text-primary: #1a1a1a;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Dark Mode Colors */
+    [data-theme="dark"],
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --primary: #6b9fe8;
+        --primary-hover: #5a8ed9;
+        --bg-card: #1e1e1e;
+        --bg-body: #121212;
+        --border: #2d2d2d;
+        --text-primary: #f5f5f5;
+        --text-secondary: #b4b4b4;
+        --text-tertiary: #888888;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    /* === RESET === */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* === GRID LAYOUT - SIMPLE & RELIABLE === */
+    .carousell-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 32px;
+    }
+
+    /* === PRODUCT CARD - SIMPLE STRUCTURE === */
+    .product-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      /* Simple display block - no flex/grid complexity */
+      display: block;
+    }
+
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--primary);
+    }
+
+    /* === IMAGE - SIMPLE SQUARE === */
+    .product-image-wrapper {
+      position: relative;
+      width: 100%;
+      height: 0;
+      padding-bottom: 100%; /* 1:1 ratio */
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+      overflow: hidden;
+    }
+
+    [data-theme="dark"] .product-image-wrapper,
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .product-image-wrapper {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+      }
+    }
+
+    .product-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* === BADGE === */
+    .product-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.4;
+      text-transform: uppercase;
+      border-radius: 8px;
+      z-index: 10;
+    }
+
+    /* === CONTENT - FIXED HEIGHTS === */
+    .product-content {
+      padding: 16px;
+    }
+
+    .product-category {
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      /* Fixed 1 line */
+      height: 15px;
+      overflow: hidden;
+    }
+
+    .product-title {
+      font-size: 14px;
+      line-height: 1.4;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      /* Fixed 2 lines */
+      height: 39px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    /* === FOOTER - SIMPLE LAYOUT === */
+    .product-footer {
+      padding: 0 16px 16px;
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    .product-footer-inner {
+      display: table-row;
+    }
+
+    .product-price-cell {
+      display: table-cell;
+      vertical-align: middle;
+      width: 50%;
+    }
+
+    .product-button-cell {
+      display: table-cell;
+      vertical-align: middle;
+      width: 50%;
+      text-align: right;
+    }
+
+    .product-price {
+      font-size: 18px;
+      line-height: 1;
+      font-weight: 700;
+      color: #dc143c;
+      display: inline-block;
+    }
+
+    [data-theme="dark"] .product-price,
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .product-price {
+        color: #ff6b6b;
+      }
+    }
+
+    /* === BUTTON - SIMPLE === */
+    .product-button {
+      height: 36px;
+      padding: 0 18px;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 18px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: inline-block;
+      line-height: 36px;
+      text-align: center;
+    }
+
+    .product-button:hover {
+      background: var(--primary-hover);
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 1024px) {
+      .carousell-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .carousell-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
+
+    /* === SKELETON === */
+    .skeleton-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: block;
+    }
+
+    .skeleton-image {
+      width: 100%;
+      height: 0;
+      padding-bottom: 100%;
+      background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.04) 0%,
+        rgba(0, 0, 0, 0.08) 50%,
+        rgba(0, 0, 0, 0.04) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    [data-theme="dark"] .skeleton-image,
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .skeleton-image {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          rgba(255, 255, 255, 0.1) 50%,
+          rgba(255, 255, 255, 0.05) 100%
+        );
+      }
+    }
+
+    .skeleton-content {
+      padding: 16px;
+    }
+
+    .skeleton-line {
+      height: 12px;
+      background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.04) 0%,
+        rgba(0, 0, 0, 0.08) 50%,
+        rgba(0, 0, 0, 0.04) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    [data-theme="dark"] .skeleton-line,
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .skeleton-line {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          rgba(255, 255, 255, 0.1) 50%,
+          rgba(255, 255, 255, 0.05) 100%
+        );
+      }
+    }
+
+    .skeleton-line:nth-child(1) { width: 40%; height: 10px; }
+    .skeleton-line:nth-child(2) { width: 90%; height: 14px; }
+    .skeleton-line:nth-child(3) { width: 85%; height: 14px; }
+
+    .skeleton-footer {
+      padding: 0 16px 16px;
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    .skeleton-footer-inner {
+      display: table-row;
+    }
+
+    .skeleton-price-cell {
+      display: table-cell;
+      vertical-align: middle;
+      width: 50%;
+    }
+
+    .skeleton-button-cell {
+      display: table-cell;
+      vertical-align: middle;
+      width: 50%;
+      text-align: right;
+    }
+
+    .skeleton-price-box {
+      width: 80px;
+      height: 24px;
+      background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.04) 0%,
+        rgba(0, 0, 0, 0.08) 50%,
+        rgba(0, 0, 0, 0.04) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    [data-theme="dark"] .skeleton-price-box,
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .skeleton-price-box {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          rgba(255, 255, 255, 0.1) 50%,
+          rgba(255, 255, 255, 0.05) 100%
+        );
+      }
+    }
+
+    .skeleton-button-box {
+      width: 100px;
+      height: 36px;
+      background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.04) 0%,
+        rgba(0, 0, 0, 0.08) 50%,
+        rgba(0, 0, 0, 0.04) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 18px;
+      display: inline-block;
+    }
+
+    [data-theme="dark"] .skeleton-button-box,
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .skeleton-button-box {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          rgba(255, 255, 255, 0.1) 50%,
+          rgba(255, 255, 255, 0.05) 100%
+        );
+      }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+  </style>
 </head>
 <body>
-  <noscript>
-    <div class="noscript-warning">
-      Website ini membutuhkan JavaScript untuk berfungsi sepenuhnya. Silakan aktifkan JavaScript di browser Anda.
-    </div>
-  </noscript>
   <header class="main-header">
     <div class="header-content">
         <a href="/" class="header-logo-link">
@@ -41,6 +405,7 @@
         </div>
     </div>
   </header>
+
   <aside class="sidebar" id="sidebarNav">
     <nav class="sidebar-nav">
       <a href="/" class="nav-item">
@@ -74,72 +439,79 @@
       </a>
     </nav>
   </aside>
+
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
   <div class="page-container" id="pageContainer">
     <main class="wrap">
-      
       <section id="viewCarousell" class="view-section active" aria-label="Carousell">
         <header class="page-title-header">
           <h1>Carousell</h1>
           <p class="page-subtitle">Temukan berbagai produk pilihan terbaik di sini.</p>
         </header>
+        
         <div class="head-block">
           <div class="search-row">
             <div class="search-wrap">
-              <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
-              <input id="carousellSearchInput" type="search" class="search-input" placeholder="Cari berdasarkan nomor produk..." />
+              <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+              <input id="carousellSearchInput" type="search" class="search-input" placeholder="Cari produk..." />
             </div>
           </div>
           <div id="carousellTotal" class="meta"></div>
         </div>
-        <div id="carousellGridContainer" class="affiliate-grid"></div>
+
+        <div id="carousellGridContainer" class="carousell-grid"></div>
         <div id="carousellError" class="err" style="display:none"></div>
       </section>
-      </main>
+    </main>
   </div>
-  <template id="itemTemplate">
-    <button type="button" class="list-item">
-      <span class="title"></span>
-      <span class="price"></span>
-    </button>
-  </template>
-  <template id="skeletonItemTemplate">
-    <div class="list-item skeleton">
-      <span class="skeleton-text" style="width: 60%;"></span>
-      <span class="skeleton-text" style="width: 25%;"></span>
-    </div>
-  </template>
-  <template id="skeletonCardTemplate">
-    <div class="card skeleton">
-      <div class="card-header">
-        <div>
-          <div class="skeleton-text" style="width: 50%; height: 18px; margin-bottom: 8px;"></div>
-          <div class="skeleton-text" style="width: 75%; height: 14px;"></div>
-        </div>
-        <div class="skeleton-badge"></div>
+
+  <template id="productCardTemplate">
+    <article class="product-card">
+      <div class="product-image-wrapper">
+        <span class="product-badge">#009</span>
+        <img class="product-image" src="" alt="" loading="lazy">
       </div>
-      <div class="skeleton-text" style="width: 65%; height: 12px; margin-top: 10px;"></div>
-    </div>
-  </template>
-  <template id="accountCardTemplate">
-    <article class="account-card">
-      <div class="account-card-carousel-wrapper"></div>
-      <div class="account-card-main-info" role="button" tabindex="0">
-        <h3>Harga Akun</h3>
-        <div class="status-wrapper">
-          <span class="account-status-badge"></span>
-          <svg class="expand-indicator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
-        </div>
+      <div class="product-content">
+        <div class="product-category">Shopee</div>
+        <h3 class="product-title"></h3>
       </div>
-      <div class="account-card-details-wrapper">
-        <div class="account-card-specs"></div>
-        <div class="account-card-actions">
-          <button type="button" class="action-btn buy">Beli Sekarang</button>
-          <button type="button" class="action-btn offer">Tawar Harga</button>
+      <div class="product-footer">
+        <div class="product-footer-inner">
+          <div class="product-price-cell">
+            <span class="product-price"></span>
+          </div>
+          <div class="product-button-cell">
+            <button type="button" class="product-button">Beli Sekarang</button>
+          </div>
         </div>
       </div>
     </article>
   </template>
+
+  <template id="skeletonCardTemplate">
+    <div class="skeleton-card">
+      <div class="skeleton-image"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line"></div>
+      </div>
+      <div class="skeleton-footer">
+        <div class="skeleton-footer-inner">
+          <div class="skeleton-price-cell">
+            <div class="skeleton-price-box"></div>
+          </div>
+          <div class="skeleton-button-cell">
+            <div class="skeleton-button-box"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
   <div id="paymentModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
@@ -166,11 +538,13 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const header = document.querySelector('.main-header');
+      
       function updateHeaderHeight() {
         if (header) {
           document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
         }
       }
+      
       updateHeaderHeight();
       window.addEventListener('resize', updateHeaderHeight);
     });
